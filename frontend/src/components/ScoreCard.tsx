@@ -1,0 +1,321 @@
+import { useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, Footprints, Shield, Volume2, Sparkles, Hospital, GraduationCap, Train, Car, Package, Wind, Droplets, Zap, Waves, Building2, Construction, TrendingUp, Briefcase } from 'lucide-react';
+import ScoreRing from './ScoreRing';
+import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import type { ScoreResult, TransitScoreResult, BuilderScoreResult, TransitDetail } from '../types';
+
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>> = {
+  walk: Footprints, shield: Shield, volume: Volume2, sparkles: Sparkles,
+  hospital: Hospital, school: GraduationCap, train: Train, car: Car,
+  package: Package, wind: Wind, droplets: Droplets, zap: Zap, waves: Waves,
+  building: Building2, construction: Construction, trending: TrendingUp, briefcase: Briefcase,
+};
+
+interface Props {
+  title: string;
+  icon: string;
+  result: ScoreResult | TransitScoreResult | BuilderScoreResult;
+  freshness?: string | null;
+  compact?: boolean;
+}
+
+function getScoreColor(score: number) {
+  if (score >= 75) return '#34d399';
+  if (score >= 60) return '#4ade80';
+  if (score >= 40) return '#fbbf24';
+  if (score >= 25) return '#fb923c';
+  return '#f87171';
+}
+
+function scoreBadgeVariant(score: number): "success" | "info" | "warning" | "destructive" {
+  if (score >= 75) return 'success';
+  if (score >= 60) return 'info';
+  if (score >= 40) return 'warning';
+  return 'destructive';
+}
+
+function fmtDuration(mins: number): string {
+  const m = Math.round(mins);
+  if (m >= 60) {
+    const h = Math.floor(m / 60);
+    const rem = m % 60;
+    return rem > 0 ? `${h}h ${rem}m` : `${h}h`;
+  }
+  return `${m} min`;
+}
+
+function TransitRow({ detail, icon }: { detail: TransitDetail; icon: string }) {
+  const isDrive = detail.recommended_mode === 'drive/ride';
+  return (
+    <div className="rounded-lg bg-white/[0.05] border border-white/[0.08] px-3 py-2 text-xs space-y-1.5">
+      <div className="flex justify-between items-center">
+        <span className="text-white/90 font-medium">{icon} {detail.name}</span>
+        <Badge variant={detail.recommended_mode === 'walk' ? 'success' : 'info'} className="text-[9px]">
+          {detail.recommended_mode === 'walk' ? 'Walkable' : 'Drive/Ride'}
+        </Badge>
+      </div>
+      {isDrive && detail.drive_offpeak_minutes != null ? (
+        <div className="space-y-0.5">
+          <div className="flex justify-between">
+            <span className="text-white/70">By car ({Math.round(detail.drive_km!)} km)</span>
+            <span className="text-emerald-400 font-semibold">~{fmtDuration(detail.drive_offpeak_minutes)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-white/50">Peak</span>
+            <span className="text-red-400 font-semibold">~{fmtDuration(detail.drive_peak_minutes!)}</span>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-0.5">
+          <div className="flex justify-between">
+            <span className="text-white/70">Walk: {Math.round((detail.actual_walk_km ?? 0) * 10) / 10} km</span>
+            <span className="text-emerald-400 font-semibold">~{fmtDuration(detail.walk_minutes)}</span>
+          </div>
+          {detail.marketing_claim_minutes != null && detail.walk_minutes > detail.marketing_claim_minutes && (
+            <div className="flex justify-between text-[11px]">
+              <span className="text-white/60">Ads claim <span className="text-brand-9 font-medium">"~{Math.round(detail.marketing_claim_minutes)} min"</span></span>
+              <span className="text-red-400 font-medium">+{Math.round(detail.walk_minutes - detail.marketing_claim_minutes)} min longer</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function ScoreCard({ title, icon, result, freshness, compact }: Props) {
+  const [expanded, setExpanded] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const cardRef = useRef<HTMLDivElement>(null);
+  const Icon = ICON_MAP[icon] || Sparkles;
+  const transitResult = 'nearest_metro' in result ? result as TransitScoreResult : null;
+  const builderResult = 'builders' in result ? result as BuilderScoreResult : null;
+  const color = getScoreColor(result.score);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    setTilt({
+      x: (y - 0.5) * -8,
+      y: (x - 0.5) * 8,
+    });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTilt({ x: 0, y: 0 });
+  }, []);
+
+  const handleClick = useCallback(() => {
+    if (!expanded) {
+      setProcessing(true);
+      setTimeout(() => {
+        setProcessing(false);
+        setExpanded(true);
+      }, 400);
+    } else {
+      setExpanded(false);
+    }
+  }, [expanded]);
+
+  const ringDisplay = (() => {
+    if (icon === 'wind' && result.breakdown.weighted_aqi != null) {
+      return `${Math.round(Number(result.breakdown.weighted_aqi))}`;
+    }
+    if (icon === 'volume' && result.breakdown.avg_noise_db_estimate != null) {
+      return `${Math.round(Number(result.breakdown.avg_noise_db_estimate))}`;
+    }
+    return undefined;
+  })();
+
+  if (compact) {
+    return (
+      <Collapsible open={expanded} onOpenChange={setExpanded}>
+        <motion.div
+          ref={cardRef}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          animate={{
+            rotateX: tilt.x,
+            rotateY: tilt.y,
+          }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          style={{
+            transformStyle: 'preserve-3d',
+            perspective: '800px',
+          }}
+          className="rounded-xl bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.10] hover:border-brand-9/20 transition-colors duration-300 overflow-hidden relative"
+        >
+          {/* Hover glow */}
+          <div
+            className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+            style={{
+              background: `radial-gradient(circle at ${(tilt.y / 8 + 0.5) * 100}% ${(-tilt.x / 8 + 0.5) * 100}%, rgba(42,213,135,0.06), transparent 60%)`,
+            }}
+          />
+
+          <CollapsibleTrigger asChild>
+            <div className="px-4 py-3.5 flex items-center gap-3 cursor-pointer relative" onClick={handleClick}>
+              <motion.div
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: color + '20', transform: 'translateZ(20px)' }}
+                whileHover={{ scale: 1.15, rotate: 5 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+              >
+                {processing ? (
+                  <div className="w-4 h-0.5 rounded-full bg-white/10 overflow-hidden">
+                    <div className="h-full w-[200%] bg-gradient-to-r from-transparent to-transparent" style={{ backgroundColor: color, animation: 'score-slide 0.8s linear infinite' }} />
+                    <style>{`@keyframes score-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }`}</style>
+                  </div>
+                ) : (
+                  <Icon size={15} style={{ color }} />
+                )}
+              </motion.div>
+              <div className="flex-1 min-w-0" style={{ transform: 'translateZ(10px)' }}>
+                <div className="flex items-center gap-1.5">
+                  <h4 className="text-sm font-semibold text-white truncate">{title}</h4>
+                  {result.data_confidence === 'low' && (
+                    <Badge variant="warning" className="text-[9px]">Low data</Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <Badge variant={scoreBadgeVariant(result.score)} className="text-[10px]">{result.label}</Badge>
+                  {freshness && <span className="text-[11px] text-white/70">{freshness}</span>}
+                </div>
+              </div>
+              {ringDisplay ? (
+                <div className="text-right flex-shrink-0" style={{ transform: 'translateZ(15px)' }}>
+                  <span className="font-mono font-bold text-base" style={{ color }}>{ringDisplay}</span>
+                  <span className="text-[10px] ml-0.5" style={{ color }}>{icon === 'wind' ? 'AQI' : 'dB'}</span>
+                </div>
+              ) : (
+                <div style={{ transform: 'translateZ(15px)' }}>
+                  <ScoreRing score={result.score} size={42} strokeWidth={3.5} showLabel={true} animated={false} />
+                </div>
+              )}
+              <div className="flex items-center gap-1 text-brand-9" style={{ transform: 'translateZ(5px)' }}>
+                <AnimatePresence mode="wait">
+                  {processing ? (
+                    <motion.span
+                      key="proc"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="text-[10px] text-brand-9/70"
+                    >
+                      Loading...
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      key="label"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="text-[11px]"
+                    >
+                      {expanded ? '' : 'Details'}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                  <ChevronDown size={13} />
+                </motion.div>
+              </div>
+            </div>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+              className="px-4 pb-4 border-t border-white/[0.08] pt-3 space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin"
+            >
+              <div className="space-y-1.5">
+                {Object.entries(result.breakdown).map(([key, val]) => {
+                  if (val == null || typeof val === 'object') return null;
+                  let display = String(val);
+                  const k = key.toLowerCase();
+                  if (typeof val === 'number') {
+                    const raw = val % 1 === 0 ? String(val) : val.toFixed(1);
+                    if (k.includes('pct')) display = `${raw}%`;
+                    else if (k.endsWith('_km')) display = `${raw} km`;
+                    else if (k.endsWith('_min') || k.includes('minutes')) {
+                      const mins = Number(raw);
+                      if (mins >= 60) {
+                        const h = Math.floor(mins / 60);
+                        const m = Math.round(mins % 60);
+                        display = m > 0 ? `${h}h ${m}m` : `${h}h`;
+                      } else {
+                        display = `${raw} min`;
+                      }
+                    }
+                    else if (k.includes('lakh')) display = `₹${raw}L`;
+                    else if (k.includes('_rs') || k.includes('rent') || k.includes('price') || k.includes('emi') || k.includes('maintenance')) display = `₹${Number(raw).toLocaleString('en-IN')}`;
+                    else display = raw;
+                  }
+                  if (typeof val === 'boolean') display = val ? 'Yes' : 'No';
+                  return (
+                    <div key={key} className="flex justify-between text-xs">
+                      <span className="text-white/70">{key.replace(/_/g, ' ')}</span>
+                      <span className="text-white font-mono font-medium">{display}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {transitResult && (
+                <div className="space-y-2">
+                  <p className="text-[11px] text-white/60 uppercase tracking-widest font-semibold">Nearest Transit</p>
+                  {transitResult.nearest_metro && <TransitRow detail={transitResult.nearest_metro} icon="🚇" />}
+                  {transitResult.nearest_bus_stop && <TransitRow detail={transitResult.nearest_bus_stop} icon="🚌" />}
+                  {transitResult.nearest_train && <TransitRow detail={transitResult.nearest_train} icon="🚆" />}
+
+                  <p className="text-[11px] text-white/60 uppercase tracking-widest font-semibold pt-1">Key Hubs</p>
+                  {transitResult.airport && <TransitRow detail={transitResult.airport} icon="✈️" />}
+                  {transitResult.majestic && <TransitRow detail={transitResult.majestic} icon="🚏" />}
+                  {transitResult.city_railway && <TransitRow detail={transitResult.city_railway} icon="🚉" />}
+                </div>
+              )}
+
+              {builderResult && builderResult.builders.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] text-white/60 uppercase tracking-widest font-semibold">Builders</p>
+                  {builderResult.builders.slice(0, 5).map((b) => (
+                    <div key={b.name} className="flex items-center justify-between text-xs rounded-lg bg-white/[0.05] border border-white/[0.08] px-3 py-2">
+                      <span className="text-white/90">{b.name}</span>
+                      <span className="font-mono font-semibold" style={{ color: getScoreColor(b.score) }}>{b.score}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {result.details.length > 0 && !builderResult && (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] text-white/60 uppercase tracking-widest font-semibold">Nearby</p>
+                  {result.details.slice(0, 5).map((d, i) => (
+                    <div key={i} className="rounded-lg bg-white/[0.05] border border-white/[0.08] px-3 py-2 flex justify-between text-xs">
+                      <span className="text-white/90 truncate mr-2">{d.name}</span>
+                      <span className="text-white/90 whitespace-nowrap font-mono">{d.distance_km} km</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div>
+                <p className="text-[10px] text-white/50 uppercase tracking-widest font-semibold mb-0.5">Sources</p>
+                <p className="text-[10px] text-white/50">{result.sources.join(' · ')}</p>
+              </div>
+            </motion.div>
+          </CollapsibleContent>
+        </motion.div>
+      </Collapsible>
+    );
+  }
+
+  return null;
+}

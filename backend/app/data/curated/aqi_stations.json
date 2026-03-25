@@ -1,0 +1,22 @@
+{
+  "source": "CPCB Air Quality Monitoring Network, data.opencity.in - Bengaluru Hourly Air Quality Reports (CC BY 4.0), smartoneblr.com AQI API",
+  "updated": "2025-03",
+  "license": "CC BY 4.0 / Public government data",
+  "methodology": "AQI values are annual averages from CPCB continuous monitoring stations. PM2.5 and PM10 are primary pollutants. AQI categories: Good (0-50), Satisfactory (51-100), Moderate (101-200), Poor (201-300), Very Poor (301-400), Severe (400+).",
+  "stations": [
+    {"name": "BTM Layout CPCB", "latitude": 12.9128, "longitude": 77.6171, "avg_aqi": 89, "primary_pollutant": "PM2.5", "area": "BTM Layout"},
+    {"name": "Jayanagar 5th Block", "latitude": 12.9250, "longitude": 77.5830, "avg_aqi": 72, "primary_pollutant": "PM10", "area": "Jayanagar"},
+    {"name": "Hebbal", "latitude": 13.0358, "longitude": 77.5970, "avg_aqi": 95, "primary_pollutant": "PM2.5", "area": "Hebbal"},
+    {"name": "Peenya", "latitude": 13.0280, "longitude": 77.5200, "avg_aqi": 128, "primary_pollutant": "PM2.5", "area": "Peenya"},
+    {"name": "Silk Board Junction", "latitude": 12.9170, "longitude": 77.6230, "avg_aqi": 112, "primary_pollutant": "PM2.5", "area": "Silk Board"},
+    {"name": "Bapuji Nagar", "latitude": 12.9500, "longitude": 77.5720, "avg_aqi": 78, "primary_pollutant": "PM10", "area": "Basavanagudi"},
+    {"name": "BWSSB Kadabeesanahalli", "latitude": 12.9360, "longitude": 77.6890, "avg_aqi": 85, "primary_pollutant": "PM2.5", "area": "Bellandur"},
+    {"name": "City Railway Station", "latitude": 12.9783, "longitude": 77.5694, "avg_aqi": 105, "primary_pollutant": "PM2.5", "area": "Majestic"},
+    {"name": "Hombegowda Nagar", "latitude": 12.9430, "longitude": 77.5960, "avg_aqi": 80, "primary_pollutant": "PM10", "area": "Wilson Garden"},
+    {"name": "Kasturi Nagar", "latitude": 13.0020, "longitude": 77.6580, "avg_aqi": 76, "primary_pollutant": "PM10", "area": "Kasturi Nagar"},
+    {"name": "RVCE Mailasandra", "latitude": 12.9230, "longitude": 77.4980, "avg_aqi": 68, "primary_pollutant": "PM10", "area": "RV College"},
+    {"name": "Sanegurava Halli", "latitude": 12.9910, "longitude": 77.5450, "avg_aqi": 92, "primary_pollutant": "PM2.5", "area": "Yeshwanthpur"},
+    {"name": "Jigani", "latitude": 12.7780, "longitude": 77.6380, "avg_aqi": 110, "primary_pollutant": "PM2.5", "area": "Jigani Industrial"},
+    {"name": "Shivapura Peenya", "latitude": 13.0420, "longitude": 77.5100, "avg_aqi": 135, "primary_pollutant": "PM2.5", "area": "Peenya Industrial"}
+  ]
+}

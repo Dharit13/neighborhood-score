@@ -1,0 +1,25 @@
+{
+  "source": "Wikipedia - Bengaluru Suburban Railway, Indian Railways, OpenStreetMap",
+  "updated": "2025-03",
+  "license": "Public data",
+  "stations": [
+    {"name": "KSR Bengaluru City Junction (SBC)", "type": "major", "latitude": 12.9783, "longitude": 77.5694},
+    {"name": "Bengaluru Cantonment (BNC)", "type": "major", "latitude": 12.9991, "longitude": 77.5965},
+    {"name": "Yeshwantpur Junction (YPR)", "type": "major", "latitude": 13.0284, "longitude": 77.5500},
+    {"name": "Baiyappanahalli (BYPL)", "type": "suburban", "latitude": 12.9912, "longitude": 77.6523},
+    {"name": "Krishnarajapuram (KJM)", "type": "suburban", "latitude": 13.0020, "longitude": 77.6780},
+    {"name": "Whitefield (WFD)", "type": "suburban", "latitude": 12.9840, "longitude": 77.7660},
+    {"name": "Yelahanka Junction (YNK)", "type": "suburban", "latitude": 13.1006, "longitude": 77.5937},
+    {"name": "Hebbal (HEB)", "type": "suburban", "latitude": 13.0350, "longitude": 77.5910},
+    {"name": "Malur (MLU)", "type": "suburban", "latitude": 13.0030, "longitude": 77.9360},
+    {"name": "Hosur (HSRA)", "type": "major", "latitude": 12.7300, "longitude": 77.8300},
+    {"name": "Kengeri (KGI)", "type": "suburban", "latitude": 12.9060, "longitude": 77.4730},
+    {"name": "Nayandahalli (NYH)", "type": "suburban", "latitude": 12.9490, "longitude": 77.5240},
+    {"name": "Lottegollahalli (LTGL)", "type": "suburban", "latitude": 13.0510, "longitude": 77.5640},
+    {"name": "Banaswadi (BAND)", "type": "suburban", "latitude": 13.0120, "longitude": 77.6350},
+    {"name": "Hoodi Halt (HOOD)", "type": "suburban", "latitude": 12.9920, "longitude": 77.7100},
+    {"name": "Channasandra (CNSA)", "type": "suburban", "latitude": 12.9890, "longitude": 77.7380},
+    {"name": "Carmelaram (CRLM)", "type": "suburban", "latitude": 12.9010, "longitude": 77.6820},
+    {"name": "Heelalige (HILG)", "type": "suburban", "latitude": 12.8680, "longitude": 77.6770}
+  ]
+}
