@@ -1,0 +1,33 @@
+{
+  "source": "BWSSB Stage-wise Cauvery Water Supply Areas (data.opencity.in, CC BY 4.0), BWSSB Water Supply Lines Maps, Bengaluru Water Tankers Survey 2025 (opencity.in)",
+  "updated": "2025-03",
+  "license": "CC BY 4.0 / Public government data",
+  "methodology": "Areas classified by BWSSB Cauvery water supply stage. Stage 1-2 = oldest infrastructure, most reliable. Stage 3-4 = newer expansion. Stage 5 = planned but not yet operational. Uncovered = dependent on borewells/tankers. Supply hours and reliability based on BWSSB data and citizen surveys.",
+  "zones": [
+    {"area": "Basavanagudi", "stage": 1, "supply_hours_per_day": 6, "reliability": "high", "score": 90, "center_lat": 12.9420, "center_lon": 77.5700, "radius_km": 1.5},
+    {"area": "Jayanagar", "stage": 1, "supply_hours_per_day": 6, "reliability": "high", "score": 88, "center_lat": 12.9290, "center_lon": 77.5830, "radius_km": 2.0},
+    {"area": "Malleshwaram", "stage": 1, "supply_hours_per_day": 5, "reliability": "high", "score": 88, "center_lat": 12.9950, "center_lon": 77.5700, "radius_km": 1.5},
+    {"area": "Rajajinagar", "stage": 1, "supply_hours_per_day": 5, "reliability": "high", "score": 85, "center_lat": 12.9870, "center_lon": 77.5500, "radius_km": 2.0},
+    {"area": "Shivaji Nagar", "stage": 1, "supply_hours_per_day": 5, "reliability": "high", "score": 85, "center_lat": 12.9860, "center_lon": 77.6050, "radius_km": 1.0},
+    {"area": "Chamrajpet", "stage": 1, "supply_hours_per_day": 5, "reliability": "high", "score": 85, "center_lat": 12.9580, "center_lon": 77.5660, "radius_km": 1.0},
+    {"area": "Indiranagar", "stage": 2, "supply_hours_per_day": 4, "reliability": "high", "score": 82, "center_lat": 12.9720, "center_lon": 77.6410, "radius_km": 1.5},
+    {"area": "Koramangala", "stage": 2, "supply_hours_per_day": 4, "reliability": "high", "score": 80, "center_lat": 12.9340, "center_lon": 77.6260, "radius_km": 2.0},
+    {"area": "JP Nagar", "stage": 2, "supply_hours_per_day": 4, "reliability": "medium", "score": 78, "center_lat": 12.9070, "center_lon": 77.5830, "radius_km": 2.0},
+    {"area": "BTM Layout", "stage": 2, "supply_hours_per_day": 4, "reliability": "medium", "score": 75, "center_lat": 12.9160, "center_lon": 77.6160, "radius_km": 1.5},
+    {"area": "Banashankari", "stage": 2, "supply_hours_per_day": 4, "reliability": "medium", "score": 75, "center_lat": 12.9160, "center_lon": 77.5740, "radius_km": 2.0},
+    {"area": "Sadashivanagar", "stage": 2, "supply_hours_per_day": 4, "reliability": "high", "score": 82, "center_lat": 13.0060, "center_lon": 77.5750, "radius_km": 1.0},
+    {"area": "HSR Layout", "stage": 3, "supply_hours_per_day": 3, "reliability": "medium", "score": 65, "center_lat": 12.9120, "center_lon": 77.6400, "radius_km": 1.5},
+    {"area": "Marathahalli", "stage": 3, "supply_hours_per_day": 3, "reliability": "medium", "score": 62, "center_lat": 12.9560, "center_lon": 77.7010, "radius_km": 2.0},
+    {"area": "Hebbal", "stage": 3, "supply_hours_per_day": 3, "reliability": "medium", "score": 60, "center_lat": 13.0370, "center_lon": 77.5910, "radius_km": 2.0},
+    {"area": "RT Nagar", "stage": 3, "supply_hours_per_day": 3, "reliability": "medium", "score": 62, "center_lat": 13.0210, "center_lon": 77.5930, "radius_km": 1.5},
+    {"area": "Bommanahalli", "stage": 3, "supply_hours_per_day": 3, "reliability": "medium", "score": 58, "center_lat": 12.8990, "center_lon": 77.6210, "radius_km": 2.0},
+    {"area": "Whitefield", "stage": 4, "supply_hours_per_day": 2, "reliability": "low", "score": 42, "center_lat": 12.9700, "center_lon": 77.7490, "radius_km": 3.0},
+    {"area": "Electronic City", "stage": 4, "supply_hours_per_day": 2, "reliability": "low", "score": 40, "center_lat": 12.8460, "center_lon": 77.6630, "radius_km": 3.0},
+    {"area": "Sarjapur Road", "stage": 4, "supply_hours_per_day": 2, "reliability": "low", "score": 38, "center_lat": 12.9100, "center_lon": 77.6750, "radius_km": 3.0},
+    {"area": "Yelahanka", "stage": 4, "supply_hours_per_day": 2, "reliability": "low", "score": 45, "center_lat": 13.1010, "center_lon": 77.5910, "radius_km": 3.0},
+    {"area": "KR Puram", "stage": 4, "supply_hours_per_day": 2, "reliability": "low", "score": 40, "center_lat": 13.0040, "center_lon": 77.6860, "radius_km": 2.0},
+    {"area": "Devanahalli", "stage": 5, "supply_hours_per_day": 1, "reliability": "very_low", "score": 25, "center_lat": 13.2473, "center_lon": 77.7120, "radius_km": 5.0},
+    {"area": "Kengeri", "stage": 4, "supply_hours_per_day": 2, "reliability": "low", "score": 42, "center_lat": 12.9130, "center_lon": 77.4830, "radius_km": 3.0},
+    {"area": "Mahadevapura", "stage": 4, "supply_hours_per_day": 2, "reliability": "low", "score": 40, "center_lat": 12.9880, "center_lon": 77.7160, "radius_km": 3.0}
+  ]
+}

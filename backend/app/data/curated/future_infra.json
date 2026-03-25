@@ -1,0 +1,136 @@
+{
+  "source": "Wikipedia (Namma Metro, Bengaluru Suburban Railway), booknewproperty.com Metro Phase 2 Tracker (Jan 2026), Indian Express, Times of India, New Indian Express - Bengaluru Business Corridor",
+  "updated": "2025-03",
+  "license": "Public data / news reports",
+  "projects": [
+    {
+      "name": "Metro Phase 2A - Blue Line (Silk Board to KR Pura)",
+      "type": "metro",
+      "status": "under_construction",
+      "expected_completion": "2026-12",
+      "length_km": 18.5,
+      "stations": [
+        {"name": "Silk Board", "latitude": 12.9170, "longitude": 77.6230},
+        {"name": "HSR Layout", "latitude": 12.9120, "longitude": 77.6380},
+        {"name": "Agara", "latitude": 12.9230, "longitude": 77.6440},
+        {"name": "Ibbalur", "latitude": 12.9310, "longitude": 77.6600},
+        {"name": "Bellandur", "latitude": 12.9260, "longitude": 77.6710},
+        {"name": "Kadubeesanahalli", "latitude": 12.9360, "longitude": 77.6870},
+        {"name": "Kodibisanahalli", "latitude": 12.9380, "longitude": 77.6950},
+        {"name": "Marathahalli", "latitude": 12.9530, "longitude": 77.7020},
+        {"name": "ISRO", "latitude": 12.9620, "longitude": 77.7100},
+        {"name": "Doddanekundi", "latitude": 12.9720, "longitude": 77.7140},
+        {"name": "Mahadevapura", "latitude": 12.9880, "longitude": 77.7160},
+        {"name": "Garudacharpalya", "latitude": 12.9940, "longitude": 77.7050},
+        {"name": "KR Pura", "latitude": 13.0010, "longitude": 77.6870}
+      ]
+    },
+    {
+      "name": "Metro Phase 2B - Blue Line (KR Pura to Airport)",
+      "type": "metro",
+      "status": "under_construction",
+      "expected_completion": "2028-06",
+      "length_km": 39.6,
+      "stations": [
+        {"name": "Kasturi Nagar", "latitude": 13.0020, "longitude": 77.6580},
+        {"name": "Horamavu", "latitude": 13.0250, "longitude": 77.6530},
+        {"name": "Kalyan Nagar", "latitude": 13.0290, "longitude": 77.6380},
+        {"name": "HBR Layout", "latitude": 13.0340, "longitude": 77.6200},
+        {"name": "Nagawara", "latitude": 13.0440, "longitude": 77.6130},
+        {"name": "Veerannapalya", "latitude": 13.0480, "longitude": 77.5950},
+        {"name": "Kempapura", "latitude": 13.0510, "longitude": 77.5830},
+        {"name": "Hebbal", "latitude": 13.0370, "longitude": 77.5910},
+        {"name": "Jakkur", "latitude": 13.0700, "longitude": 77.6030},
+        {"name": "Yelahanka", "latitude": 13.1010, "longitude": 77.5910},
+        {"name": "Bagalur Cross", "latitude": 13.1450, "longitude": 77.6250},
+        {"name": "Airport Terminal", "latitude": 13.1989, "longitude": 77.7069}
+      ]
+    },
+    {
+      "name": "Metro Phase 3 - Orange Line (ORR West)",
+      "type": "metro",
+      "status": "planning",
+      "expected_completion": "2029-12",
+      "length_km": 80,
+      "stations": [
+        {"name": "Kempapura ORR", "latitude": 13.0510, "longitude": 77.5830},
+        {"name": "Hebbal ORR", "latitude": 13.0370, "longitude": 77.5700},
+        {"name": "Yeshwanthpur ORR", "latitude": 13.0060, "longitude": 77.5420},
+        {"name": "Rajajinagar ORR", "latitude": 12.9870, "longitude": 77.5350},
+        {"name": "Vijayanagar ORR", "latitude": 12.9610, "longitude": 77.5380},
+        {"name": "Mysuru Road ORR", "latitude": 12.9580, "longitude": 77.5200},
+        {"name": "Banashankari ORR", "latitude": 12.9160, "longitude": 77.5500},
+        {"name": "JP Nagar ORR", "latitude": 12.9070, "longitude": 77.5700},
+        {"name": "Jayanagar ORR", "latitude": 12.9200, "longitude": 77.5900},
+        {"name": "BTM Layout ORR", "latitude": 12.9160, "longitude": 77.6100},
+        {"name": "HSR Layout ORR", "latitude": 12.9120, "longitude": 77.6350},
+        {"name": "Silk Board ORR", "latitude": 12.9170, "longitude": 77.6230}
+      ]
+    },
+    {
+      "name": "Suburban Rail - Mallige Line",
+      "type": "suburban_rail",
+      "status": "under_construction",
+      "expected_completion": "2027-03",
+      "length_km": 28.7,
+      "stations": [
+        {"name": "Benniganahalli SR", "latitude": 12.9985, "longitude": 77.6844},
+        {"name": "Kasturinagara SR", "latitude": 13.0000, "longitude": 77.6620},
+        {"name": "Banaswadi SR", "latitude": 13.0130, "longitude": 77.6310},
+        {"name": "Nagawara SR", "latitude": 13.0440, "longitude": 77.6130},
+        {"name": "Hebbal SR", "latitude": 13.0370, "longitude": 77.5910},
+        {"name": "Yeshwanthpura SR", "latitude": 13.0060, "longitude": 77.5420},
+        {"name": "Chikkabanavara SR", "latitude": 13.0670, "longitude": 77.4870}
+      ]
+    },
+    {
+      "name": "Suburban Rail - Kanaka Line",
+      "type": "suburban_rail",
+      "status": "under_construction",
+      "expected_completion": "2026-12",
+      "length_km": 35,
+      "stations": [
+        {"name": "KSR Bengaluru SR", "latitude": 12.9783, "longitude": 77.5694},
+        {"name": "Cantonment SR", "latitude": 12.9991, "longitude": 77.5965},
+        {"name": "Baiyappanahalli SR", "latitude": 12.9912, "longitude": 77.6523},
+        {"name": "KR Puram SR", "latitude": 13.0020, "longitude": 77.6780},
+        {"name": "Whitefield SR", "latitude": 12.9840, "longitude": 77.7660}
+      ]
+    },
+    {
+      "name": "Suburban Rail - Sampige Line",
+      "type": "suburban_rail",
+      "status": "planning",
+      "expected_completion": "2029-06",
+      "length_km": 45.5,
+      "stations": [
+        {"name": "KSR Bengaluru S-SR", "latitude": 12.9783, "longitude": 77.5694},
+        {"name": "Malleshwaram SR", "latitude": 12.9950, "longitude": 77.5700},
+        {"name": "Yeshwanthpur S-SR", "latitude": 13.0060, "longitude": 77.5420},
+        {"name": "Yelahanka SR", "latitude": 13.1006, "longitude": 77.5937},
+        {"name": "Devanahalli SR", "latitude": 13.2473, "longitude": 77.7120}
+      ]
+    },
+    {
+      "name": "Bengaluru Business Corridor (PRR)",
+      "type": "expressway",
+      "status": "planning",
+      "expected_completion": "2030-12",
+      "length_km": 117,
+      "cost_crore": 27000,
+      "description": "8-lane expressway with future metro corridor, replacing the Peripheral Ring Road project",
+      "key_points": [
+        {"name": "BIEC Tumakuru Road Junction", "latitude": 13.0720, "longitude": 77.4890},
+        {"name": "Bellary Road Junction", "latitude": 13.0890, "longitude": 77.5730},
+        {"name": "Old Madras Road Junction", "latitude": 13.0200, "longitude": 77.6800},
+        {"name": "Whitefield Junction", "latitude": 12.9700, "longitude": 77.7490},
+        {"name": "Sarjapur Road Junction", "latitude": 12.8900, "longitude": 77.6900},
+        {"name": "Electronic City Junction", "latitude": 12.8460, "longitude": 77.6630},
+        {"name": "Bannerghatta Road Junction", "latitude": 12.8500, "longitude": 77.5800},
+        {"name": "Kanakapura Road Junction", "latitude": 12.8600, "longitude": 77.5400},
+        {"name": "Mysuru Road Junction", "latitude": 12.9400, "longitude": 77.5000},
+        {"name": "NICE Road Hosur Junction", "latitude": 12.8300, "longitude": 77.6600}
+      ]
+    }
+  ]
+}
