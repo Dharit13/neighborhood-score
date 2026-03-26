@@ -177,6 +177,8 @@ export default function NeighborhoodMap({ data, onMapClick, loading, featuredNei
     return () => {
       if (rotationFrameRef.current) cancelAnimationFrame(rotationFrameRef.current);
     };
+    // Map init only -- data is read for initial center but shouldn't trigger re-creation
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, mapIdConfig]);
 
   useEffect(() => {
@@ -231,6 +233,8 @@ export default function NeighborhoodMap({ data, onMapClick, loading, featuredNei
       const panListener = map.addListener('idle', onPan);
     };
     const zoomOutListener = map.addListener('idle', onZoomOut);
+    // Only re-run on coordinate changes, not full data object changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.latitude, data?.longitude]);
 
   useEffect(() => {

@@ -48,12 +48,13 @@ function BuilderDetailView({ slug, onBack }: { slug: string; onBack: () => void 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
     fetch(`/api/builder/${slug}`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setProfile(d); })
+      .then(d => { if (!cancelled && d) setProfile(d); })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [slug]);
 
   if (loading) {
@@ -233,23 +234,18 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
 
   useEffect(() => {
     if (activeTab === 'builders' && !buildersData) {
-      setLoadingTab('builders');
       fetch(`/api/builders?area=${encodeURIComponent(areaSlug)}`)
         .then(r => r.ok ? r.json() : null)
         .then(d => { if (d) setBuildersData(d); })
         .catch(() => {})
         .finally(() => setLoadingTab(null));
-    }
-    if (activeTab === 'area' && !areaData) {
-      setLoadingTab('area');
+    } else if (activeTab === 'area' && !areaData) {
       fetch(`/api/area/${encodeURIComponent(areaSlug)}`)
         .then(r => r.ok ? r.json() : null)
         .then(d => { if (d) setAreaData(d); })
         .catch(() => {})
         .finally(() => setLoadingTab(null));
-    }
-    if (activeTab === 'brief' && !briefData) {
-      setLoadingTab('brief');
+    } else if (activeTab === 'brief' && !briefData) {
       fetch('/api/intelligence-brief', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -259,7 +255,10 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
         .then(d => { if (d) setBriefData(d); })
         .catch(() => {})
         .finally(() => setLoadingTab(null));
+    } else {
+      setLoadingTab(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const allRedFlags: RiskFlag[] = [];
@@ -288,7 +287,7 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
           return (
             <button
               key={tab.id}
-              onClick={() => { setActiveTab(tab.id); setSelectedBuilderSlug(null); }}
+              onClick={() => { setActiveTab(tab.id); setSelectedBuilderSlug(null); setLoadingTab(tab.id === 'claims' ? null : tab.id); }}
               className="gradient-menu-item relative z-10 h-8 px-3 text-xs font-medium transition-all duration-500 rounded-md flex-shrink-0"
               style={{
                 background: isActive ? `linear-gradient(45deg, ${grad.from}, ${grad.to})` : undefined,

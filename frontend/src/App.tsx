@@ -384,7 +384,8 @@ function App() {
       const addr = DEMO_PRESETS[demo.toLowerCase()] || `${demo}, Bangalore`;
       handleSearch({ address: addr }, { scroll: false });
     }
-    // Default (no params): data is already initialized from the bundled defaultScores
+    // Mount-only: parse URL params and trigger initial search if needed
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearch = useCallback(async (query: { address?: string; latitude?: number; longitude?: number; builder_name?: string }, { scroll = true } = {}) => {

@@ -25,21 +25,23 @@ export default function ScoreRing({ score, size = 80, strokeWidth = 6, showLabel
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  const motionScore = useMotionValue(0);
+  const motionScore = useMotionValue(animated ? 0 : score);
   const dashOffset = useTransform(motionScore, (v) => circumference * (1 - v / 100));
   const displayScore = useTransform(motionScore, (v) => Math.round(v));
-  const [displayed, setDisplayed] = useState(0);
+  const [displayed, setDisplayed] = useState(() => animated ? 0 : Math.round(score));
 
   useEffect(() => {
-    if (animated) {
-      const controls = animate(motionScore, score, { duration: 0.8, ease: 'easeOut' });
-      const unsub = displayScore.on('change', (v) => setDisplayed(v));
-      return () => { controls.stop(); unsub(); };
-    } else {
+    if (!animated) {
       motionScore.set(score);
-      setDisplayed(Math.round(score));
+      return;
     }
+    const controls = animate(motionScore, score, { duration: 0.8, ease: 'easeOut' });
+    const unsub = displayScore.on('change', (v) => setDisplayed(v));
+    return () => { controls.stop(); unsub(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [score, animated]);
+
+  const resolvedDisplayed = animated ? displayed : Math.round(score);
 
   const color = colorOverride || getScoreColor(score);
   const center = size / 2;
@@ -84,7 +86,7 @@ export default function ScoreRing({ score, size = 80, strokeWidth = 6, showLabel
             </span>
           ) : (
             <span className="font-mono font-bold leading-none" style={{ fontSize: size * 0.32, color }}>
-              {displayed}
+              {resolvedDisplayed}
             </span>
           )}
         </div>
