@@ -31,6 +31,7 @@ def cmd_migrate():
     run_sql_file(os.path.join(migrations_dir, "002_create_indexes.sql"))
     run_sql_file(os.path.join(migrations_dir, "003_add_cleanliness.sql"))
     run_sql_file(os.path.join(migrations_dir, "004_add_ward_mapping.sql"))
+    run_sql_file(os.path.join(migrations_dir, "006_property_intelligence.sql"))
     print("Migrations complete.")
 
 
@@ -57,6 +58,9 @@ def cmd_seed(args):
         seed()
     if args.infra:
         from app.pipelines.seed_infra import seed
+        seed()
+    if args.landmarks:
+        from app.pipelines.seed_landmarks import seed
         seed()
 
 
@@ -92,6 +96,12 @@ def cmd_fetch(args):
     if args.wards:
         from app.pipelines.fetch_ward_mapping import fetch
         fetch()
+    if getattr(args, 'scrape_rera', False):
+        from app.pipelines.scrape_krera import scrape_all_builders
+        scrape_all_builders()
+    if getattr(args, 'trust_scores', False):
+        from app.pipelines.compute_trust_scores import compute_all
+        compute_all()
     if args.all:
         print("Fetching all live data sources...")
         from app.pipelines.fetch_bus_stops import fetch as fb
@@ -194,6 +204,7 @@ def main():
     sub_seed.add_argument("--zones", action="store_true")
     sub_seed.add_argument("--prices", action="store_true")
     sub_seed.add_argument("--infra", action="store_true")
+    sub_seed.add_argument("--landmarks", action="store_true")
 
     sub_verify = subparsers.add_parser("verify", help="Run AI verification")
     sub_verify.add_argument("--all", action="store_true", help="Verify all neighborhoods")
@@ -215,6 +226,8 @@ def main():
     sub_fetch.add_argument("--slums", action="store_true", help="Download Bengaluru slum locations from data.opencity.in")
     sub_fetch.add_argument("--waste", action="store_true", help="Download BBMP waste infrastructure from data.opencity.in")
     sub_fetch.add_argument("--wards", action="store_true", help="Download GBA 369 ward boundaries and map to neighborhoods")
+    sub_fetch.add_argument("--scrape-rera", action="store_true", help="Scrape K-RERA portal for all builder/project data")
+    sub_fetch.add_argument("--trust-scores", action="store_true", help="Compute trust scores for all builders")
 
     subparsers.add_parser("status", help="Show data freshness + verification status")
 

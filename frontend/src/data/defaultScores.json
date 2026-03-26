@@ -1,0 +1,1139 @@
+{
+  "latitude": 12.934,
+  "longitude": 77.626,
+  "address": "Koramangala, Bangalore",
+  "composite_score": 72.6,
+  "composite_label": "Excellent",
+  "walkability": {
+    "score": 100.0,
+    "label": "Excellent",
+    "data_confidence": null,
+    "details": [
+      {
+        "name": "Walkability zone: Koramangala (pre-computed NEWS-India score)",
+        "distance_km": 0.0,
+        "category": "walkability_zone",
+        "latitude": 12.934,
+        "longitude": 77.626
+      }
+    ],
+    "breakdown": {
+      "methodology": "NEWS-India subscales (pre-computed from OSM data) + green space access",
+      "matched_area": "Koramangala",
+      "distance_to_zone_center_km": 0.0,
+      "base_walkability_score": 92.0,
+      "parks_within_1km": 27,
+      "nearest_park_km": 0.16
+    },
+    "sources": [
+      "NEWS-India (Sallis et al. 2016, MDPI IJERPH 13(4):401)",
+      "ITDP India StepUP walkability audit tool",
+      "OpenStreetMap data (ODbL license) \u2014 pre-computed, refreshed periodically",
+      "Bengaluru Walkability Datajam 2023 \u2014 opencity.in"
+    ]
+  },
+  "safety": {
+    "score": 98.4,
+    "label": "Excellent",
+    "data_confidence": null,
+    "details": [
+      {
+        "name": "Koramangala PS",
+        "distance_km": 0.0,
+        "category": "police_station",
+        "latitude": 12.934,
+        "longitude": 77.626
+      },
+      {
+        "name": "Deputy Commissioner of Police, south eastKoramangala",
+        "distance_km": 0.88,
+        "category": "police_station",
+        "latitude": 12.9407959,
+        "longitude": 77.62171359999999
+      },
+      {
+        "name": "Traffic Police Cabin",
+        "distance_km": 0.9,
+        "category": "police_station",
+        "latitude": 12.9296681,
+        "longitude": 77.63305369999999
+      },
+      {
+        "name": "Koramangala Police Station",
+        "distance_km": 0.94,
+        "category": "police_station",
+        "latitude": 12.9411723,
+        "longitude": 77.6213047
+      },
+      {
+        "name": "YESWANTH ENTERPISES",
+        "distance_km": 1.04,
+        "category": "police_station",
+        "latitude": 12.9420802,
+        "longitude": 77.62109360000001
+      }
+    ],
+    "breakdown": {
+      "methodology": "MOHUA EoLI Safety Pillar \u2014 4 equal-weight indicators",
+      "surveillance_coverage": 100.0,
+      "crime_rate_percentile": 96.0,
+      "streetlight_coverage": 97.5,
+      "police_accessibility": 100,
+      "zone": "Koramangala",
+      "crime_rate_per_100k": 168.0,
+      "cctv_density_per_sqkm": 11.199999809265137,
+      "nearest_police_station_km": 0.0
+    },
+    "sources": [
+      "MOHUA Ease of Living Index \u2014 Safety & Security Pillar (smartcities.gov.in)",
+      "NARI 2025 \u2014 National Commission for Women + Pvalue Analytics",
+      "Karnataka Crime Data 2024 \u2014 data.opencity.in (NCRB methodology)",
+      "Police Station Locations \u2014 data.opencity.in (CC BY 4.0)",
+      "BBMP Zone-wise Streetlight Data \u2014 data.opencity.in"
+    ]
+  },
+  "hospital_access": {
+    "score": 100.0,
+    "label": "Excellent",
+    "data_confidence": null,
+    "details": [
+      {
+        "name": "Acura Speciality Hospital (Hospital, N/A beds)",
+        "distance_km": 0.61,
+        "category": "hospital_tier_2",
+        "latitude": 12.9353207,
+        "longitude": 77.6205317
+      },
+      {
+        "name": "Apollo Spectra Hospitals - Koramangala, Bengaluru (Hospital, N/A beds)",
+        "distance_km": 0.63,
+        "category": "hospital_tier_2",
+        "latitude": 12.9338741,
+        "longitude": 77.62021399999999
+      },
+      {
+        "name": "Apollo Cradle & Children's Hospital in Koramangala, Bengaluru (Hospital, N/A beds)",
+        "distance_km": 0.67,
+        "category": "hospital_tier_2",
+        "latitude": 12.9368055,
+        "longitude": 77.6205772
+      },
+      {
+        "name": "St. John's Medical College Hospital (NABH, 1200 beds) - Multi-specialty, Teaching Hospital",
+        "distance_km": 0.79,
+        "category": "hospital_tier_1",
+        "latitude": 12.928,
+        "longitude": 77.622
+      },
+      {
+        "name": "Devi Eye Hospital Koramangala (Hospital, N/A beds)",
+        "distance_km": 0.82,
+        "category": "hospital_tier_2",
+        "latitude": 12.9411663,
+        "longitude": 77.6239066
+      },
+      {
+        "name": "Sri Venkateshwara Hospital (Hospital, N/A beds)",
+        "distance_km": 1.32,
+        "category": "hospital_tier_2",
+        "latitude": 12.9264148,
+        "longitude": 77.616654
+      },
+      {
+        "name": "Kidwai Memorial Institute of Oncology (NABH, 650 beds) - Oncology",
+        "distance_km": 2.61,
+        "category": "hospital_tier_1",
+        "latitude": 12.936,
+        "longitude": 77.602
+      },
+      {
+        "name": "NIMHANS Administrative block (NABH, 1000 beds) - Neurology, Psychiatry, Neurosurgery",
+        "distance_km": 3.11,
+        "category": "hospital_tier_1",
+        "latitude": 12.9404993,
+        "longitude": 77.5980716
+      }
+    ],
+    "breakdown": {
+      "methodology": "IPHS 2022 \u2014 bed density vs norm + NABH proximity",
+      "nabh_hospital_proximity": 100.0,
+      "bed_density_vs_iphs": 100.0,
+      "emergency_proximity": 100.0,
+      "total_beds_within_5km": 16100,
+      "iphs_beds_needed_5km": 300.0,
+      "bed_ratio": 53.67
+    },
+    "sources": [
+      "IPHS 2022 \u2014 Indian Public Health Standards (nhm.gov.in)",
+      "Norms: 1 bed/1000 pop (essential), 2 beds/1000 (desirable)",
+      "NABH Portal (portal.nabh.co) \u2014 accreditation data",
+      "BBMP Hospital List \u2014 data.opencity.in (CC BY 4.0)"
+    ]
+  },
+  "school_access": {
+    "score": 83.7,
+    "label": "Excellent",
+    "data_confidence": null,
+    "details": [
+      {
+        "name": "Bethany High School - ICSE School in Bangalore (Rank #35, ICSE, Fee: 1.5-2.5L/yr, Competitive)",
+        "distance_km": 0.93,
+        "category": "school_rank",
+        "latitude": 12.9406862,
+        "longitude": 77.6208596
+      },
+      {
+        "name": "National Public School (Rank #4, CBSE, Fee: 2.0-4.0L/yr, Very Competitive)",
+        "distance_km": 1.76,
+        "category": "school_rank",
+        "latitude": 12.9490812,
+        "longitude": 77.6209241
+      },
+      {
+        "name": "National Public School - Koramangala (Rank #16, CBSE, Fee: 2.0-4.0L/yr, Very Competitive)",
+        "distance_km": 1.76,
+        "category": "school_rank",
+        "latitude": 12.94908,
+        "longitude": 77.62092
+      },
+      {
+        "name": "Cambridge Public School HSR Layout (Rank #75, CBSE, Fee: 0.8-1.5L/yr, Moderate)",
+        "distance_km": 2.88,
+        "category": "school_rank",
+        "latitude": 12.91836,
+        "longitude": 77.64716
+      },
+      {
+        "name": "Vibgyor High BTM Layout (Rank #56, CBSE/ICSE, Fee: 1.5-2.5L/yr, Moderate)",
+        "distance_km": 3.15,
+        "category": "school_rank",
+        "latitude": 12.90876,
+        "longitude": 77.61256
+      },
+      {
+        "name": "Sacred Heart Girls High School (Rank #34, ICSE, Fee: 0.8-1.5L/yr, Competitive)",
+        "distance_km": 3.58,
+        "category": "school_rank",
+        "latitude": 12.95699,
+        "longitude": 77.60277
+      },
+      {
+        "name": "Bishop Cotton Boys School (Rank #17, ICSE, Fee: 1.2-2.5L/yr, Very Competitive)",
+        "distance_km": 4.81,
+        "category": "school_rank",
+        "latitude": 12.96833,
+        "longitude": 77.59882
+      }
+    ],
+    "breakdown": {
+      "methodology": "RTE Act 2009 Section 6 + admission difficulty + fee affordability",
+      "rte_compliance": 100.0,
+      "quality_proximity": 100.0,
+      "board_diversity": 50.0,
+      "admission_accessibility": 50.8,
+      "fee_affordability": 90.4,
+      "schools_within_1km": 49,
+      "schools_within_3km": 164,
+      "total_schools_nearby": 519,
+      "boards_available": [
+        "CBSE",
+        "ICSE"
+      ],
+      "nearby_admission_difficulty": {
+        "competitive": 7,
+        "very_competitive": 5,
+        "moderate": 6,
+        "easy": 1
+      },
+      "avg_min_fee_lakh": 1.4
+    },
+    "sources": [
+      "RTE Act 2009, Section 6 \u2014 1km primary, 3km upper primary norms",
+      "Times Now Education / IIRF School Rankings 2024",
+      "97.15% national habitation coverage at RTE norms (PIB 2019)",
+      "SchoolMyKids.com fee data 2024-25",
+      "Google Places API \u2014 bulk pipeline data"
+    ]
+  },
+  "transit_access": {
+    "score": 35.0,
+    "label": "Below Average",
+    "data_confidence": null,
+    "details": [
+      {
+        "name": "Metro: Central Silk Board (Yellow Line)",
+        "distance_km": 2.03,
+        "category": "metro",
+        "latitude": 12.91656,
+        "longitude": 77.62021
+      },
+      {
+        "name": "Metro: HSR Layout (Blue Line) (Blue Line)",
+        "distance_km": 2.05,
+        "category": "metro",
+        "latitude": 12.91656,
+        "longitude": 77.63231
+      },
+      {
+        "name": "Bus: Koramangala Bus Stop",
+        "distance_km": 0.0,
+        "category": "bus_stop",
+        "latitude": 12.934,
+        "longitude": 77.626
+      },
+      {
+        "name": "Bus: Silk Board Bus Stop",
+        "distance_km": 1.91,
+        "category": "bus_stop",
+        "latitude": 12.917,
+        "longitude": 77.623
+      },
+      {
+        "name": "Bus: BTM Layout Bus Stop",
+        "distance_km": 2.37,
+        "category": "bus_stop",
+        "latitude": 12.915,
+        "longitude": 77.616
+      },
+      {
+        "name": "Train: Baiyappanahalli (BYPL) (suburban)",
+        "distance_km": 6.94,
+        "category": "train_station",
+        "latitude": 12.9912,
+        "longitude": 77.6523
+      },
+      {
+        "name": "Train: Carmelaram (CRLM) (suburban)",
+        "distance_km": 7.09,
+        "category": "train_station",
+        "latitude": 12.901,
+        "longitude": 77.682
+      }
+    ],
+    "breakdown": {
+      "methodology": "MOHUA TOD Policy (2017) \u2014 500m optimal, 800m acceptable",
+      "metro_proximity": 0.0,
+      "bus_stop_proximity": 100.0,
+      "train_proximity": 0.0,
+      "multi_modal_bonus": 33.3,
+      "nearest_metro_m": 2029.0,
+      "nearest_bus_m": 0.0,
+      "nearest_train_m": 6942.0
+    },
+    "sources": [
+      "MOHUA National TOD Policy (2017) \u2014 500m optimal, 800m acceptable catchment",
+      "BMTC Bus Stops \u2014 openbangalore GitHub",
+      "Namma Metro Stations \u2014 data.opencity.in",
+      "Indian Railways \u2014 South Western Railway zone",
+      "Google Maps Directions API \u2014 pedestrian walking times (primary)",
+      "OpenRouteService API \u2014 pedestrian routing (fallback)"
+    ],
+    "nearest_bus_stop": {
+      "name": "Koramangala Bus Stop",
+      "type": "bus",
+      "distance_km": 0.0,
+      "walk_minutes": 0.0,
+      "actual_walk_km": 0.0,
+      "marketing_claim_minutes": 0.0,
+      "straight_line_km": 0.0,
+      "drive_km": null,
+      "drive_offpeak_minutes": null,
+      "drive_peak_minutes": null,
+      "recommended_mode": "walk",
+      "latitude": 12.934,
+      "longitude": 77.626
+    },
+    "nearest_metro": {
+      "name": "Central Silk Board (Yellow Line)",
+      "type": "metro",
+      "distance_km": 2.02911401084,
+      "walk_minutes": 34.1,
+      "actual_walk_km": 2.84,
+      "marketing_claim_minutes": 20.3,
+      "straight_line_km": 2.02911401084,
+      "drive_km": 2.85,
+      "drive_offpeak_minutes": 6.8,
+      "drive_peak_minutes": 13.6,
+      "recommended_mode": "drive/ride",
+      "latitude": 12.91656,
+      "longitude": 77.62021
+    },
+    "nearest_train": {
+      "name": "Baiyappanahalli (BYPL) (Suburban)",
+      "type": "train",
+      "distance_km": 6.94168965306,
+      "walk_minutes": 116.6,
+      "actual_walk_km": 9.72,
+      "marketing_claim_minutes": 69.4,
+      "straight_line_km": 6.94168965306,
+      "drive_km": 9.76,
+      "drive_offpeak_minutes": 23.4,
+      "drive_peak_minutes": 46.8,
+      "recommended_mode": "drive/ride",
+      "latitude": 12.9912,
+      "longitude": 77.6523
+    },
+    "airport": {
+      "name": "Kempegowda International Airport (KIA)",
+      "type": "airport",
+      "distance_km": 30.6,
+      "walk_minutes": 514.1,
+      "actual_walk_km": null,
+      "marketing_claim_minutes": null,
+      "straight_line_km": 30.6,
+      "drive_km": 42.85,
+      "drive_offpeak_minutes": 102.8,
+      "drive_peak_minutes": 205.6,
+      "recommended_mode": "drive/ride",
+      "latitude": 13.1979,
+      "longitude": 77.7063
+    },
+    "majestic": {
+      "name": "Majestic Bus Station (Kempegowda)",
+      "type": "bus_station",
+      "distance_km": 7.6,
+      "walk_minutes": 127.7,
+      "actual_walk_km": null,
+      "marketing_claim_minutes": null,
+      "straight_line_km": 7.6,
+      "drive_km": 10.58,
+      "drive_offpeak_minutes": 25.4,
+      "drive_peak_minutes": 50.8,
+      "recommended_mode": "drive/ride",
+      "latitude": 12.977,
+      "longitude": 77.572
+    },
+    "city_railway": {
+      "name": "KSR Bengaluru City Junction (SBC)",
+      "type": "railway_station",
+      "distance_km": 7.9,
+      "walk_minutes": 132.7,
+      "actual_walk_km": null,
+      "marketing_claim_minutes": null,
+      "straight_line_km": 7.9,
+      "drive_km": 11.01,
+      "drive_offpeak_minutes": 26.4,
+      "drive_peak_minutes": 52.8,
+      "recommended_mode": "drive/ride",
+      "latitude": 12.9783,
+      "longitude": 77.5694
+    },
+    "peak_travel_time_min": 33.6,
+    "offpeak_travel_time_min": 21.8
+  },
+  "builder_reputation": {
+    "score": 82.1,
+    "label": "Excellent",
+    "data_confidence": null,
+    "details": [],
+    "breakdown": {
+      "methodology": "RERA Karnataka quarterly compliance metrics",
+      "area_average_score": 82.1,
+      "active_builders_in_area": 0,
+      "recommended_count": 0,
+      "avoid_count": 0,
+      "total_builders_tracked": 25,
+      "area_keywords": [
+        "Koramangala"
+      ]
+    },
+    "sources": [
+      "RERA Karnataka Portal (rera.karnataka.gov.in)",
+      "RERA quarterly compliance: Forms 1-3, 70% escrow, delivery tracking",
+      "BrickFi Builder Reputation Guide 2025",
+      "MagicBricks / 99acres builder reviews"
+    ],
+    "builders": [
+      {
+        "name": "Birla Estates",
+        "score": 88.0,
+        "rera_projects": 6,
+        "complaints": 1,
+        "complaints_ratio": 0.17000000178813934,
+        "delivery_rating": "Excellent",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "L&T Realty",
+        "score": 85.0,
+        "rera_projects": 2,
+        "complaints": 0,
+        "complaints_ratio": 0.0,
+        "delivery_rating": "Excellent",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "Tata Housing (Tata Realty)",
+        "score": 85.0,
+        "rera_projects": 4,
+        "complaints": 1,
+        "complaints_ratio": 0.25,
+        "delivery_rating": "Excellent",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "Godrej Properties",
+        "score": 84.0,
+        "rera_projects": 8,
+        "complaints": 3,
+        "complaints_ratio": 0.3799999952316284,
+        "delivery_rating": "Excellent",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "Embassy Group",
+        "score": 83.0,
+        "rera_projects": 5,
+        "complaints": 2,
+        "complaints_ratio": 0.4000000059604645,
+        "delivery_rating": "Excellent",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "Mahindra Lifespaces",
+        "score": 82.0,
+        "rera_projects": 3,
+        "complaints": 1,
+        "complaints_ratio": 0.33000001311302185,
+        "delivery_rating": "Excellent",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "Sobha Limited",
+        "score": 82.0,
+        "rera_projects": 17,
+        "complaints": 8,
+        "complaints_ratio": 0.4699999988079071,
+        "delivery_rating": "Excellent",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "Mana Projects",
+        "score": 78.0,
+        "rera_projects": 5,
+        "complaints": 2,
+        "complaints_ratio": 0.4000000059604645,
+        "delivery_rating": "Excellent",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "Brigade Group",
+        "score": 78.0,
+        "rera_projects": 13,
+        "complaints": 12,
+        "complaints_ratio": 0.9200000166893005,
+        "delivery_rating": "Good",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "Vaishnavi Group",
+        "score": 76.0,
+        "rera_projects": 5,
+        "complaints": 3,
+        "complaints_ratio": 0.6000000238418579,
+        "delivery_rating": "Good",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "Total Environment",
+        "score": 76.0,
+        "rera_projects": 7,
+        "complaints": 5,
+        "complaints_ratio": 0.7099999785423279,
+        "delivery_rating": "Average",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "Prestige Group",
+        "score": 75.0,
+        "rera_projects": 10,
+        "complaints": 15,
+        "complaints_ratio": 1.5,
+        "delivery_rating": "Good",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "Salarpuria Sattva",
+        "score": 74.0,
+        "rera_projects": 9,
+        "complaints": 7,
+        "complaints_ratio": 0.7799999713897705,
+        "delivery_rating": "Good",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "Kolte-Patil Developers",
+        "score": 74.0,
+        "rera_projects": 4,
+        "complaints": 2,
+        "complaints_ratio": 0.5,
+        "delivery_rating": "Good",
+        "active_in_area": false,
+        "avoid_reason": null
+      },
+      {
+        "name": "Assetz Property Group",
+        "score": 73.0,
+        "rera_projects": 6,
+        "complaints": 4,
+        "complaints_ratio": 0.6700000166893005,
+        "delivery_rating": "Good",
+        "active_in_area": false,
+        "avoid_reason": null
+      }
+    ],
+    "recommended_builders": [],
+    "builders_to_avoid": []
+  },
+  "air_quality": {
+    "score": 80.6,
+    "label": "Excellent",
+    "data_confidence": null,
+    "details": [
+      {
+        "name": "Silk Board Junction (AQI: 112.0, Moderate) - PM2.5",
+        "distance_km": 1.91,
+        "category": "aqi_station",
+        "latitude": 12.917,
+        "longitude": 77.623
+      },
+      {
+        "name": "BTM Layout CPCB (AQI: 89.0, Satisfactory) - PM2.5",
+        "distance_km": 2.54,
+        "category": "aqi_station",
+        "latitude": 12.9128,
+        "longitude": 77.6171
+      },
+      {
+        "name": "Hombegowda Nagar (AQI: 80.0, Satisfactory) - PM10",
+        "distance_km": 3.4,
+        "category": "aqi_station",
+        "latitude": 12.943,
+        "longitude": 77.596
+      }
+    ],
+    "breakdown": {
+      "methodology": "CPCB National AQI (2014) linear inversion",
+      "weighted_aqi": 96.8,
+      "aqi_category": "Satisfactory",
+      "nearest_station": "Silk Board Junction",
+      "nearest_station_aqi": 112.0,
+      "nearest_station_km": 1.91,
+      "stations_used": 3,
+      "interpolation": "inverse-distance weighting (IDW)"
+    },
+    "sources": [
+      "CPCB National Air Quality Index (2014) \u2014 cpcb.nic.in",
+      "Sub-index formula: Ip = [(IHi-ILo)/(BPHi-BPLo)] * (Cp-BPLo) + ILo",
+      "PM2.5 breakpoints (ug/m3): Good 0-30, Satisfactory 31-60, Moderate 61-90, Poor 91-120",
+      "Bengaluru CPCB monitoring stations \u2014 data.opencity.in (CC BY 4.0)",
+      "Bengaluru Hourly Air Quality Reports \u2014 data.opencity.in (CC BY 4.0)"
+    ]
+  },
+  "water_supply": {
+    "score": 80.0,
+    "label": "Excellent",
+    "data_confidence": null,
+    "details": [
+      {
+        "name": "BWSSB Stage 2 \u2014 Koramangala (4.0h/day, high reliability)",
+        "distance_km": 0.0,
+        "category": "water_stage_2",
+        "latitude": 12.934,
+        "longitude": 77.626
+      }
+    ],
+    "breakdown": {
+      "methodology": "BWSSB stage classification (direct, not computed)",
+      "cauvery_stage": 2,
+      "supply_hours_per_day": 4.0,
+      "reliability": "high",
+      "area": "Koramangala"
+    },
+    "sources": [
+      "BWSSB Stage-wise Cauvery Water Supply Areas \u2014 data.opencity.in (CC BY 4.0)",
+      "Bangalore Water Supply and Sewerage Board (bwssb.karnataka.gov.in)",
+      "Bengaluru Water Tankers Survey 2025 \u2014 opencity.in",
+      "Scoring reflects BWSSB stage classification directly (no arbitrary formula)"
+    ]
+  },
+  "power_reliability": {
+    "score": 86.0,
+    "label": "Excellent",
+    "data_confidence": null,
+    "details": [
+      {
+        "name": "BESCOM Tier 1 \u2014 Koramangala (~4.0h outage/month)",
+        "distance_km": 0.0,
+        "category": "power_tier_1",
+        "latitude": 12.934,
+        "longitude": 77.626
+      }
+    ],
+    "breakdown": {
+      "methodology": "BESCOM tier classification (direct, not computed)",
+      "bescom_tier": 1,
+      "tier_label": "Excellent (underground cabling)",
+      "avg_monthly_outage_hours": 4.0,
+      "area": "Koramangala"
+    },
+    "sources": [
+      "BESCOM official outage notices (bescom.karnataka.gov.in)",
+      "NetZero India \u2014 Bangalore Power Cut tracker",
+      "BESCOM underground cabling data \u2014 Times of India (29 localities)",
+      "Scoring reflects BESCOM tier classification directly (no arbitrary formula)"
+    ]
+  },
+  "future_infrastructure": {
+    "score": 38.7,
+    "label": "Below Average",
+    "data_confidence": null,
+    "details": [
+      {
+        "name": "Silk Board (Metro Phase 2A - Blue Line (Silk Board to KR Pura)) \u2014 Under Construction, ETA 2026",
+        "distance_km": 1.91,
+        "category": "future_metro",
+        "latitude": 12.917,
+        "longitude": 77.623
+      },
+      {
+        "name": "Silk Board ORR (Metro Phase 3 - Orange Line (ORR West)) \u2014 Planning, ETA 2029",
+        "distance_km": 1.91,
+        "category": "future_metro",
+        "latitude": 12.917,
+        "longitude": 77.623
+      },
+      {
+        "name": "Agara (Metro Phase 2A - Blue Line (Silk Board to KR Pura)) \u2014 Under Construction, ETA 2026",
+        "distance_km": 2.3,
+        "category": "future_metro",
+        "latitude": 12.923,
+        "longitude": 77.644
+      },
+      {
+        "name": "HSR Layout ORR (Metro Phase 3 - Orange Line (ORR West)) \u2014 Planning, ETA 2029",
+        "distance_km": 2.62,
+        "category": "future_metro",
+        "latitude": 12.912,
+        "longitude": 77.635
+      },
+      {
+        "name": "BTM Layout ORR (Metro Phase 3 - Orange Line (ORR West)) \u2014 Planning, ETA 2029",
+        "distance_km": 2.64,
+        "category": "future_metro",
+        "latitude": 12.916,
+        "longitude": 77.61
+      },
+      {
+        "name": "HSR Layout (Metro Phase 2A - Blue Line (Silk Board to KR Pura)) \u2014 Under Construction, ETA 2026",
+        "distance_km": 2.76,
+        "category": "future_metro",
+        "latitude": 12.912,
+        "longitude": 77.638
+      },
+      {
+        "name": "Ibbalur (Metro Phase 2A - Blue Line (Silk Board to KR Pura)) \u2014 Under Construction, ETA 2026",
+        "distance_km": 3.7,
+        "category": "future_metro",
+        "latitude": 12.931,
+        "longitude": 77.66
+      },
+      {
+        "name": "Jayanagar ORR (Metro Phase 3 - Orange Line (ORR West)) \u2014 Planning, ETA 2029",
+        "distance_km": 4.2,
+        "category": "future_metro",
+        "latitude": 12.92,
+        "longitude": 77.59
+      }
+    ],
+    "breakdown": {
+      "methodology": "MOHUA TOD 500m/800m norms + completion timeline",
+      "proximity_score": 7.7,
+      "diversity_bonus": 16,
+      "construction_bonus": 15,
+      "stations_within_tod_800m": 0,
+      "stations_within_2km": 2,
+      "stations_within_5km": 9,
+      "projects_nearby": [
+        "Metro Phase 2A - Blue Line (Silk Board to KR Pura)",
+        "Metro Phase 3 - Orange Line (ORR West)"
+      ]
+    },
+    "sources": [
+      "MOHUA TOD Policy (2017) \u2014 500m/800m proximity norms",
+      "Namma Metro Phase 2A/2B \u2014 booknewproperty.com Tracker",
+      "Bengaluru Suburban Railway \u2014 Wikipedia / K-RIDE",
+      "Bengaluru Business Corridor \u2014 Times of India"
+    ]
+  },
+  "property_prices": {
+    "score": 12.3,
+    "label": "\u20b918,500/sqft (Severely Unaffordable)",
+    "data_confidence": null,
+    "details": [
+      {
+        "name": "Koramangala: Avg \u20b918,500/sqft | 2BHK ~\u20b9165L | EMI 120% of income",
+        "distance_km": 0.0,
+        "category": "property_price",
+        "latitude": 12.934,
+        "longitude": 77.626
+      }
+    ],
+    "breakdown": {
+      "methodology": "RBI EMI/Income ratio \u2014 8.00%/20yr, 20 LPA benchmark",
+      "area": "Koramangala",
+      "avg_price_per_sqft": 18500,
+      "avg_2bhk_price_lakh": 165,
+      "monthly_emi_rs": 137940,
+      "benchmark_income_rs": 115000,
+      "emi_to_income_pct": 119.9,
+      "affordability_label": "Severely Unaffordable",
+      "avg_2bhk_rent": 50000,
+      "avg_3bhk_rent": 95000,
+      "rent_to_income_pct": 43.5,
+      "rental_recommendation": "Rent",
+      "rental_reasoning": "EMI (\u20b9137,940) is 2.8x the rent (\u20b950,000)",
+      "yoy_growth_pct": 9.3,
+      "rental_yield_pct": 3.6,
+      "avg_maintenance_monthly": 14200,
+      "resale_avg_days_on_market": 32,
+      "price_range_low": 9500,
+      "price_range_high": 28000
+    },
+    "sources": [
+      "RBI Residential Asset Price Monitoring (rbi.org.in)",
+      "ANAROCK Homebuyer Sentiment Survey H1 2025",
+      "EMI at 8.00% p.a. / 20yr tenure (SBI/HDFC typical, Mar 2026)",
+      "Benchmark: 20 LPA CTC tech professional, Bangalore",
+      "99acres / MagicBricks property rate data (Mar 2026)"
+    ]
+  },
+  "flood_risk": {
+    "score": 36.0,
+    "label": "Very High Risk \u2014 Flood Zone",
+    "data_confidence": null,
+    "details": [],
+    "breakdown": {
+      "methodology": "BBMP flood ward classification + elevation + historical events",
+      "neighborhood": "Koramangala",
+      "risk_level": "very_high",
+      "flood_history_events": 6,
+      "elevation_m": 909,
+      "elevation_insight": "Below city average (920m) \u2014 check drainage infrastructure, moderate flood concern",
+      "drainage_quality": "poor",
+      "bbmp_flood_ward": true,
+      "waterlogging_spots": [
+        "KC valley zone"
+      ]
+    },
+    "sources": [
+      "BBMP Flooding Locations \u2014 data.opencity.in (Public Domain, updated Nov 2025)",
+      "BBMP 210 Flood-Prone Spots Report (2025) \u2014 Times Now / Deccan Herald",
+      "KSNDMC \u2014 Karnataka State Natural Disaster Monitoring Centre",
+      "Google Elevation API \u2014 terrain elevation",
+      "Koramangala-Challaghatta (KC) & Hebbal valley flood risk mapping"
+    ]
+  },
+  "commute": {
+    "score": 93.3,
+    "label": "Excellent",
+    "data_confidence": null,
+    "details": [
+      {
+        "name": "Prestige Tech Park: 12min base \u2192 12min peak (1.1x traffic)",
+        "distance_km": 2.8,
+        "category": "tech_park_commute",
+        "latitude": 12.9335,
+        "longitude": 77.6102
+      },
+      {
+        "name": "Bagmane Tech Park: 18min base \u2192 22min peak (1.2x traffic)",
+        "distance_km": 6.1,
+        "category": "tech_park_commute",
+        "latitude": 12.9694,
+        "longitude": 77.6483
+      },
+      {
+        "name": "Electronic City Phase 1 & 2: 25min base \u2192 26min peak (1.1x traffic)",
+        "distance_km": 13.5,
+        "category": "tech_park_commute",
+        "latitude": 12.845,
+        "longitude": 77.66
+      },
+      {
+        "name": "RMZ Ecospace: 24min base \u2192 37min peak (1.5x traffic)",
+        "distance_km": 8.9,
+        "category": "tech_park_commute",
+        "latitude": 12.9266,
+        "longitude": 77.6846
+      },
+      {
+        "name": "Embassy Tech Village: 23min base \u2192 39min peak (1.7x traffic)",
+        "distance_km": 8.8,
+        "category": "tech_park_commute",
+        "latitude": 12.9249,
+        "longitude": 77.6779
+      }
+    ],
+    "breakdown": {
+      "methodology": "Google Maps Distance Matrix API \u2014 with and without traffic",
+      "neighborhood": "Koramangala",
+      "nearest_tech_park": "Prestige Tech Park",
+      "nearest_no_traffic_min": 11.600000381469727,
+      "nearest_peak_traffic_min": 12.399999618530273,
+      "nearest_offpeak_min": 11.100000381469727,
+      "traffic_multiplier": 1.07,
+      "nearest_distance_km": 2.799999952316284,
+      "tech_parks_scored": 3,
+      "weighted_by": "employee count at each tech park",
+      "marketing_claim_min": 11.600000381469727,
+      "reality_peak_min": 12.399999618530273,
+      "lie_factor": 1.07
+    },
+    "sources": [
+      "Google Maps Distance Matrix API \u2014 real traffic-aware driving times",
+      "Tech park locations: Manyata, Embassy TechVillage, ITPL, Electronic City, etc.",
+      "Peak traffic: Monday 9 AM IST departure",
+      "Off-peak traffic: Monday 2 PM IST departure"
+    ]
+  },
+  "delivery_coverage": {
+    "score": 88.0,
+    "label": "Excellent",
+    "data_confidence": null,
+    "details": [],
+    "breakdown": {
+      "methodology": "Quick-commerce service availability check",
+      "neighborhood": "Koramangala",
+      "services_available": [
+        "Swiggy Instamart",
+        "Zepto",
+        "Blinkit",
+        "BigBasket"
+      ],
+      "services_unavailable": [],
+      "coverage_count": 4,
+      "avg_delivery_min": 12.0
+    },
+    "sources": [
+      "Zepto Delivery Areas \u2014 zepto.com/delivery-areas (Mar 2026)",
+      "Blinkit Dark Store Expansion \u2014 mystoreslist.com (Aug 2025)",
+      "Swiggy Instamart \u2014 10-minute delivery coverage (Mar 2026)",
+      "BigBasket \u2014 Bangalore coverage map (Mar 2026)"
+    ]
+  },
+  "noise": {
+    "score": 28.7,
+    "label": "Noisy",
+    "data_confidence": null,
+    "details": [],
+    "breakdown": {
+      "methodology": "CPCB noise monitoring + flight path + highway + construction",
+      "neighborhood": "Koramangala",
+      "avg_noise_db_estimate": 68.0,
+      "noise_label": "noisy",
+      "cpcb_residential_standard_db": 55,
+      "exceeds_cpcb_residential": true,
+      "airport_flight_path": false,
+      "highway_proximity_km": 1.92,
+      "construction_zones_active": 0,
+      "noise_factors": []
+    },
+    "sources": [
+      "CPCB Noise Monitoring Stations \u2014 data.gov.in (Feb 2025)",
+      "DGCA / BIAL \u2014 Kempegowda International Airport noise studies",
+      "HAL Airport flight path \u2014 The Hindu (Apr 2025)",
+      "Highway proximity: NH44, NH75, ORR, NICE Road, Mysore Road",
+      "CPCB National Ambient Noise Monitoring Network"
+    ]
+  },
+  "business_opportunity": {
+    "score": 85.0,
+    "label": "Excellent",
+    "data_confidence": null,
+    "details": [],
+    "breakdown": {
+      "methodology": "Karnataka Startup Cell + BBMP Trade License + NASSCOM",
+      "area": "Koramangala",
+      "new_business_acceptability_pct": 72.0,
+      "commercial_rent_sqft": 85.0,
+      "footfall_index": 88.0,
+      "startup_density_per_sqkm": 48.0,
+      "coworking_spaces": 22,
+      "consumer_spending_index": 90.0,
+      "best_business_types": [
+        "tech startups",
+        "cafes & restaurants",
+        "co-working",
+        "D2C brands",
+        "fitness studios"
+      ]
+    },
+    "sources": [
+      "Karnataka Startup Cell \u2014 startup.karnataka.gov.in",
+      "BBMP Trade License Data 2024-25 \u2014 data.opencity.in",
+      "NASSCOM Startup Ecosystem Report 2025",
+      "RBI/CIBIL MSME Data Karnataka",
+      "JustDial / Google Maps commercial listings",
+      "WeWork / 91springboard / Awfis coworking locations"
+    ]
+  },
+  "cleanliness": {
+    "score": 73.1,
+    "label": "Very Good",
+    "data_confidence": null,
+    "details": [
+      {
+        "name": "Dry Waste Centre: dry_waste_centre (unnamed)",
+        "distance_km": 1.13,
+        "category": "dry_waste_centre",
+        "latitude": 12.9441934,
+        "longitude": 77.6270411
+      },
+      {
+        "name": "Landfill: landfill (unnamed)",
+        "distance_km": 18.89,
+        "category": "landfill",
+        "latitude": 13.1035833,
+        "longitude": 77.6459222
+      },
+      {
+        "name": "Biomethanisation: biomethanisation (unnamed)",
+        "distance_km": 1.3,
+        "category": "waste_processing",
+        "latitude": 12.9337916668211,
+        "longitude": 77.6140611113438
+      }
+    ],
+    "breakdown": {
+      "methodology": "Slum proximity (CNN deprivation) + BBMP waste infrastructure access",
+      "slum_count_2km": 36,
+      "avg_deprivation_dn": 212.4,
+      "nearest_slum_m": 1555.0,
+      "slum_density_score": 32.8,
+      "nearest_dry_waste_m": 1133.0,
+      "dry_waste_centres_5km": 47,
+      "waste_access_score": 100.0,
+      "nearest_landfill_m": 18885.0,
+      "landfill_penalty_score": 100.0,
+      "nearest_processing_m": 1296.0,
+      "processing_score": 100.0
+    },
+    "sources": [
+      "Bengaluru Slums Map \u2014 data.opencity.in (CNN satellite, DN deprivation index)",
+      "BBMP Dry Waste Collection Centres \u2014 data.opencity.in (336 locations)",
+      "BBMP Waste Processing Plants \u2014 data.opencity.in",
+      "BBMP Landfill Locations \u2014 data.opencity.in (negative proximity signal)",
+      "BBMP Biomethanisation Plants \u2014 data.opencity.in"
+    ]
+  },
+  "ai_verification": null,
+  "recommended_neighborhoods": [
+    {
+      "name": "Sadashivanagar",
+      "score": 75.4,
+      "label": "Very Good",
+      "highlights": [
+        "Low flood risk",
+        "Very walkable",
+        "Reliable water supply"
+      ]
+    },
+    {
+      "name": "Indiranagar",
+      "score": 71.4,
+      "label": "Very Good",
+      "highlights": [
+        "Low flood risk",
+        "Very walkable",
+        "Reliable water supply"
+      ]
+    },
+    {
+      "name": "Vasanth Nagar",
+      "score": 62.1,
+      "label": "Good",
+      "highlights": [
+        "Low flood risk",
+        "~\u20b916,500/sqft"
+      ]
+    }
+  ],
+  "neighborhoods_to_avoid": [
+    {
+      "name": "Mysore Road",
+      "score": 35.3,
+      "label": "Below Average",
+      "highlights": [
+        "Higher crime rate",
+        "Flood-prone area",
+        "~\u20b96,800/sqft"
+      ]
+    },
+    {
+      "name": "Attiguppe",
+      "score": 35.2,
+      "label": "Below Average",
+      "highlights": [
+        "Higher crime rate",
+        "Flood-prone area",
+        "~\u20b98,500/sqft"
+      ]
+    },
+    {
+      "name": "Gandhinagar",
+      "score": 35.0,
+      "label": "Below Average",
+      "highlights": [
+        "Higher crime rate",
+        "Flood-prone area",
+        "Very expensive"
+      ]
+    }
+  ],
+  "best_to_buy": [],
+  "best_to_rent": [
+    {
+      "area": "Sadashivanagar",
+      "recommendation": "Rent",
+      "avg_2bhk_rent": 35000,
+      "monthly_emi": 167200,
+      "emi_rent_ratio": 4.78,
+      "rental_yield_pct": 2.1,
+      "avg_price_sqft": 20000
+    },
+    {
+      "area": "Langford Town",
+      "recommendation": "Rent",
+      "avg_2bhk_rent": 35000,
+      "monthly_emi": 142120,
+      "emi_rent_ratio": 4.06,
+      "rental_yield_pct": 2.5,
+      "avg_price_sqft": 17000
+    },
+    {
+      "area": "Vasanth Nagar",
+      "recommendation": "Rent",
+      "avg_2bhk_rent": 35000,
+      "monthly_emi": 133760,
+      "emi_rent_ratio": 3.82,
+      "rental_yield_pct": 2.6,
+      "avg_price_sqft": 16500
+    }
+  ],
+  "wards_covered": [],
+  "wards_total_population": null
+}

@@ -1,50 +1,20 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Shield } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { AnimatedGlowingSearchBar } from '@/components/ui/animated-glowing-search-bar';
 import TetrisLoading from '@/components/ui/tetris-loader';
-
-interface ClaimResult {
-  original_claim: string;
-  claimed_value: string;
-  actual_value: string;
-  difference: string;
-  verdict: string;
-  details: Record<string, unknown>;
-}
-
-interface VerifyResponse {
-  latitude: number;
-  longitude: number;
-  address: string;
-  results: ClaimResult[];
-  summary: string;
-}
-
-function verdictBadgeVariant(verdict: string) {
-  if (verdict === 'ACCURATE') return 'success' as const;
-  if (verdict === 'SLIGHTLY_OPTIMISTIC') return 'warning' as const;
-  if (verdict === 'MISLEADING') return 'destructive' as const;
-  return 'mono' as const;
-}
+import PropertyIntelligencePanel from './PropertyIntelligencePanel';
+import type { VerifyClaimsResponse } from '@/types';
 
 export default function VerifyClaims() {
   const [address, setAddress] = useState('');
   const [claimsText, setClaimsText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<VerifyResponse | null>(null);
+  const [result, setResult] = useState<VerifyClaimsResponse | null>(null);
 
   const handleVerify = async () => {
     if (!address.trim() || !claimsText.trim()) return;
-
-    const claims = claimsText
-      .split('\n')
-      .map(l => l.trim())
-      .filter(l => l.length > 0);
-
-    if (claims.length === 0) return;
 
     setLoading(true);
     setError(null);
@@ -54,7 +24,7 @@ export default function VerifyClaims() {
       const resp = await fetch('/api/verify-claims', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: address.trim(), claims }),
+        body: JSON.stringify({ address: address.trim(), raw_text: claimsText.trim() }),
       });
       if (!resp.ok) {
         const err = await resp.json();
@@ -69,14 +39,6 @@ export default function VerifyClaims() {
     }
   };
 
-  const EXAMPLES = [
-    '5 min from metro',
-    '20 min to Electronic City',
-    '2 km from international airport',
-    '15 min walk to bus stop',
-    '30 min to Manyata Tech Park',
-  ];
-
   return (
     <div>
       <div className="sticky top-12 z-20 bg-black/50 backdrop-blur-md pb-4 pt-2">
@@ -85,7 +47,7 @@ export default function VerifyClaims() {
             Verify Property Claims
           </h1>
           <p className="text-sm text-white mt-1">
-            Paste claims from a property listing and see if they hold up against real data.
+            Paste marketing text from a property listing — AI will extract each claim and verify it against real data.
           </p>
         </div>
 
@@ -106,13 +68,13 @@ export default function VerifyClaims() {
           </div>
           <div className="flex flex-col">
             <label className="block text-xs font-medium text-foreground mb-1">
-              Ad claims <span className="text-white/60 font-normal">(one per line)</span>
+              Marketing claims <span className="text-white/60 font-normal">(paste any ad text — AI splits it)</span>
             </label>
             <textarea
               value={claimsText}
               onChange={(e) => setClaimsText(e.target.value)}
-              placeholder={"5 min from metro\n20 min to Electronic City"}
-              rows={2}
+              placeholder={"e.g., It is a few minutes from a Purple Line Metro Station and the upcoming Blue Line Metro Station, and is about 15 minutes from ITPL, Outer Ring Road and Sarjapur Road."}
+              rows={3}
               className="flex-1 w-full rounded-lg border border-white/[0.10] bg-white/[0.04] px-3 py-2.5 text-sm text-white placeholder:text-white/50 outline-none focus:border-brand-9/30 transition-colors resize-y"
             />
           </div>
@@ -120,19 +82,7 @@ export default function VerifyClaims() {
 
         <div className="divider" />
 
-        <div className="flex items-center gap-3">
-          <div className="flex flex-wrap gap-2 flex-1">
-            <span className="text-xs text-white/60 mr-1 self-center font-medium">Try:</span>
-            {EXAMPLES.map((ex) => (
-              <button
-                key={ex}
-                onClick={() => setClaimsText(prev => prev ? prev + '\n' + ex : ex)}
-                className="text-xs px-3 py-1 glass-button rounded-full text-white/60 hover:text-foreground transition"
-              >
-                {ex}
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center justify-end gap-3">
           <button
             onClick={handleVerify}
             disabled={loading || !address.trim() || !claimsText.trim()}
@@ -149,8 +99,8 @@ export default function VerifyClaims() {
         {/* Loading */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-12">
-            <TetrisLoading size="sm" speed="fast" loadingText="Verifying ad claims..." />
-            <p className="text-xs text-white/60 mt-2">Checking distances, walking routes & peak traffic</p>
+            <TetrisLoading size="sm" speed="fast" loadingText="Analyzing & verifying claims..." />
+            <p className="text-xs text-white/60 mt-2">AI is extracting claims, resolving landmarks & checking real commute data</p>
           </div>
         )}
 
@@ -159,86 +109,31 @@ export default function VerifyClaims() {
           <div className="rounded-xl bg-red-500/10 p-4 text-red-400 text-sm">{error}</div>
         )}
 
-        {/* Results */}
-        {result && (
+        {/* Results — full intelligence panel */}
+        {result && !loading && (
           <div className="space-y-4">
-            <div className="rounded-xl bg-white/[0.03] backdrop-blur-sm px-6 py-3">
+            <div className="rounded-xl bg-white/[0.03] backdrop-blur-sm px-6 py-3 space-y-2">
               <p className="text-sm text-white/60">
                 Checking claims for: <span className="text-foreground font-medium">{result.address}</span>
               </p>
+              {result.extracted_claims && result.extracted_claims.length > 1 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className="text-xs text-white/40">AI extracted {result.extracted_claims.length} claims:</span>
+                  {result.extracted_claims.map((c, i) => (
+                    <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-white/[0.06] text-white/70">{c}</span>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Summary */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="rounded-xl bg-white/[0.03] backdrop-blur-sm p-4"
-            >
-              <div className="flex items-center gap-3">
-                <Shield size={20} className={
-                  result.results.some(r => r.verdict === 'MISLEADING') ? 'text-red-400' :
-                  result.results.some(r => r.verdict === 'SLIGHTLY_OPTIMISTIC') ? 'text-amber-400' : 'text-brand-9'
-                } />
-                <span className="font-bold text-foreground">{result.summary.replace(/\d+\s*/, '')}</span>
-              </div>
-            </motion.div>
-
-            {/* Individual claims */}
-            <div className="space-y-3">
-              {result.results.map((v, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                  className="rounded-xl bg-white/[0.03] backdrop-blur-sm p-4"
-                >
-                  <div className="flex items-start gap-3 mb-3">
-                    <span className="text-brand-9/15 text-3xl font-bold leading-none select-none">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-foreground font-medium">"{v.original_claim}"</span>
-                        <Badge variant={verdictBadgeVariant(v.verdict)}>
-                          {v.verdict.replace(/_/g, ' ')}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="rounded-lg bg-white/[0.03] backdrop-blur-sm p-2.5">
-                      <div className="text-[10px] text-white/60 uppercase tracking-wide mb-0.5">Ad claims</div>
-                      <div className="text-lg font-bold text-brand-9">{v.claimed_value}</div>
-                    </div>
-                    <div className="rounded-lg bg-white/[0.03] backdrop-blur-sm p-2.5">
-                      <div className="text-[10px] text-white/60 uppercase tracking-wide mb-0.5">Reality</div>
-                      <div className={`text-lg font-bold ${
-                        v.verdict === 'ACCURATE' ? 'text-brand-9' :
-                        v.verdict === 'SLIGHTLY_OPTIMISTIC' ? 'text-amber-400' : 'text-red-400'
-                      }`}>{v.actual_value}</div>
-                    </div>
-                    <div className="rounded-lg bg-white/[0.03] backdrop-blur-sm p-2.5">
-                      <div className="text-[10px] text-white/60 uppercase tracking-wide mb-0.5">Difference</div>
-                      <div className="text-lg font-bold text-red-400">{v.difference}</div>
-                    </div>
-                  </div>
-                  {v.details.nearest != null && (
-                    <p className="text-[11px] text-white/60 mt-2">Nearest: {String(v.details.nearest)}</p>
-                  )}
-                  {v.details.destination != null && (
-                    <p className="text-[11px] text-white/60 mt-2">Destination: {String(v.details.destination)}</p>
-                  )}
-                  {v.details.note != null && (
-                    <p className="text-[11px] text-white/60 mt-1">{String(v.details.note)}</p>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-
-            <p className="text-[10px] text-white/60 text-center">
-              Data: Google Maps Directions API (walking), Google Distance Matrix API (driving, peak traffic), PostGIS spatial queries
-            </p>
+            <PropertyIntelligencePanel
+              address={result.address}
+              latitude={result.latitude}
+              longitude={result.longitude}
+              claimResults={result.results}
+              summary={result.summary}
+              narrative={result.narrative}
+            />
           </div>
         )}
 
@@ -250,8 +145,8 @@ export default function VerifyClaims() {
             </div>
             <h3 className="text-lg gradient-text mb-2">Don't trust property ads blindly</h3>
             <p className="text-sm text-white/60 max-w-md mx-auto">
-              Enter an address and paste claims like "5 min from metro" or "20 min to Electronic City"
-              to see how they compare to reality.
+              Enter a property address and paste any marketing text — AI will extract each distance/proximity claim
+              and verify it against real commute data.
             </p>
           </div>
         )}

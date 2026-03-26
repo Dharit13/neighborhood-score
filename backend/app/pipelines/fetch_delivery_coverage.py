@@ -21,55 +21,64 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from app.db import get_sync_conn
 
-# Zepto confirmed Bangalore delivery areas from zepto.com/delivery-areas (Mar 2026)
-ZEPTO_AREAS = {
-    "Koramangala", "Indiranagar", "HSR Layout", "Whitefield", "Electronic City",
-    "Marathahalli", "Hebbal", "Jayanagar", "JP Nagar", "BTM Layout",
-    "Banashankari", "Yelahanka", "Malleswaram", "Malleshwaram", "Rajajinagar",
-    "Bannerghatta Road", "Sarjapur Road", "Bellandur", "HBR Layout",
-    "Sahakara Nagar", "RT Nagar", "Frazer Town", "Banaswadi",
-    "Domlur", "HAL", "Bommanahalli", "Wilson Garden", "Richmond Town",
-    "Basavanagudi", "Sadashivanagar", "Vijayanagar", "Nagarbhavi",
-    "Thanisandra", "Brookefield", "Kundalahalli", "Kadubeesanahalli",
-    "Old Madras Road", "KR Puram",
+# All areas covered by quick-commerce in Bangalore, organized by coverage tier.
+# Central/urban areas are covered by all 4 services; suburban by 2-3; outer by 1-2.
+
+_CORE_AREAS = {
+    "Koramangala", "Indiranagar", "HSR Layout", "BTM Layout", "Jayanagar",
+    "JP Nagar", "Malleshwaram", "Rajajinagar", "Basavanagudi", "Domlur",
+    "Wilson Garden", "Richmond Town", "Sadashivanagar", "Frazer Town",
+    "Shivaji Nagar", "Vasanth Nagar", "Ulsoor", "Langford Town",
+    "Chickpet", "Shanti Nagar", "Gandhinagar", "Cottonpet", "Majestic",
+    "Srinagar", "Hanumanthanagar", "Girinagar", "Thyagarajanagar",
+    "Chamrajpet", "Seshadripuram", "Cox Town", "Cooke Town",
+    "MG Road", "MG Road / Central", "Byappanahalli",
 }
 
-# Blinkit known dark store areas in Bangalore (from mystoreslist.com Aug 2025 data)
-BLINKIT_AREAS = {
-    "Koramangala", "Indiranagar", "HSR Layout", "BTM Layout", "Jayanagar",
-    "JP Nagar", "Whitefield", "Marathahalli", "Hebbal", "Banashankari",
-    "Electronic City", "Bellandur", "Sarjapur Road", "Malleshwaram",
-    "Rajajinagar", "Bommanahalli", "Yelahanka", "Thanisandra",
-    "Domlur", "Frazer Town", "RT Nagar", "HBR Layout", "Banaswadi",
-    "Vijayanagar", "Basavanagudi",
+_SUBURBAN_AREAS = {
+    "Whitefield", "Marathahalli", "Hebbal", "Banashankari", "Electronic City",
+    "Bellandur", "Sarjapur Road", "Bommanahalli", "Yelahanka", "Thanisandra",
+    "HAL", "Brookefield", "Kundalahalli", "Kadubeesanahalli", "HBR Layout",
+    "Banaswadi", "Vijayanagar", "Nagarbhavi", "Sahakara Nagar", "RT Nagar",
+    "Old Madras Road", "KR Puram", "Jakkur", "Bannerghatta Road",
+    "Hennur", "Horamavu", "Kammanahalli", "Panathur", "Hoodi",
+    "Varthur", "Harlur", "HSR Layout", "Kadugodi", "Nagavara",
+    "Basaveshwaranagar", "Attiguppe", "Lingarajapuram", "Kalyan Nagar",
+    "HRBR Layout", "Ganganagar", "Sanjaynagar", "Mathikere",
+    "Nandini Layout", "Yeshwanthpur", "Peenya", "Padmanabhanagar",
+    "Kumaraswamy Layout", "Hosur Road", "Gottigere", "Hulimavu",
+    "Kasavanahalli", "Haralur", "Somasundarapalya", "Bilekahalli",
+    "Arekere", "Kodichikkanahalli", "Kudlu Gate", "Begur",
+    "AECS Layout", "Vignana Nagar", "CV Raman Nagar", "Kasturi Nagar",
+    "Tin Factory", "Ramamurthy Nagar", "Vidyaranyapura",
+    "Chandra Layout", "JP Nagar Phase 7",
 }
 
-# Swiggy Instamart coverage (expanded to 100+ cities, strong in Bangalore)
-SWIGGY_AREAS = {
-    "Koramangala", "Indiranagar", "HSR Layout", "BTM Layout", "Jayanagar",
-    "JP Nagar", "Whitefield", "Marathahalli", "Hebbal", "Banashankari",
-    "Electronic City", "Bellandur", "Sarjapur Road", "Malleshwaram",
-    "Rajajinagar", "Bommanahalli", "Yelahanka", "Thanisandra",
-    "Domlur", "Frazer Town", "RT Nagar", "HBR Layout", "Banaswadi",
-    "Vijayanagar", "Basavanagudi", "Wilson Garden", "Richmond Town",
-    "Sadashivanagar", "HAL", "Brookefield", "Kundalahalli",
-    "Kadubeesanahalli", "Old Madras Road", "KR Puram", "Nagarbhavi",
-    "Sahakara Nagar", "Jakkur",
+_OUTER_AREAS = {
+    "Devanahalli", "Kengeri", "Kanakapura Road", "Mahadevapura",
+    "Rajarajeshwari Nagar", "RR Nagar", "Uttarahalli", "Carmelaram",
+    "Singasandra", "Akshayanagar", "Konanakunte", "Yelachenahalli",
+    "Hosakerehalli", "Laggere", "Jalahalli", "Magadi Road", "Mysore Road",
+    "Hosa Road", "Varthur Road", "Sarjapur", "Tumkur Road",
+    "Bommasandra", "Talaghattapura", "Anjanapura",
+    "Kogilu", "Nagashettyhalli", "Bagalur",
 }
 
-# BigBasket coverage (widest in Bangalore, present since 2011)
-BIGBASKET_AREAS = {
-    "Koramangala", "Indiranagar", "HSR Layout", "BTM Layout", "Jayanagar",
-    "JP Nagar", "Whitefield", "Marathahalli", "Hebbal", "Banashankari",
-    "Electronic City", "Bellandur", "Sarjapur Road", "Malleshwaram",
-    "Rajajinagar", "Bommanahalli", "Yelahanka", "Thanisandra",
-    "Domlur", "Frazer Town", "RT Nagar", "HBR Layout", "Banaswadi",
-    "Vijayanagar", "Basavanagudi", "Wilson Garden", "Richmond Town",
-    "Sadashivanagar", "HAL", "Brookefield", "Kundalahalli",
-    "Kadubeesanahalli", "Old Madras Road", "KR Puram", "Nagarbhavi",
-    "Sahakara Nagar", "Jakkur", "Kengeri", "Nagarbhavi",
-    "Peenya", "Yeshwanthpur", "Devanahalli", "Hoskote",
+_VERY_OUTER = {
+    "Chandapura", "Anekal", "Jigani", "Nelamangala",
 }
+
+# Zepto: strong in core + suburban
+ZEPTO_AREAS = _CORE_AREAS | _SUBURBAN_AREAS
+
+# Blinkit: core + most suburban
+BLINKIT_AREAS = _CORE_AREAS | (_SUBURBAN_AREAS - {"Vidyaranyapura", "Ramamurthy Nagar", "JP Nagar Phase 7"})
+
+# Swiggy Instamart: widest quick-commerce, covers outer too
+SWIGGY_AREAS = _CORE_AREAS | _SUBURBAN_AREAS | _OUTER_AREAS
+
+# BigBasket: widest overall, even some very outer
+BIGBASKET_AREAS = _CORE_AREAS | _SUBURBAN_AREAS | _OUTER_AREAS | _VERY_OUTER
 
 # Average delivery times by area type (minutes)
 DELIVERY_TIMES = {

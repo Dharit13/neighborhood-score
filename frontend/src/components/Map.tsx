@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { NeighborhoodScoreResponse } from '../types';
+import type { NeighborhoodScoreResponse, FeaturedNeighborhood } from '../types';
 import TetrisLoading from '@/components/ui/tetris-loader';
 
 const DARK_STYLE: google.maps.MapTypeStyle[] = [
@@ -43,14 +43,16 @@ let _gmapsLoaded = false;
 let _gmapsLoading = false;
 const _gmapsCallbacks: (() => void)[] = [];
 
-function loadGoogleMaps(apiKey: string): Promise<void> {
+function loadGoogleMaps(apiKey: string, mapId?: string): Promise<void> {
   if (_gmapsLoaded) return Promise.resolve();
   return new Promise((resolve) => {
     _gmapsCallbacks.push(resolve);
     if (_gmapsLoading) return;
     _gmapsLoading = true;
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async&callback=__gmapsInit`;
+    let url = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async&callback=__gmapsInit`;
+    if (mapId) url += `&map_ids=${mapId}`;
+    script.src = url;
     script.async = true;
     script.defer = true;
     (window as unknown as Record<string, unknown>).__gmapsInit = () => {
@@ -65,11 +67,12 @@ function loadGoogleMaps(apiKey: string): Promise<void> {
 
 interface Props {
   data?: NeighborhoodScoreResponse | null;
-  onMapClick: (lat: number, lon: number) => void;
+  onMapClick: (lat: number, lon: number, address?: string) => void;
   loading: boolean;
+  featuredNeighborhoods?: FeaturedNeighborhood[];
 }
 
-export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
+export default function NeighborhoodMap({ data, onMapClick, loading, featuredNeighborhoods = [] }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const circlesRef = useRef<google.maps.Circle[]>([]);
@@ -78,12 +81,15 @@ export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
   const pendingCircleRef = useRef<google.maps.Circle | null>(null);
   const radiusLabelsRef = useRef<google.maps.OverlayView[]>([]);
   const pulseOverlayRef = useRef<google.maps.OverlayView | null>(null);
+  const featuredOverlaysRef = useRef<google.maps.OverlayView[]>([]);
+  const rotationFrameRef = useRef<number>(0);
   const onMapClickRef = useRef(onMapClick);
   onMapClickRef.current = onMapClick;
 
   const [ready, setReady] = useState(_gmapsLoaded);
   const [mapError, setMapError] = useState(false);
   const [clickLoading, setClickLoading] = useState(false);
+  const [mapIdConfig, setMapIdConfig] = useState<string>('');
 
   useEffect(() => {
     if (_gmapsLoaded) { setReady(true); return; }
@@ -92,7 +98,8 @@ export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
       .then(r => r.json())
       .then(d => {
         if (d.google_maps_api_key) {
-          loadGoogleMaps(d.google_maps_api_key).then(() => { clearTimeout(timeout); setReady(true); });
+          if (d.google_maps_map_id) setMapIdConfig(d.google_maps_map_id);
+          loadGoogleMaps(d.google_maps_api_key, d.google_maps_map_id || undefined).then(() => { clearTimeout(timeout); setReady(true); });
         } else { clearTimeout(timeout); setMapError(true); }
       })
       .catch(() => { clearTimeout(timeout); setMapError(true); });
@@ -106,17 +113,27 @@ export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
       ? { lat: data.latitude, lng: data.longitude }
       : { lat: 12.9716, lng: 77.5946 };
 
-    const map = new google.maps.Map(containerRef.current, {
+    const mapOptions: google.maps.MapOptions = {
       center,
       zoom: data ? 13 : 12,
-      styles: isDark ? DARK_STYLE : LIGHT_STYLE,
       disableDefaultUI: true,
       zoomControl: true,
       streetViewControl: false,
       fullscreenControl: false,
       clickableIcons: false,
       gestureHandling: 'greedy',
-    });
+    };
+
+    if (mapIdConfig) {
+      mapOptions.mapId = mapIdConfig;
+      mapOptions.tilt = 45;
+      mapOptions.heading = 0;
+      if (isDark) mapOptions.colorScheme = 'DARK' as unknown as google.maps.ColorScheme;
+    } else {
+      mapOptions.styles = isDark ? DARK_STYLE : LIGHT_STYLE;
+    }
+
+    const map = new google.maps.Map(containerRef.current, mapOptions);
 
     map.addListener('click', (e: google.maps.MapMouseEvent) => {
       if (!e.latLng) return;
@@ -129,18 +146,48 @@ export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
       onMapClickRef.current(pos.lat, pos.lng);
     });
 
+    if (mapIdConfig) {
+      let heading = 0;
+      let paused = false;
+      let resumeTimeout: ReturnType<typeof setTimeout>;
+
+      const rotateMap = () => {
+        if (!paused) {
+          heading = (heading + 0.03) % 360;
+          map.moveCamera({ heading });
+        }
+        rotationFrameRef.current = requestAnimationFrame(rotateMap);
+      };
+      rotationFrameRef.current = requestAnimationFrame(rotateMap);
+
+      map.addListener('dragstart', () => {
+        paused = true;
+        clearTimeout(resumeTimeout);
+      });
+      map.addListener('dragend', () => {
+        resumeTimeout = setTimeout(() => {
+          heading = map.getHeading() ?? heading;
+          paused = false;
+        }, 3000);
+      });
+    }
+
     mapRef.current = map;
-  }, [ready]);
+
+    return () => {
+      if (rotationFrameRef.current) cancelAnimationFrame(rotationFrameRef.current);
+    };
+  }, [ready, mapIdConfig]);
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || mapIdConfig) return;
     const observer = new MutationObserver(() => {
       const isDark = document.documentElement.classList.contains('dark');
       mapRef.current?.setOptions({ styles: isDark ? DARK_STYLE : LIGHT_STYLE });
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
-  }, [ready]);
+  }, [ready, mapIdConfig]);
 
   useEffect(() => {
     if (data) setClickLoading(false);
@@ -152,8 +199,38 @@ export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
 
   useEffect(() => {
     if (!mapRef.current || !data) return;
-    mapRef.current.panTo({ lat: data.latitude, lng: data.longitude });
-    mapRef.current.setZoom(13);
+    const map = mapRef.current;
+    const target = { lat: data.latitude, lng: data.longitude };
+    const currentZoom = map.getZoom() ?? 13;
+    const currentCenter = map.getCenter();
+
+    if (!currentCenter || (currentCenter.lat() === target.lat && currentCenter.lng() === target.lng)) {
+      map.panTo(target);
+      map.setZoom(13);
+      return;
+    }
+
+    const flyOutZoom = Math.min(currentZoom, 13) - 2;
+    map.setZoom(flyOutZoom);
+
+    const onZoomOut = () => {
+      map.panTo(target);
+      google.maps.event.removeListener(zoomOutListener);
+
+      const onPan = () => {
+        google.maps.event.removeListener(panListener);
+        let z = flyOutZoom;
+        const zoomStep = () => {
+          z += 0.5;
+          if (z >= 13) { map.setZoom(13); return; }
+          map.setZoom(Math.round(z));
+          requestAnimationFrame(zoomStep);
+        };
+        requestAnimationFrame(zoomStep);
+      };
+      const panListener = map.addListener('idle', onPan);
+    };
+    const zoomOutListener = map.addListener('idle', onZoomOut);
   }, [data?.latitude, data?.longitude]);
 
   useEffect(() => {
@@ -172,9 +249,6 @@ export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
     if (scoreOverlayRef.current) { scoreOverlayRef.current.setMap(null); scoreOverlayRef.current = null; }
     if (pulseOverlayRef.current) { pulseOverlayRef.current.setMap(null); pulseOverlayRef.current = null; }
 
-    // Interactive home marker as custom OverlayView with pop-on-hover
-    const scoreColor = data.composite_score >= 60 ? '#2ad587' : data.composite_score >= 40 ? '#fbbf24' : '#f87171';
-    const scoreDark = data.composite_score >= 60 ? '#001a10' : 'white';
     const neighborhoodName = data.address.split(',')[0]?.trim() || 'Location';
 
     class InteractiveMarker extends google.maps.OverlayView {
@@ -193,38 +267,37 @@ export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
           transform: 'translate(-50%, -100%)',
           cursor: 'pointer',
           zIndex: '1000',
+          animation: 'map-marker-drop 0.5s cubic-bezier(0.34,1.56,0.64,1) both',
         });
+
+        const sc = this.score;
+        const safetyPink = data?.safety?.score != null && data.safety.score >= 90;
+        const color = safetyPink ? '#ec4899' : sc >= 75 ? '#c0c7d0' : sc >= 68 ? '#3b82f6' : sc >= 60 ? '#2ad587' : sc >= 52 ? '#fbbf24' : '#f87171';
+        const textColor = safetyPink ? '#fff' : sc >= 45 ? '#000' : '#fff';
 
         this.container.innerHTML = `
           <div class="map-marker-wrap" style="display:flex;flex-direction:column;align-items:center;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);transform-origin:bottom center;">
             <!-- Score badge -->
-            <div class="map-score-badge" style="
-              background:linear-gradient(135deg,${scoreColor},${scoreColor}cc);
-              color:${scoreDark};
+            <div style="
+              background:${color};
+              color:${textColor};
               border-radius:10px;
-              padding:4px 12px;
-              font-size:13px;
-              font-weight:700;
+              padding:3px 10px;
+              font-size:12px;
+              font-weight:800;
               font-family:'JetBrains Mono',monospace;
-              box-shadow:0 4px 16px ${scoreColor}50,0 0 20px ${scoreColor}20;
+              box-shadow:0 4px 12px ${color}50;
               white-space:nowrap;
-              border:1px solid ${scoreColor}40;
-              margin-bottom:4px;
-              transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-            ">${Math.round(this.score)}/100</div>
-            <!-- Pin -->
-            <svg width="40" height="48" viewBox="0 0 48 56" style="filter:drop-shadow(0 2px 6px rgba(0,44,124,0.4));transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);">
-              <defs>
-                <linearGradient id="pg2" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#002c7c"/>
-                  <stop offset="100%" stop-color="#2ad587"/>
-                </linearGradient>
-              </defs>
-              <path d="M24 0C12 0 2 10 2 22c0 16 22 34 22 34s22-18 22-34C46 10 36 0 24 0z" fill="url(#pg2)"/>
-              <circle cx="24" cy="20" r="12" fill="white" fill-opacity="0.2"/>
+              border:1px solid ${color}40;
+              margin-bottom:3px;
+            ">${Math.round(sc)}/100</div>
+            <!-- Pin with house icon -->
+            <svg width="40" height="48" viewBox="0 0 48 56" style="filter:drop-shadow(0 2px 6px ${color}40);">
+              <path d="M24 0C12 0 2 10 2 22c0 16 22 34 22 34s22-18 22-34C46 10 36 0 24 0z" fill="${color}"/>
+              <circle cx="24" cy="20" r="12" fill="rgba(255,255,255,0.2)"/>
               <path d="M16 22l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5h-4a1 1 0 0 1-1-1z" fill="white" stroke="white" stroke-width="0.5"/>
             </svg>
-            <!-- Hover tooltip (hidden by default) -->
+            <!-- Hover tooltip -->
             <div class="map-marker-tooltip" style="
               position:absolute;
               top:-44px;
@@ -232,7 +305,7 @@ export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
               transform:translateX(-50%) scale(0);
               opacity:0;
               background:#080c12;
-              border:1px solid rgba(42,213,135,0.25);
+              border:1px solid ${color}30;
               border-radius:10px;
               padding:8px 14px;
               white-space:nowrap;
@@ -251,22 +324,34 @@ export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
         const tooltip = this.container.querySelector('.map-marker-tooltip') as HTMLElement;
 
         this.container.addEventListener('mouseenter', () => {
+          this.container!.style.zIndex = '9999';
+          wrap.style.animation = 'none';
           wrap.style.transform = 'scale(1.3)';
           tooltip.style.transform = 'translateX(-50%) scale(1)';
           tooltip.style.opacity = '1';
         });
 
         this.container.addEventListener('mouseleave', () => {
+          this.container!.style.zIndex = '1000';
           wrap.style.transform = 'scale(1)';
+          wrap.style.animation = 'map-marker-float 3s ease-in-out infinite';
           tooltip.style.transform = 'translateX(-50%) scale(0)';
           tooltip.style.opacity = '0';
         });
 
         this.container.addEventListener('click', () => {
+          wrap.style.animation = 'none';
           wrap.style.transform = 'scale(0.85)';
           setTimeout(() => { wrap.style.transform = 'scale(1.3)'; }, 100);
-          setTimeout(() => { wrap.style.transform = 'scale(1)'; }, 300);
+          setTimeout(() => {
+            wrap.style.transform = 'scale(1)';
+            wrap.style.animation = 'map-marker-float 3s ease-in-out infinite';
+          }, 300);
         });
+
+        setTimeout(() => {
+          if (wrap) wrap.style.animation = 'map-marker-float 3s ease-in-out infinite';
+        }, 1000);
 
         this.getPanes()?.overlayMouseTarget.appendChild(this.container);
       }
@@ -329,22 +414,33 @@ export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
     pulse.setMap(map);
     pulseOverlayRef.current = pulse;
 
-    // Radius circles with brand colors
+    // Radius circles with animated expansion
+    const circleCenter = { lat: data.latitude, lng: data.longitude };
     const c2 = new google.maps.Circle({
-      center: { lat: data.latitude, lng: data.longitude },
-      radius: 2000, map,
+      center: circleCenter, radius: 0, map,
       strokeColor: '#007260', strokeWeight: 1.5, strokeOpacity: 0.5,
       fillColor: '#002c7c', fillOpacity: 0.04,
     });
     const c5 = new google.maps.Circle({
-      center: { lat: data.latitude, lng: data.longitude },
-      radius: 5000, map,
+      center: circleCenter, radius: 0, map,
       strokeColor: '#002c7c', strokeWeight: 2, strokeOpacity: 0.6,
       fillColor: '#002c7c', fillOpacity: 0.06,
     });
     circlesRef.current = [c2, c5];
 
-    // Radius labels with brand styling
+    const animateCircle = (circle: google.maps.Circle, targetR: number, durationMs: number, onDone?: () => void) => {
+      const start = performance.now();
+      const step = (now: number) => {
+        const t = Math.min((now - start) / durationMs, 1);
+        const ease = 1 - Math.pow(1 - t, 3);
+        circle.setRadius(targetR * ease);
+        if (t < 1) requestAnimationFrame(step);
+        else onDone?.();
+      };
+      requestAnimationFrame(step);
+    };
+
+    // Radius labels with brand styling -- start hidden, fade in after circle expands
     class RadiusLabel extends google.maps.OverlayView {
       private div: HTMLDivElement | null = null;
       private center: google.maps.LatLng;
@@ -359,7 +455,7 @@ export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
       onAdd() {
         this.div = document.createElement('div');
         Object.assign(this.div.style, {
-          position: 'absolute', transform: 'translate(-50%, -50%)',
+          position: 'absolute', transform: 'translate(-50%, -50%) translateY(6px)',
           color: '#2ad587', fontSize: '11px', fontWeight: '700',
           fontFamily: "'JetBrains Mono', monospace",
           whiteSpace: 'nowrap', pointerEvents: 'none',
@@ -368,9 +464,16 @@ export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
           border: '1px solid rgba(42,213,135,0.25)',
           boxShadow: '0 2px 8px rgba(0,44,124,0.2)',
           backdropFilter: 'blur(4px)',
+          opacity: '0',
+          transition: 'opacity 0.4s ease, transform 0.4s ease',
         });
         this.div.textContent = this.text;
         this.getPanes()?.overlayMouseTarget.appendChild(this.div);
+      }
+      reveal() {
+        if (!this.div) return;
+        this.div.style.opacity = '1';
+        this.div.style.transform = 'translate(-50%, -50%)';
       }
       draw() {
         if (!this.div) return;
@@ -389,17 +492,158 @@ export default function NeighborhoodMap({ data, onMapClick, loading }: Props) {
     const label5 = new RadiusLabel(center, 5000, '5 km');
     label5.setMap(map);
     radiusLabelsRef.current = [label2, label5];
+
+    animateCircle(c2, 2000, 600, () => label2.reveal());
+    setTimeout(() => animateCircle(c5, 5000, 600, () => label5.reveal()), 200);
   }, [data]);
+
+  useEffect(() => {
+    if (!mapRef.current || featuredNeighborhoods.length === 0) return;
+    const map = mapRef.current;
+
+    featuredOverlaysRef.current.forEach(o => o.setMap(null));
+    featuredOverlaysRef.current = [];
+
+    const activeLat = data?.latitude;
+    const activeLon = data?.longitude;
+
+    let pinIndex = 0;
+
+    class NeighborhoodPin extends google.maps.OverlayView {
+      private container: HTMLDivElement | null = null;
+      private pos: google.maps.LatLng;
+      private info: FeaturedNeighborhood;
+      private entranceDelay: number;
+      constructor(pos: google.maps.LatLng, info: FeaturedNeighborhood, index: number) {
+        super();
+        this.pos = pos;
+        this.info = info;
+        this.entranceDelay = index * 80;
+      }
+      onAdd() {
+        this.container = document.createElement('div');
+        Object.assign(this.container.style, {
+          position: 'absolute',
+          transform: 'translate(-50%, -100%) scale(0.3)',
+          cursor: 'pointer',
+          zIndex: '500',
+          opacity: '0',
+          transition: `opacity 0.4s cubic-bezier(0.34,1.56,0.64,1), transform 0.4s cubic-bezier(0.34,1.56,0.64,1)`,
+        });
+
+        setTimeout(() => {
+          if (!this.container) return;
+          this.container.style.opacity = '1';
+          this.container.style.transform = 'translate(-50%, -100%) scale(1)';
+        }, this.entranceDelay);
+
+        const safetyPink = this.info.safety_score != null && this.info.safety_score >= 90;
+        const dotColor = safetyPink ? '#ec4899' : this.info.score >= 75 ? '#c0c7d0' : this.info.score >= 68 ? '#3b82f6' : this.info.score >= 60 ? '#2ad587' : this.info.score >= 52 ? '#fbbf24' : '#f87171';
+        const scoreDark = this.info.score >= 55 ? '#000' : '#000';
+        const priceText = this.info.avg_price_sqft ? `₹${(this.info.avg_price_sqft / 1000).toFixed(0)}K/sqft` : '';
+        const growthText = this.info.yoy_growth_pct && this.info.yoy_growth_pct > 0 ? `+${this.info.yoy_growth_pct}%` : '';
+        const subtitleParts = [priceText, growthText].filter(Boolean).join(' · ');
+        const pinId = `fp-${Math.random().toString(36).slice(2, 8)}`;
+
+        this.container.innerHTML = `
+          <div class="featured-pin-wrap" style="display:flex;flex-direction:column;align-items:center;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);transform-origin:bottom center;">
+            <svg width="32" height="42" viewBox="0 0 36 46" style="filter:drop-shadow(0 2px 6px ${dotColor}40);transition:transform 0.25s ease;">
+              <defs>
+                <linearGradient id="${pinId}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="${dotColor}"/>
+                  <stop offset="100%" stop-color="${dotColor}cc"/>
+                </linearGradient>
+              </defs>
+              <path d="M18 0C9 0 1 8 1 17c0 12 17 29 17 29s17-17 17-29C35 8 27 0 18 0z" fill="url(#${pinId})" stroke="${dotColor}" stroke-width="0.5" stroke-opacity="0.4"/>
+              <circle cx="18" cy="16" r="10" fill="rgba(0,0,0,0.25)"/>
+              <text x="18" y="20" text-anchor="middle" fill="${scoreDark}" font-size="10" font-weight="800" font-family="'JetBrains Mono',monospace">${Math.round(this.info.score)}</text>
+            </svg>
+            <div class="featured-pin-tooltip" style="
+              position:absolute;bottom:calc(100% + 4px);left:50%;
+              transform:translateX(-50%) scale(0);
+              opacity:0;
+              background:rgba(8,12,18,0.95);
+              border:1px solid ${dotColor}40;
+              border-radius:10px;
+              padding:8px 12px;
+              white-space:nowrap;
+              pointer-events:none;
+              transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+              box-shadow:0 8px 24px rgba(0,0,0,0.6);
+              z-index:10;
+            ">
+              <div style="font-size:12px;font-weight:700;color:white;">${this.info.name}</div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+                <span style="font-size:11px;font-weight:700;color:${dotColor};font-family:'JetBrains Mono',monospace;">${Math.round(this.info.score)}/100</span>
+                <span style="font-size:10px;color:rgba(255,255,255,0.5);">·</span>
+                <span style="font-size:10px;color:rgba(255,255,255,0.5);">${this.info.label}</span>
+              </div>
+              ${subtitleParts ? `<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">${subtitleParts}</div>` : ''}
+              <div style="font-size:9px;color:${dotColor};margin-top:4px;opacity:0.7;">Click to explore →</div>
+            </div>
+          </div>
+        `;
+
+        const wrap = this.container.querySelector('.featured-pin-wrap') as HTMLElement;
+        const tooltip = this.container.querySelector('.featured-pin-tooltip') as HTMLElement;
+
+        this.container.addEventListener('mouseenter', () => {
+          this.container!.style.zIndex = '9999';
+          wrap.style.transform = 'scale(1.25)';
+          tooltip.style.transform = 'translateX(-50%) scale(1)';
+          tooltip.style.opacity = '1';
+        });
+
+        this.container.addEventListener('mouseleave', () => {
+          this.container!.style.zIndex = '500';
+          wrap.style.transform = 'scale(1)';
+          tooltip.style.transform = 'translateX(-50%) scale(0)';
+          tooltip.style.opacity = '0';
+        });
+
+        this.container.addEventListener('click', (e) => {
+          e.stopPropagation();
+          onMapClickRef.current(this.info.latitude, this.info.longitude, `${this.info.name}, Bangalore`);
+        });
+
+        this.getPanes()?.overlayMouseTarget.appendChild(this.container);
+      }
+      draw() {
+        if (!this.container) return;
+        const proj = this.getProjection();
+        const point = proj.fromLatLngToDivPixel(this.pos);
+        if (point) {
+          this.container.style.left = point.x + 'px';
+          this.container.style.top = point.y + 'px';
+        }
+      }
+      onRemove() { this.container?.parentNode?.removeChild(this.container); this.container = null; }
+    }
+
+    for (const n of featuredNeighborhoods) {
+      if (activeLat != null && activeLon != null) {
+        const dlat = n.latitude - activeLat;
+        const dlon = n.longitude - activeLon;
+        const distKm = Math.sqrt(dlat * dlat + dlon * dlon) * 111;
+        if (distKm < 1.0) continue;
+      }
+      const pin = new NeighborhoodPin(
+        new google.maps.LatLng(n.latitude, n.longitude),
+        n,
+        pinIndex++,
+      );
+      pin.setMap(map);
+      featuredOverlaysRef.current.push(pin);
+    }
+  }, [featuredNeighborhoods, data?.latitude, data?.longitude]);
 
   return (
     <div className="absolute inset-0 z-0">
-      {/* Gradient vignette edges */}
       <div className="absolute inset-0 z-[1] pointer-events-none">
         <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black/30 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/30 to-transparent" />
         <div className="absolute top-0 bottom-0 left-0 w-8 bg-gradient-to-r from-black/20 to-transparent" />
         <div className="absolute top-0 bottom-0 right-0 w-8 bg-gradient-to-l from-black/20 to-transparent" />
-        {/* Subtle brand glow at corners */}
         <div className="absolute top-0 left-0 w-32 h-32 bg-radial-[at_0%_0%] from-brand-1/8 to-transparent" />
         <div className="absolute bottom-0 right-0 w-32 h-32 bg-radial-[at_100%_100%] from-brand-9/5 to-transparent" />
       </div>

@@ -9,6 +9,7 @@ from app.db import get_pool, close_pool
 from app.routers.scores import router as scores_router
 from app.routers.ai_chat import router as ai_chat_router
 from app.routers.report import router as report_router
+from app.routers.property_intelligence import router as property_intelligence_router
 
 
 @asynccontextmanager
@@ -42,6 +43,7 @@ app.add_middleware(
 app.include_router(scores_router)
 app.include_router(ai_chat_router)
 app.include_router(report_router)
+app.include_router(property_intelligence_router)
 
 
 @app.get("/")

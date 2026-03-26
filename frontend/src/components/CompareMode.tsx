@@ -44,10 +44,10 @@ function readableName(address: string): string {
 }
 
 function getScoreColor(score: number) {
-  if (score >= 75) return 'text-brand-9';
-  if (score >= 60) return 'text-brand-8';
-  if (score >= 40) return 'text-amber-400';
-  if (score >= 25) return 'text-orange-400';
+  if (score >= 75) return 'text-slate-300';
+  if (score >= 68) return 'text-blue-400';
+  if (score >= 60) return 'text-brand-9';
+  if (score >= 52) return 'text-amber-400';
   return 'text-red-400';
 }
 

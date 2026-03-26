@@ -71,6 +71,12 @@ class BuilderScoreResult(ScoreResult):
     builders_to_avoid: list[BuilderDetail] = []
 
 
+class LifestyleTag(BaseModel):
+    category: str = ""
+    label: str = ""
+    detail: str = ""
+
+
 class AIVerification(BaseModel):
     confidence: int = Field(..., ge=0, le=100)
     narrative: str = ""
@@ -80,6 +86,7 @@ class AIVerification(BaseModel):
     best_for: str = ""
     avoid_if: str = ""
     flags: list[str] = []
+    lifestyle_tags: list[LifestyleTag] = []
     verified_at: Optional[datetime] = None
     model_used: Optional[str] = None
 
@@ -144,7 +151,8 @@ class ClaimInput(BaseModel):
     latitude: Optional[float] = Field(None, ge=12.5, le=13.5)
     longitude: Optional[float] = Field(None, ge=77.0, le=78.2)
     address: Optional[str] = None
-    claims: list[str] = Field(..., min_length=1)
+    claims: list[str] = Field(default_factory=list)
+    raw_text: Optional[str] = None
 
 
 class ClaimVerification(BaseModel):
@@ -162,18 +170,18 @@ class ClaimVerificationResponse(BaseModel):
     address: str
     results: list[ClaimVerification]
     summary: str
+    narrative: str = ""
+    extracted_claims: list[str] = []
 
 
 def score_label(score: float) -> str:
-    if score >= 90:
+    if score >= 75:
+        return "Top Notch"
+    elif score >= 68:
         return "Excellent"
-    elif score >= 75:
-        return "Very Good"
     elif score >= 60:
+        return "Very Good"
+    elif score >= 52:
         return "Good"
-    elif score >= 40:
-        return "Average"
-    elif score >= 25:
-        return "Below Average"
     else:
-        return "Poor"
+        return "Avoid"
