@@ -19,7 +19,7 @@ Factors:
 """
 
 from app.db import get_pool
-from app.models import ScoreResult, score_label
+from app.models import ScoreResult
 
 SOURCES = [
     "BBMP Flooding Locations — data.opencity.in (Public Domain, updated Nov 2025)",

@@ -479,7 +479,7 @@ async def generate_intelligence_brief(request: IntelligenceBriefRequest):
         )
 
         # Infrastructure
-        infra = await conn.fetch(
+        await conn.fetch(
             "SELECT name, type, current_status, completion_percentage FROM infrastructure_projects LIMIT 5"
         )
 
@@ -668,7 +668,7 @@ async def global_search(q: str = Query(..., min_length=2)):
                LIMIT 10""",
             search_term,
         )
-        results["landmarks"] = [dict(l) for l in landmarks]
+        results["landmarks"] = [dict(lm) for lm in landmarks]
 
     total = sum(len(v) for v in results.values())
     return {"query": q, "total": total, "results": results}

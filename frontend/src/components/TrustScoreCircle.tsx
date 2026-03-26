@@ -41,6 +41,7 @@ export default function TrustScoreCircle({ score, size = 80, strokeWidth = 6, an
       motionScore.set(score);
       setDisplayed(Math.round(score));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [score, animated]);
 
   const center = size / 2;

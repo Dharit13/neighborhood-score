@@ -18,7 +18,7 @@ individual atomic claims before parsing.
 import os
 import json
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ async def split_claims_text(raw_text: str) -> list[str]:
     if not raw_text or not raw_text.strip():
         return []
 
-    lines = [l.strip() for l in raw_text.strip().split('\n') if l.strip()]
+    lines = [line.strip() for line in raw_text.strip().split('\n') if line.strip()]
 
     looks_atomic = all(
         len(line.split()) <= 10
@@ -439,7 +439,7 @@ def _regex_fallback(claims: list[str]) -> list[dict]:
     results = []
     for claim in claims:
         cl = claim.lower().strip()
-        parsed = {
+        parsed: dict[str, Any] = {
             "destination": None,
             "claimed_value": None,
             "claimed_unit": None,

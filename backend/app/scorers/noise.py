@@ -17,7 +17,7 @@ CPCB noise standards (dB Leq):
 """
 
 from app.db import get_pool
-from app.models import ScoreResult, score_label
+from app.models import ScoreResult
 
 SOURCES = [
     "CPCB Noise Monitoring Stations — data.gov.in (Feb 2025)",

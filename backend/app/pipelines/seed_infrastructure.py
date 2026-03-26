@@ -22,7 +22,6 @@ Delay multipliers (from research on Bangalore infra delivery):
 Sources: News research as of March 2026
 """
 
-import json
 import sys
 import os
 from datetime import datetime, timedelta
@@ -30,7 +29,6 @@ from datetime import datetime, timedelta
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from app.db import get_sync_conn
-from app.config import CURATED_DIR
 
 DELAY_MULTIPLIERS = {
     "metro": {
@@ -405,7 +403,7 @@ def seed():
             for project in PROJECTS:
                 low_eta, high_eta = _compute_realistic_eta(project)
 
-                multipliers = DELAY_MULTIPLIERS.get(project["type"], {})
+                multipliers: dict = DELAY_MULTIPLIERS.get(project["type"], {})  # type: ignore[assignment]
                 delay_mult = multipliers.get(project.get("current_phase", "construction"), 1.8)
 
                 cur.execute(

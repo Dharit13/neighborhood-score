@@ -23,7 +23,6 @@ def _slugify(name: str) -> str:
 def _metro_aliases(name: str) -> list[str]:
     """Generate common aliases for metro station names."""
     aliases = []
-    base = name
 
     # "Mahatma Gandhi Road (MG Road)" -> aliases: MG Road, Mahatma Gandhi Road
     paren_match = re.search(r'\(([^)]+)\)', name)

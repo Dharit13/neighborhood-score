@@ -13,7 +13,6 @@ Also adds `avoid_reason` field for builders with poor track records.
 """
 
 import json
-import re
 import sys
 import os
 import urllib.request

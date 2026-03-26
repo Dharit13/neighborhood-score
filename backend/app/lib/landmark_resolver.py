@@ -22,8 +22,8 @@ async def resolve_destination(
     pool,
     destination: str,
     destination_type: str = "generic",
-    origin_lat: float = None,
-    origin_lon: float = None,
+    origin_lat: Optional[float] = None,
+    origin_lon: Optional[float] = None,
 ) -> Optional[dict]:
     """
     Resolve a destination name to coordinates.
@@ -229,7 +229,7 @@ async def resolve_destination(
 
 
 async def _google_places_resolve(
-    destination: str, origin_lat: float = None, origin_lon: float = None
+    destination: str, origin_lat: Optional[float] = None, origin_lon: Optional[float] = None
 ) -> Optional[dict]:
     """Last resort: use Google Places text search."""
     if not GOOGLE_MAPS_API_KEY:

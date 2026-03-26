@@ -18,6 +18,7 @@ import json
 import sys
 import os
 import time
+from typing import Any
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -75,7 +76,7 @@ LIFESTYLE TAGS rules:
 
 def _collect_neighborhood_data(cur, neighborhood_id: int, name: str) -> dict:
     """Collect all relevant data for a neighborhood from DB."""
-    data = {"neighborhood": name, "id": neighborhood_id}
+    data: dict[str, Any] = {"neighborhood": name, "id": neighborhood_id}
 
     cur.execute("SELECT * FROM safety_zones WHERE neighborhood_id = %s", (neighborhood_id,))
     row = cur.fetchone()
@@ -152,10 +153,14 @@ def _collect_neighborhood_data(cur, neighborhood_id: int, name: str) -> dict:
     row = cur.fetchone()
     if row:
         services = []
-        if row[0]: services.append("Swiggy")
-        if row[1]: services.append("Zepto")
-        if row[2]: services.append("Blinkit")
-        if row[3]: services.append("BigBasket")
+        if row[0]:
+            services.append("Swiggy")
+        if row[1]:
+            services.append("Zepto")
+        if row[2]:
+            services.append("Blinkit")
+        if row[3]:
+            services.append("BigBasket")
         data["delivery"] = {"services": services, "count": len(services), "score": row[4]}
 
     # Noise
@@ -206,7 +211,7 @@ def _verify_with_claude(neighborhood_data: dict) -> dict:
                     {"role": "user", "content": f"{VERIFICATION_PROMPT}\n\nNeighborhood data:\n{json.dumps(serializable, indent=2, default=str)}"}
                 ],
             )
-            result = json.loads(message.content[0].text)
+            result = json.loads(message.content[0].text)  # type: ignore[union-attr]
             # Build structured narrative from new format
             verdict = result.get("verdict", "")
             pros = result.get("pros", [])

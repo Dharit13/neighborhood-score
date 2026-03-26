@@ -1,15 +1,15 @@
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
 
 load_dotenv()
 
-from app.db import get_pool, close_pool
-from app.routers.scores import router as scores_router
-from app.routers.ai_chat import router as ai_chat_router
-from app.routers.report import router as report_router
-from app.routers.property_intelligence import router as property_intelligence_router
+from app.db import get_pool, close_pool  # noqa: E402
+from app.routers.scores import router as scores_router  # noqa: E402
+from app.routers.ai_chat import router as ai_chat_router  # noqa: E402
+from app.routers.report import router as report_router  # noqa: E402
+from app.routers.property_intelligence import router as property_intelligence_router  # noqa: E402
 
 
 @asynccontextmanager

@@ -209,7 +209,7 @@ async def generate_report(input: ReportInput):
                 }],
             )
 
-            raw = message.content[0].text.strip()
+            raw = message.content[0].text.strip()  # type: ignore[union-attr]
 
             if raw.startswith("```"):
                 first_newline = raw.find("\n")

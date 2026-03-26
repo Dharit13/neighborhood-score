@@ -114,7 +114,7 @@ def fetch():
                         (r["fid"], r["dn"], r["polygon_wkt"], r["centroid_wkt"]),
                     )
                     count += 1
-                except Exception as e:
+                except Exception:
                     # Skip invalid geometries
                     conn.rollback()
                     continue
