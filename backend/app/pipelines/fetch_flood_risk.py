@@ -99,7 +99,6 @@ def _parse_kml_flood_spots(kml_content):
     spots = []
     try:
         root = ET.fromstring(kml_content)
-        ns = {"kml": "http://www.opengis.net/kml/2.2"}
         for placemark in root.iter("{http://www.opengis.net/kml/2.2}Placemark"):
             coords_elem = placemark.find(".//{http://www.opengis.net/kml/2.2}coordinates")
             if coords_elem is not None and coords_elem.text:
@@ -226,7 +225,7 @@ def fetch():
                     if valley:
                         waterlogging_spots.append(f"{valley} valley zone")
 
-                is_bbmp_flood_ward = events >= 4 or spots_nearby >= 3
+                is_bbmp_flood_ward = (isinstance(events, int) and events >= 4) or (isinstance(spots_nearby, int) and spots_nearby >= 3)
 
                 score, risk_level = _classify_risk(events, drainage, spots_nearby, elevation)
 

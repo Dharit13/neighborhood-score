@@ -13,7 +13,6 @@ Uses:
 
 import os
 import math
-import time
 import logging
 from typing import Optional
 
@@ -164,7 +163,7 @@ async def _google_distance_matrix(
         if mode == "driving":
             # Monday 8:30 AM IST = Sunday 27:00 UTC... approximate next Monday
             import datetime
-            now = datetime.datetime.utcnow()
+            now = datetime.datetime.now(datetime.timezone.utc)
             days_until_monday = (7 - now.weekday()) % 7
             if days_until_monday == 0 and now.hour >= 3:
                 days_until_monday = 7

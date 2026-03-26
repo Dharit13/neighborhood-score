@@ -115,7 +115,7 @@ async def compute_commute_score(lat: float, lon: float) -> ScoreResult:
     details = []
     for r in commutes[:5]:
         peak_min = float(r["duration_min"])
-        offpeak_min = offpeak_map.get(r["tech_park"], peak_min * 0.7)
+        _offpeak_min = offpeak_map.get(r["tech_park"], peak_min * 0.7)
         base_min = no_traffic_map.get(r["tech_park"], peak_min * 0.6)
         traffic_multiplier = round(peak_min / base_min, 1) if base_min > 0 else 1.0
         details.append(NearbyDetail(

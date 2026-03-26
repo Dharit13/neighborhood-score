@@ -7,6 +7,7 @@ import TetrisLoading from '@/components/ui/tetris-loader';
 import NeighborhoodInput from './NeighborhoodInput';
 import type { NeighborhoodScoreResponse } from '../types';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface Props {}
 
 const RAW_COLORS = ['#5b9cf5', '#2ad587'];
@@ -67,6 +68,7 @@ async function fetchOne(addr: string): Promise<NeighborhoodScoreResponse> {
   return resp.json();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function CompareMode(_props: Props) {
   const [addresses, setAddresses] = useState<string[]>(['', '']);
   const [results, setResults] = useState<(NeighborhoodScoreResponse | null)[]>([null, null]);

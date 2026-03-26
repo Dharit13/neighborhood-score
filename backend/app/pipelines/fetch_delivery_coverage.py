@@ -11,11 +11,8 @@ Methodology:
   Coverage score = (services_available / 4) * 80 + delivery_time_bonus.
 """
 
-import json
-import math
 import sys
 import os
-import urllib.request
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 

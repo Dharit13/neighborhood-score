@@ -14,7 +14,6 @@ Falls back to storing placeholders if API is unavailable —
 the curated builder data continues to work without this enrichment.
 """
 
-import json
 import sys
 import os
 import time
@@ -125,7 +124,7 @@ def enrich_builders():
 
                 company = _fetch_company_data(cin)
                 if not company:
-                    print(f"    Skipped — API unavailable or CIN not found")
+                    print("    Skipped — API unavailable or CIN not found")
                     time.sleep(1)
                     continue
 

@@ -5,7 +5,7 @@ from app.models import (
     NeighborhoodRank, RentVsBuyArea, WardInfo, score_label,
     ClaimInput, ClaimVerification, ClaimVerificationResponse,
 )
-from app.utils.geo import geocode_address, reverse_geocode, actual_walk_time, haversine_km
+from app.utils.geo import geocode_address, reverse_geocode
 from app.scorers.walkability import compute_walkability_score
 from app.scorers.safety import compute_safety_score
 from app.scorers.hospital import compute_hospital_score
@@ -26,7 +26,7 @@ from app.scorers.cleanliness import compute_cleanliness_score
 from app.config import SCORE_WEIGHTS, CURATED_DIR
 import json as _json
 import logging as _logging
-from math import radians as _rad, sin as _sin, cos as _cos, sqrt as _sqrt, atan2 as _atan2
+from math import sqrt as _sqrt
 
 router = APIRouter(prefix="/api", tags=["scores"])
 
@@ -906,16 +906,23 @@ def _compute_infra_score(stations: list[tuple]) -> float:
             year = int(str(expected).split("-")[0])
         except (ValueError, IndexError):
             return 0.3
-        if year <= 2026: return 1.0
-        if year <= 2027: return 0.85
-        if year <= 2028: return 0.7
-        if year <= 2029: return 0.55
+        if year <= 2026:
+            return 1.0
+        if year <= 2027:
+            return 0.85
+        if year <= 2028:
+            return 0.7
+        if year <= 2029:
+            return 0.55
         return 0.4
 
     def tod_decay(d_m: float) -> float:
-        if d_m <= 500: return 1.0
-        if d_m <= 800: return 1.0 - 0.5 * (d_m - 500) / 300
-        if d_m <= 3000: return 0.5 - 0.5 * (d_m - 800) / 2200
+        if d_m <= 500:
+            return 1.0
+        if d_m <= 800:
+            return 1.0 - 0.5 * (d_m - 500) / 300
+        if d_m <= 3000:
+            return 0.5 - 0.5 * (d_m - 800) / 2200
         return 0.0
 
     proximity = 0.0
@@ -961,17 +968,24 @@ def _waste_access_score(nearest_m: float, count_5km: int) -> float:
 
 
 def _landfill_penalty_score(nearest_m: float) -> float:
-    if nearest_m < 1000: return 0.0
-    if nearest_m < 2000: return 25.0 * (nearest_m - 1000) / 1000
-    if nearest_m < 3000: return 25.0 + 25.0 * (nearest_m - 2000) / 1000
-    if nearest_m < 5000: return 50.0 + 25.0 * (nearest_m - 3000) / 2000
+    if nearest_m < 1000:
+        return 0.0
+    if nearest_m < 2000:
+        return 25.0 * (nearest_m - 1000) / 1000
+    if nearest_m < 3000:
+        return 25.0 + 25.0 * (nearest_m - 2000) / 1000
+    if nearest_m < 5000:
+        return 50.0 + 25.0 * (nearest_m - 3000) / 2000
     return 100.0
 
 
 def _processing_score(nearest_m: float) -> float:
-    if nearest_m <= 2000: return 100.0
-    if nearest_m <= 5000: return 100.0 - 50.0 * (nearest_m - 2000) / 3000
-    if nearest_m <= 10000: return 50.0 - 25.0 * (nearest_m - 5000) / 5000
+    if nearest_m <= 2000:
+        return 100.0
+    if nearest_m <= 5000:
+        return 100.0 - 50.0 * (nearest_m - 2000) / 3000
+    if nearest_m <= 10000:
+        return 50.0 - 25.0 * (nearest_m - 5000) / 5000
     return 25.0
 
 
@@ -1293,10 +1307,14 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
             )
             if dc:
                 services = []
-                if dc["swiggy_serviceable"]: services.append("Swiggy")
-                if dc["zepto_serviceable"]: services.append("Zepto")
-                if dc["blinkit_serviceable"]: services.append("Blinkit")
-                if dc["bigbasket_serviceable"]: services.append("BigBasket")
+                if dc["swiggy_serviceable"]:
+                    services.append("Swiggy")
+                if dc["zepto_serviceable"]:
+                    services.append("Zepto")
+                if dc["blinkit_serviceable"]:
+                    services.append("Blinkit")
+                if dc["bigbasket_serviceable"]:
+                    services.append("BigBasket")
                 data["delivery_coverage"] = {"services": services, "count": len(services), "score": dc["coverage_score"]}
 
         # Noise
@@ -1497,7 +1515,7 @@ async def verify_claims(input: ClaimInput):
         )
 
         verdict_data = compute_verdict(
-            claimed_value, claimed_unit,
+            claimed_value, claimed_unit or "",
             commute["peak_duration_seconds"],
             commute["distance_meters"],
             commute["crow_fly_distance_meters"],

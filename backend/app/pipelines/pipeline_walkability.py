@@ -17,17 +17,18 @@ NEWS-India subscales mapped to available data:
 Usage: python -m app.pipelines.pipeline_walkability [--name NEIGHBORHOOD]
 """
 
-import sys
 import os
+import sys
 import time
+
+import httpx
+from dotenv import load_dotenv
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from dotenv import load_dotenv
 load_dotenv()
 
-import httpx
-from app.db import get_sync_conn
+from app.db import get_sync_conn  # noqa: E402
 
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "")
 NUM_SUBSCALES = 6

@@ -1,4 +1,5 @@
 import React from "react"
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { cx as _cx } from "class-variance-authority"
 import { AnimatePresence, motion } from "motion/react"
 import { Send, X } from "lucide-react"
@@ -132,6 +133,7 @@ const ColorOrb: React.FC<OrbProps> = ({
 
 const SPEED_FACTOR = 1
 const FORM_WIDTH = 400
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const FORM_HEIGHT = 280
 
 interface ContextShape {
@@ -154,6 +156,7 @@ export function MorphPanel({ neighborhoodName, className }: MorphPanelProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null)
 
   const [showForm, setShowForm] = React.useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_successFlag, _setSuccessFlag] = React.useState(false)
   const [response, setResponse] = React.useState("")
   const [loading, setLoading] = React.useState(false)

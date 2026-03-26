@@ -19,7 +19,7 @@ Karnataka P/I ratio = 14.0 (IndiaDataMap 2025 State Rankings).
 """
 
 from app.db import get_pool
-from app.models import ScoreResult, NearbyDetail, score_label
+from app.models import ScoreResult, NearbyDetail
 
 # RBI + bank rate benchmarks (March 2026)
 RBI_EMI_PER_LAKH_20YR = 836

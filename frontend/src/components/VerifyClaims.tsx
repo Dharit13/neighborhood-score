@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Shield } from 'lucide-react';
 import { AnimatedGlowingSearchBar } from '@/components/ui/animated-glowing-search-bar';
 import TetrisLoading from '@/components/ui/tetris-loader';
