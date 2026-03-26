@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
+import { getTrustTier } from '@/utils/trustTiers';
 
 interface Props {
   score: number;
@@ -9,40 +10,28 @@ interface Props {
   className?: string;
 }
 
-const TRUST_TIERS = [
-  { min: 75, color: '#16a34a', label: 'Trusted' },
-  { min: 55, color: '#2563eb', label: 'Emerging' },
-  { min: 40, color: '#ca8a04', label: 'Use Caution' },
-  { min: 0, color: '#dc2626', label: 'Avoid' },
-] as const;
-
-function getTrustTier(score: number) {
-  return TRUST_TIERS.find(t => score >= t.min) ?? TRUST_TIERS[TRUST_TIERS.length - 1];
-}
-
-export { getTrustTier };
-
 export default function TrustScoreCircle({ score, size = 80, strokeWidth = 6, animated = true, className = '' }: Props) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const tier = getTrustTier(score);
 
-  const motionScore = useMotionValue(0);
+  const motionScore = useMotionValue(animated ? 0 : score);
   const dashOffset = useTransform(motionScore, (v) => circumference * (1 - v / 100));
   const displayScore = useTransform(motionScore, (v) => Math.round(v));
-  const [displayed, setDisplayed] = useState(0);
+  const [displayed, setDisplayed] = useState(() => animated ? 0 : Math.round(score));
 
   useEffect(() => {
-    if (animated) {
-      const controls = animate(motionScore, score, { duration: 0.8, ease: 'easeOut' });
-      const unsub = displayScore.on('change', (v) => setDisplayed(v));
-      return () => { controls.stop(); unsub(); };
-    } else {
+    if (!animated) {
       motionScore.set(score);
-      setDisplayed(Math.round(score));
+      return;
     }
+    const controls = animate(motionScore, score, { duration: 0.8, ease: 'easeOut' });
+    const unsub = displayScore.on('change', (v) => setDisplayed(v));
+    return () => { controls.stop(); unsub(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [score, animated]);
+
+  const resolvedDisplayed = animated ? displayed : Math.round(score);
 
   const center = size / 2;
   const gradId = `trust-ring-${size}-${score}`;
@@ -73,7 +62,7 @@ export default function TrustScoreCircle({ score, size = 80, strokeWidth = 6, an
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="font-mono font-bold leading-none" style={{ fontSize: size * 0.3, color: tier.color }}>
-            {displayed}
+            {resolvedDisplayed}
           </span>
         </div>
       </div>
