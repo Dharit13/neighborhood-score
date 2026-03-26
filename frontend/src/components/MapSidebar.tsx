@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, TrendingUp, Droplets, AlertTriangle, Star, Ban, LayoutDashboard, Heart, Route, MapPin, Users, Sparkles } from 'lucide-react';
+import { ChevronDown, TrendingUp, Droplets, AlertTriangle, Star, Ban, LayoutDashboard, Heart, Route, MapPin, Users, Sparkles, UtensilsCrossed, Wine, Baby, Trophy, ShieldCheck, Trees, ShoppingBag, Palette, Dumbbell } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import ScoreRing from './ScoreRing';
@@ -36,10 +36,9 @@ function fmt(val: unknown): string {
 }
 
 function scoreBadgeVariant(score: number): "success" | "info" | "warning" | "destructive" | "mono" {
-  if (score >= 75) return 'success';
-  if (score >= 60) return 'info';
-  if (score >= 40) return 'warning';
-  if (score >= 25) return 'destructive';
+  if (score >= 68) return 'info';
+  if (score >= 60) return 'success';
+  if (score >= 52) return 'warning';
   return 'destructive';
 }
 
@@ -124,8 +123,22 @@ function Section({ title, children, defaultOpen = false, id }: { title: string; 
   );
 }
 
+const LIFESTYLE_TAG_CONFIG: Record<string, { icon: typeof Sparkles; color: string }> = {
+  food: { icon: UtensilsCrossed, color: '#22c55e' },
+  nightlife: { icon: Wine, color: '#a855f7' },
+  kids: { icon: Baby, color: '#3b82f6' },
+  seniors: { icon: Heart, color: '#f59e0b' },
+  sports: { icon: Trophy, color: '#f97316' },
+  woman_safety: { icon: ShieldCheck, color: '#ec4899' },
+  nature: { icon: Trees, color: '#10b981' },
+  shopping: { icon: ShoppingBag, color: '#06b6d4' },
+  culture: { icon: Palette, color: '#8b5cf6' },
+  fitness: { icon: Dumbbell, color: '#ef4444' },
+};
+
 function AiBriefCard({ ai }: { ai: NonNullable<NeighborhoodScoreResponse['ai_verification']> }) {
   const [expanded, setExpanded] = useState(false);
+  const [expandedTag, setExpandedTag] = useState<string | null>(null);
   const color = '#2ad587';
   const hasDetails = !!(ai.best_for || ai.avoid_if || (ai.pros?.length ?? 0) > 0 || (ai.cons?.length ?? 0) > 0);
 
@@ -160,6 +173,43 @@ function AiBriefCard({ ai }: { ai: NonNullable<NeighborhoodScoreResponse['ai_ver
           <p className="text-sm text-white/90 leading-relaxed">
             {ai.verdict || ai.narrative}
           </p>
+
+          {(ai.lifestyle_tags?.length ?? 0) > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {ai.lifestyle_tags!.map((tag) => {
+                const config = LIFESTYLE_TAG_CONFIG[tag.category] || { icon: Sparkles, color: '#2ad587' };
+                const TagIcon = config.icon;
+                const isExpanded = expandedTag === tag.label;
+                return (
+                  <button
+                    key={tag.label}
+                    onClick={() => setExpandedTag(isExpanded ? null : tag.label)}
+                    className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all hover:scale-105"
+                    style={{
+                      backgroundColor: config.color + '20',
+                      color: config.color,
+                      border: `1px solid ${config.color}40`,
+                    }}
+                  >
+                    <TagIcon size={11} />
+                    {tag.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {expandedTag && ai.lifestyle_tags?.find(t => t.label === expandedTag) && (
+            <div
+              className="rounded-lg px-3 py-2 text-xs text-white/90 leading-relaxed"
+              style={{
+                backgroundColor: (LIFESTYLE_TAG_CONFIG[ai.lifestyle_tags!.find(t => t.label === expandedTag)!.category]?.color || '#2ad587') + '10',
+                borderLeft: `2px solid ${LIFESTYLE_TAG_CONFIG[ai.lifestyle_tags!.find(t => t.label === expandedTag)!.category]?.color || '#2ad587'}`,
+              }}
+            >
+              {ai.lifestyle_tags!.find(t => t.label === expandedTag)!.detail}
+            </div>
+          )}
         </div>
 
         {hasDetails && (
@@ -183,7 +233,7 @@ function AiBriefCard({ ai }: { ai: NonNullable<NeighborhoodScoreResponse['ai_ver
                     <div className="space-y-1">
                       <span className="text-[10px] font-bold text-brand-9 uppercase tracking-widest">Pros</span>
                       {ai.pros.map((p: string, i: number) => (
-                        <p key={i} className="text-sm text-white/80 leading-relaxed pl-3 border-l border-brand-9/30">{p}</p>
+                        <p key={i} className="text-sm text-white/95 leading-relaxed pl-3 border-l border-brand-9/30">{p}</p>
                       ))}
                     </div>
                   )}
@@ -191,7 +241,7 @@ function AiBriefCard({ ai }: { ai: NonNullable<NeighborhoodScoreResponse['ai_ver
                     <div className="space-y-1">
                       <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Cons</span>
                       {ai.cons.map((c: string, i: number) => (
-                        <p key={i} className="text-sm text-white/80 leading-relaxed pl-3 border-l border-red-400/30">{c}</p>
+                        <p key={i} className="text-sm text-white/95 leading-relaxed pl-3 border-l border-red-400/30">{c}</p>
                       ))}
                     </div>
                   )}
@@ -215,7 +265,7 @@ function StatBox({ label, value, color = 'text-white' }: { label: string; value:
       transition={{ type: 'spring', stiffness: 400, damping: 20 }}
     >
       <LiquidGlassCard glassSize="sm" className="!p-3 text-center rounded-lg border-white/[0.08] dark:border-white/[0.08] dark:from-white/[0.02] dark:to-transparent">
-        <div className="text-[11px] text-white/70 uppercase tracking-wider">{label}</div>
+        <div className="text-[11px] text-white/90 uppercase tracking-wider">{label}</div>
         <div className={cn("font-semibold text-sm mt-0.5 font-mono", color)}>{value}</div>
       </LiquidGlassCard>
     </motion.div>
@@ -294,7 +344,7 @@ export default function MapSidebar({ data, freshness: _freshness }: Props) {
                 {!isActive && <span className="absolute inset-0 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300" style={{ background: `linear-gradient(45deg, ${s.from}, ${s.to})` }} />}
                 {isActive && <span className="absolute inset-0 rounded-full blur-[10px] opacity-40" style={{ background: `linear-gradient(45deg, ${s.from}, ${s.to})` }} />}
                 <span className="relative flex items-center justify-center gap-1.5 w-full">
-                  <Icon size={13} className={cn('flex-shrink-0 transition-all duration-300', isActive ? 'text-white scale-90' : 'text-white/50')} />
+                  <Icon size={13} className={cn('flex-shrink-0 transition-all duration-300', isActive ? 'text-white scale-90' : 'text-white/80')} />
                   <span className={cn('transition-all duration-300 overflow-hidden whitespace-nowrap', isActive ? 'max-w-[80px] opacity-100 text-white' : 'max-w-0 opacity-0')}>
                     {s.label}
                   </span>
@@ -305,15 +355,15 @@ export default function MapSidebar({ data, freshness: _freshness }: Props) {
         </div>
       </div>
 
+      {/* Pinned AI Brief */}
+      {data.ai_verification && (data.ai_verification.verdict || data.ai_verification.narrative) && (
+        <div className="flex-shrink-0 px-4 pt-3 pb-2 border-b border-white/[0.08] relative z-10">
+          <AiBriefCard ai={data.ai_verification} />
+        </div>
+      )}
+
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto scrollbar-thin px-4 pb-8 space-y-5 pt-4 relative z-10">
-
-        {/* AI Brief */}
-        {data.ai_verification && (data.ai_verification.verdict || data.ai_verification.narrative) && (
-          <AiBriefCard ai={data.ai_verification} />
-        )}
-
-        <div className="divider" />
 
         {/* Ward Information */}
         {(data.wards_covered?.length ?? 0) > 0 && (
@@ -338,7 +388,7 @@ export default function MapSidebar({ data, freshness: _freshness }: Props) {
                     >
                       {w.name}
                       {w.distance_km != null && (
-                        <span className="text-white/40 ml-1">{w.distance_km}km</span>
+                        <span className="text-white/70 ml-1">{w.distance_km}km</span>
                       )}
                     </Badge>
                   </motion.div>
@@ -347,118 +397,9 @@ export default function MapSidebar({ data, freshness: _freshness }: Props) {
             </LiquidGlassCard>
         )}
 
-        {/* Property Prices — LiquidGlassCard with score-aware label color */}
+        {/* Property Prices */}
         {data.property_prices && (
-          <TiltCard>
-            <LiquidGlassCard glassSize="sm" className="rounded-xl border-white/[0.08] dark:border-white/[0.08] dark:from-white/[0.02] dark:to-transparent space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <TrendingUp size={13} className="text-brand-9" />
-                  <span className="text-xs font-bold gradient-text uppercase tracking-widest">Property Prices</span>
-                </div>
-                <Badge variant={labelBadgeVariant(priceLabel, data.property_prices?.score ?? 50)} className="font-mono text-[10px]">
-                  {priceLabel}
-                </Badge>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {data.property_prices.breakdown.avg_2bhk_price_lakh != null && (
-                  <StatBox label="Avg 2BHK" value={`~${fmtPrice(data.property_prices.breakdown.avg_2bhk_price_lakh)}`} color="text-white" />
-                )}
-                {data.property_prices.breakdown.avg_2bhk_rent != null && (
-                  <StatBox label="Avg Rent" value={`₹${Number(data.property_prices.breakdown.avg_2bhk_rent).toLocaleString()}`} color="text-brand-9" />
-                )}
-                {data.property_prices.breakdown.yoy_growth_pct != null && (
-                  <StatBox label="Avg YoY Growth" value={`+${fmt(data.property_prices.breakdown.yoy_growth_pct)}%`} color="text-brand-8" />
-                )}
-                {data.property_prices.breakdown.rental_yield_pct != null && (
-                  <StatBox label="Avg Yield" value={`${fmt(data.property_prices.breakdown.rental_yield_pct)}%`} color="text-brand-9" />
-                )}
-              </div>
-              {data.property_prices.breakdown.rental_recommendation != null && (
-                <div className="flex items-center justify-between rounded-lg bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] px-3 py-2.5">
-                  <span className="text-xs text-white/80">Rent vs Buy</span>
-                <Badge variant={String(data.property_prices.breakdown.rental_recommendation).includes('Buy') ? 'success' : 'info'} className="text-[10px]">
-                  {String(data.property_prices.breakdown.rental_recommendation)}
-                </Badge>
-                </div>
-              )}
-
-              {data.builder_reputation?.recommended_builders?.length > 0 && (
-                <Collapsible>
-                  <CollapsibleTrigger asChild>
-                    <button className="w-full flex items-center justify-between py-1.5 group">
-                      <span className="text-[11px] text-white/60 uppercase tracking-widest font-semibold group-hover:text-white/80 transition-colors">Recommended Builders</span>
-                      <ChevronDown size={12} className="text-brand-9" />
-                    </button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="space-y-1 pb-1">
-                      {data.builder_reputation.recommended_builders.map((b) => (
-                        <ListRow key={b.name} label={b.name} value={b.score} color="text-brand-9" />
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              )}
-
-              {data.builder_reputation?.builders_to_avoid?.length > 0 && (
-                <Collapsible>
-                  <CollapsibleTrigger asChild>
-                    <button className="w-full flex items-center justify-between py-1.5 group">
-                      <span className="text-[11px] text-white/60 uppercase tracking-widest font-semibold group-hover:text-white/80 transition-colors">Builders to Avoid</span>
-                      <ChevronDown size={12} className="text-brand-9" />
-                    </button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="space-y-1 pb-1">
-                      {data.builder_reputation.builders_to_avoid.map((b) => (
-                        <div key={b.name}>
-                          <ListRow label={b.name} value={b.score} icon={<Ban size={12} className="text-red-400" />} color="text-red-400" />
-                          {b.avoid_reason && <p className="text-xs text-red-400/70 pl-5 -mt-1 pb-1">{b.avoid_reason}</p>}
-                        </div>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              )}
-
-              {(data.recommended_neighborhoods?.length ?? 0) > 0 && (
-                <Collapsible>
-                  <CollapsibleTrigger asChild>
-                    <button className="w-full flex items-center justify-between py-1.5 group">
-                      <span className="text-[11px] text-white/60 uppercase tracking-widest font-semibold group-hover:text-white/80 transition-colors">Top Rated Neighbourhoods</span>
-                      <ChevronDown size={12} className="text-brand-9" />
-                    </button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="space-y-1 pb-1">
-                      {data.recommended_neighborhoods?.map((n) => (
-                        <ListRow key={n.name} label={n.name} value={n.score} icon={<Star size={12} className="text-brand-9" />} color="text-brand-9" />
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              )}
-
-              {(data.neighborhoods_to_avoid?.length ?? 0) > 0 && (
-                <Collapsible>
-                  <CollapsibleTrigger asChild>
-                    <button className="w-full flex items-center justify-between py-1.5 group">
-                      <span className="text-[11px] text-white/60 uppercase tracking-widest font-semibold group-hover:text-white/80 transition-colors">Neighbourhoods to Avoid</span>
-                      <ChevronDown size={12} className="text-brand-9" />
-                    </button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="space-y-1 pb-1">
-                      {data.neighborhoods_to_avoid?.map((n) => (
-                        <ListRow key={n.name} label={n.name} value={n.score} icon={<AlertTriangle size={12} className="text-red-400" />} color="text-red-400" />
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              )}
-            </LiquidGlassCard>
-          </TiltCard>
+          <ScoreCard title="Property" icon="trending" result={data.property_prices} compact />
         )}
 
         {/* Flood Risk Warning */}
@@ -476,7 +417,7 @@ export default function MapSidebar({ data, freshness: _freshness }: Props) {
 
         <Section title="Livability & Safety" defaultOpen={true} id="sidebar-livability">
           <ScoreCard title="Walkability" icon="walk" result={data.walkability} compact />
-          <ScoreCard title="Safety" icon="shield" result={data.safety} compact />
+          <ScoreCard title="Safety" icon="shield" result={data.safety} compact ringColor={data.safety.score >= 90 ? '#ec4899' : undefined} />
           {data.noise && <ScoreCard title="Noise Level" icon="volume" result={data.noise} compact />}
           {data.cleanliness && <ScoreCard title="Cleanliness" icon="sparkles" result={data.cleanliness} compact />}
         </Section>
@@ -502,18 +443,17 @@ export default function MapSidebar({ data, freshness: _freshness }: Props) {
         <Section title="Investment & Development" id="sidebar-investment">
           <ScoreCard title="Builder Rep." icon="building" result={data.builder_reputation} compact />
           <ScoreCard title="Future Infra" icon="construction" result={data.future_infrastructure} compact />
-          <ScoreCard title="Property Prices" icon="trending" result={data.property_prices} compact />
           {data.business_opportunity && <ScoreCard title="Business" icon="briefcase" result={data.business_opportunity} compact />}
         </Section>
 
         <div className="divider" />
 
         <div className="pt-2 pb-2 space-y-2">
-          <p className="text-[11px] text-white/70 leading-relaxed">
+          <p className="text-[11px] text-white/90 leading-relaxed">
             Data sourced from 8+ government agencies.
             Some datasets may not reflect real-time conditions. Last updated March 2025.
           </p>
-          <p className="text-[10px] text-white/50">
+          <p className="text-[10px] text-white/75">
             Scores are indicative and should not be the sole basis for investment decisions.
           </p>
         </div>

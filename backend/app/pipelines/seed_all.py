@@ -31,6 +31,7 @@ def run():
     run_sql_file(os.path.join(migrations_dir, "002_create_indexes.sql"))
     run_sql_file(os.path.join(migrations_dir, "003_add_cleanliness.sql"))
     run_sql_file(os.path.join(migrations_dir, "004_add_ward_mapping.sql"))
+    run_sql_file(os.path.join(migrations_dir, "006_property_intelligence.sql"))
 
     print("\n=== Phase 2: Seed data (curated JSON) ===")
 
@@ -92,6 +93,24 @@ def run():
     from app.pipelines.fetch_rera_builders import fetch as fetch_rera
     fetch_rera()
 
+    print("\n=== Phase 5: Property Intelligence ===")
+
+    print("\n[1/4] K-RERA scraper (discovery + enrichment + builder projects)...")
+    from app.pipelines.scrape_krera import scrape_all_builders
+    scrape_all_builders()
+
+    print("\n[2/4] Landmarks registry...")
+    from app.pipelines.seed_landmarks import seed as seed_landmarks
+    seed_landmarks()
+
+    print("\n[3/4] Infrastructure projects (enhanced with realistic ETAs)...")
+    from app.pipelines.seed_infrastructure import seed as seed_infrastructure
+    seed_infrastructure()
+
+    print("\n[4/4] Areas (126 Bangalore localities)...")
+    from app.pipelines.seed_areas import seed as seed_areas
+    seed_areas()
+
     print("\n=== Updating data_freshness ===")
     conn = get_sync_conn()
     try:
@@ -104,11 +123,15 @@ def run():
                 "future_infra_projects", "future_infra_stations",
                 "flood_risk", "delivery_coverage", "noise_zones",
                 "slum_zones", "waste_infrastructure", "ward_mapping",
+                "landmark_registry", "infrastructure_projects", "areas", "builder_projects",
             ]
             for t in tables:
-                cur.execute(f"SELECT COUNT(*) FROM {t}")
-                count = cur.fetchone()[0]
-                _update_freshness(cur, "seed_all", t, count)
+                try:
+                    cur.execute(f"SELECT COUNT(*) FROM {t}")
+                    count = cur.fetchone()[0]
+                    _update_freshness(cur, "seed_all", t, count)
+                except Exception:
+                    conn.rollback()
         conn.commit()
     finally:
         conn.close()

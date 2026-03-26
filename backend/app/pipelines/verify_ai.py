@@ -46,7 +46,10 @@ Respond in this exact JSON format (no markdown):
     "<another watch out>"
   ],
   "best_for": "<who should buy here — be specific about lifestyle, e.g. 'Young professionals and couples who want walkable nightlife, metro access, and don't mind paying premium for the best location in Bangalore'>",
-  "avoid_if": "<who should NOT buy here, e.g. 'families needing quiet streets for kids, or budget-conscious buyers looking under ₹1Cr'>"
+  "avoid_if": "<who should NOT buy here, e.g. 'families needing quiet streets for kids, or budget-conscious buyers looking under ₹1Cr'>",
+  "lifestyle_tags": [
+    {"category": "<one of: food, nightlife, kids, seniors, sports, woman_safety, nature, shopping, culture, fitness>", "label": "<short label like 'Great Restaurants' or 'Cricket Fan Zone'>", "detail": "<one line with specific names/places, e.g. 'Vidyarthi Bhavan, CTR, Brahmin's Coffee Bar within walking distance'>"}
+  ]
 }
 
 Rules:
@@ -59,6 +62,14 @@ Rules:
 - No technical jargon like "score is null" or "data unavailable". Skip missing data silently.
 - Write like a friend who lives in Bangalore and knows every neighborhood intimately. Casual but precise.
 - If a dimension is genuinely bad (water Stage 4, flood risk high), say it clearly. Don't soften.
+
+LIFESTYLE TAGS rules:
+- Include 3-6 lifestyle_tags that GENUINELY apply to this neighborhood. Do NOT force tags.
+- Categories: food (great restaurants/cafes), nightlife (bars/pubs/clubs), kids (parks/play areas/family-friendly), seniors (quiet/temples/walking groups), sports (stadiums/grounds nearby — mention cricket, football, etc.), woman_safety (well-lit/CCTV/safe at night), nature (lakes/parks/green cover), shopping (malls/markets/streets), culture (temples/museums/art galleries), fitness (gyms/running tracks/sports clubs).
+- Label should be catchy and specific: "Foodie Paradise", "Bar Capital", "Great for Kids", "Senior Haven", "Cricket Fan Zone", "Woman Safe After Dark", "Lake Life", "Shopping Hub", "Cultural Heart", "Runner's Dream".
+- Detail MUST name specific places: restaurant names, park names, stadium names, mall names. One line max.
+- Only include woman_safety if the area genuinely has good safety infrastructure (CCTV, streetlights, police presence, safety score > 70).
+- Only include sports if there's actually a stadium or major sports facility nearby. Chinnaswamy Stadium (cricket), Kanteerava Stadium (athletics/football), Sree Kanteerava Indoor Stadium (badminton/basketball).
 """
 
 
@@ -190,7 +201,7 @@ def _verify_with_claude(neighborhood_data: dict) -> dict:
         try:
             message = client.messages.create(
                 model=ANTHROPIC_MODEL,
-                max_tokens=800,
+                max_tokens=1200,
                 messages=[
                     {"role": "user", "content": f"{VERIFICATION_PROMPT}\n\nNeighborhood data:\n{json.dumps(serializable, indent=2, default=str)}"}
                 ],
@@ -204,12 +215,15 @@ def _verify_with_claude(neighborhood_data: dict) -> dict:
             best_for = result.get("best_for", "")
             avoid_if = result.get("avoid_if", "")
 
+            lifestyle_tags = result.get("lifestyle_tags", [])
+
             narrative_obj = {
                 "verdict": verdict,
                 "pros": pros,
                 "cons": cons,
                 "best_for": best_for,
                 "avoid_if": avoid_if,
+                "lifestyle_tags": lifestyle_tags,
             }
 
             return {

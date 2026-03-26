@@ -9,13 +9,14 @@ import CompareMode from './components/CompareMode';
 import DataSources from './components/DataSources';
 import ScoreRing from './components/ScoreRing';
 import ScoreCard from './components/ScoreCard';
+import SearchAutocomplete from './components/SearchAutocomplete';
 import { generateReport } from './utils/generateReport';
 import { generateComprehensiveReport } from './utils/generateComprehensiveReport';
 import { getFreshnessForDimension, type FreshnessData } from './utils/freshnessMap';
-import type { NeighborhoodScoreResponse } from './types';
+import type { NeighborhoodScoreResponse, FeaturedNeighborhood } from './types';
+import defaultScores from './data/defaultScores.json';
 
 import { AnimatedShaderBackground } from '@/components/ui/animated-shader-background';
-import { AnimatedGlowingSearchBar } from '@/components/ui/animated-glowing-search-bar';
 import { MorphPanel } from '@/components/ui/ai-input';
 import { cn } from '@/lib/utils';
 
@@ -49,8 +50,8 @@ const SECTION_IDS: Record<AppMode, string> = {
 function ModeTabs({ mode, onChange, onNavigate }: { mode: AppMode; onChange: (m: AppMode) => void; onNavigate?: () => void }) {
   const tabs = [
     { id: 'score' as const, label: 'Explore', icon: Compass },
-    { id: 'verify' as const, label: 'Verify', icon: Shield },
     { id: 'compare' as const, label: 'Compare', icon: MapPin },
+    { id: 'verify' as const, label: 'Verify', icon: Shield },
     { id: 'sources' as const, label: 'Sources', icon: Database },
   ];
 
@@ -123,25 +124,15 @@ function readableAddress(addr: string): string {
 }
 
 function CompactSearch({ onSearch, loading, address }: {
-  onSearch: (q: { address?: string }) => void;
+  onSearch: (q: { address?: string; builder_name?: string }) => void;
   loading: boolean;
   address: string;
 }) {
-  const [value, setValue] = useState('');
-
   return (
-    <AnimatedGlowingSearchBar
-      compact
-      value={value}
-      onChange={setValue}
-      onSubmit={() => {
-        if (value.trim()) {
-          onSearch({ address: value.trim() });
-          setValue('');
-        }
-      }}
-      placeholder={address ? readableAddress(address).split(',')[0] : 'Search a neighborhood...'}
+    <SearchAutocomplete
+      onSearch={onSearch}
       loading={loading}
+      address={address}
       className="max-w-md"
     />
   );
@@ -303,7 +294,7 @@ function MobileBottomSheet({ data, activeCategories, onToggleCategory, freshness
 
           <div className="space-y-2">
             <ScoreCard title="Walkability" icon="walk" result={data.walkability} freshness={getFreshnessForDimension('walkability', freshness)} compact />
-            <ScoreCard title="Safety" icon="shield" result={data.safety} freshness={getFreshnessForDimension('safety', freshness)} compact />
+            <ScoreCard title="Safety" icon="shield" result={data.safety} freshness={getFreshnessForDimension('safety', freshness)} compact ringColor={data.safety.score >= 90 ? '#ec4899' : undefined} />
             <ScoreCard title="Transit" icon="train" result={data.transit_access} freshness={getFreshnessForDimension('transit_access', freshness)} compact />
             <ScoreCard title="Hospitals" icon="hospital" result={data.hospital_access} freshness={getFreshnessForDimension('hospital_access', freshness)} compact />
             <ScoreCard title="Schools" icon="school" result={data.school_access} freshness={getFreshnessForDimension('school_access', freshness)} compact />
@@ -323,13 +314,14 @@ function MobileBottomSheet({ data, activeCategories, onToggleCategory, freshness
 }
 
 function App() {
-  const [data, setData] = useState<NeighborhoodScoreResponse | null>(null);
+  const [data, setData] = useState<NeighborhoodScoreResponse | null>(defaultScores as unknown as NeighborhoodScoreResponse);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [appMode, setAppMode] = useState<AppMode>('score');
   const [freshness, setFreshness] = useState<FreshnessData>({});
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set());
+  const [featuredNeighborhoods, setFeaturedNeighborhoods] = useState<FeaturedNeighborhood[]>([]);
 
   const isScrollingRef = useRef(false);
 
@@ -339,7 +331,7 @@ function App() {
 
   useEffect(() => {
     const entries: Record<string, boolean> = {};
-    const order: AppMode[] = ['score', 'verify', 'compare', 'sources'];
+    const order: AppMode[] = ['score', 'compare', 'verify', 'sources'];
 
     const observer = new IntersectionObserver(
       (observed) => {
@@ -366,6 +358,10 @@ function App() {
   }, []);
 
   useEffect(() => {
+    fetch('/api/prefetch')
+      .then(r => r.json())
+      .then(d => { if (d.neighborhoods) setFeaturedNeighborhoods(d.neighborhoods); })
+      .catch(() => {});
     fetch('/api/data-freshness').then(r => r.json()).then(setFreshness).catch(() => {});
 
     const params = new URLSearchParams(window.location.search);
@@ -387,9 +383,8 @@ function App() {
     } else if (demo) {
       const addr = DEMO_PRESETS[demo.toLowerCase()] || `${demo}, Bangalore`;
       handleSearch({ address: addr }, { scroll: false });
-    } else {
-      handleSearch({ address: 'Koramangala, Bangalore' }, { scroll: false });
     }
+    // Default (no params): data is already initialized from the bundled defaultScores
   }, []);
 
   const handleSearch = useCallback(async (query: { address?: string; latitude?: number; longitude?: number; builder_name?: string }, { scroll = true } = {}) => {
@@ -414,6 +409,14 @@ function App() {
       const result = await resp.json();
       setData(result);
       setActiveCategories(new Set());
+      setFeaturedNeighborhoods(prev => prev.map(n => {
+        const dlat = n.latitude - result.latitude;
+        const dlon = n.longitude - result.longitude;
+        if (Math.sqrt(dlat * dlat + dlon * dlon) * 111 < 1.0) {
+          return { ...n, score: result.composite_score, label: result.composite_label };
+        }
+        return n;
+      }));
       if (scroll) {
         document.getElementById('explore-section')?.scrollIntoView({ behavior: 'smooth' });
       }
@@ -429,8 +432,12 @@ function App() {
     }
   }, []);
 
-  const handleMapClick = useCallback((lat: number, lon: number) => {
-    handleSearch({ latitude: lat, longitude: lon });
+  const handleMapClick = useCallback((lat: number, lon: number, address?: string) => {
+    if (address) {
+      handleSearch({ address, latitude: lat, longitude: lon });
+    } else {
+      handleSearch({ latitude: lat, longitude: lon });
+    }
   }, [handleSearch]);
 
   const handleToggleCategory = useCallback((id: string) => {
@@ -531,9 +538,9 @@ function App() {
 
         <div className="h-full flex overflow-hidden max-lg:hidden">
           <div className="w-[55%] relative">
-            <NeighborhoodMap data={data} onMapClick={handleMapClick} loading={loading} />
+            <NeighborhoodMap data={data} onMapClick={handleMapClick} loading={loading} featuredNeighborhoods={featuredNeighborhoods} />
           </div>
-          <div className={cn("w-[45%] flex-shrink-0 transition-opacity duration-300", loading && data && "opacity-80 pointer-events-none")}>
+          <div className={cn("w-[45%] h-full overflow-hidden flex-shrink-0 transition-opacity duration-300", loading && data && "opacity-80 pointer-events-none")}>
             {data ? (
               <MapSidebar data={data} freshness={freshness} />
             ) : (
@@ -543,7 +550,7 @@ function App() {
         </div>
 
         <div className="h-full lg:hidden relative">
-          <NeighborhoodMap data={data} onMapClick={handleMapClick} loading={loading} />
+          <NeighborhoodMap data={data} onMapClick={handleMapClick} loading={loading} featuredNeighborhoods={featuredNeighborhoods} />
         </div>
 
         {data && (
@@ -556,17 +563,17 @@ function App() {
         )}
       </section>
 
-      {/* Section 3: Verify */}
-      <section id="verify-section" className="min-h-[calc(100vh-48px)] relative z-10 bg-black/40">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <VerifyClaims />
-        </div>
-      </section>
-
-      {/* Section 4: Compare */}
+      {/* Section 3: Compare */}
       <section id="compare-section" className="min-h-[calc(100vh-48px)] relative z-10 bg-black/40">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <CompareMode />
+        </div>
+      </section>
+
+      {/* Section 4: Verify */}
+      <section id="verify-section" className="min-h-[calc(100vh-48px)] relative z-10 bg-black/40">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <VerifyClaims />
         </div>
       </section>
 

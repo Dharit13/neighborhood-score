@@ -10,17 +10,18 @@ interface Props {
   className?: string;
   label?: string;
   displayValue?: string;
+  colorOverride?: string;
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 75) return '#34d399';
-  if (score >= 60) return '#4ade80';
-  if (score >= 40) return '#fbbf24';
-  if (score >= 25) return '#fb923c';
+  if (score >= 75) return '#c0c7d0';
+  if (score >= 68) return '#3b82f6';
+  if (score >= 60) return '#2ad587';
+  if (score >= 52) return '#fbbf24';
   return '#f87171';
 }
 
-export default function ScoreRing({ score, size = 80, strokeWidth = 6, showLabel = true, animated = true, className = '', label, displayValue }: Props) {
+export default function ScoreRing({ score, size = 80, strokeWidth = 6, showLabel = true, animated = true, className = '', label, displayValue, colorOverride }: Props) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
@@ -40,7 +41,7 @@ export default function ScoreRing({ score, size = 80, strokeWidth = 6, showLabel
     }
   }, [score, animated]);
 
-  const color = getScoreColor(score);
+  const color = colorOverride || getScoreColor(score);
   const center = size / 2;
 
   return (

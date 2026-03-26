@@ -208,6 +208,16 @@
     0% { transform: scale(0.5); opacity: 0.6; }
     100% { transform: scale(2.5); opacity: 0; }
   }
+  @keyframes map-marker-drop {
+    0% { opacity: 0; transform: translateY(-40px); }
+    60% { opacity: 1; transform: translateY(4px); }
+    80% { transform: translateY(-2px); }
+    100% { transform: translateY(0); }
+  }
+  @keyframes map-marker-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
   --animate-float: float 3s ease-in-out infinite;
   --animate-spin-slow: spin-slow 4s linear infinite;
 }
