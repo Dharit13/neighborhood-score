@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -279,6 +280,33 @@
     -webkit-box-decoration-break: clone;
   }
 
+  .sparkle-text {
+    position: relative;
+    display: inline-block;
+  }
+
+  .sparkle-text::before {
+    content: '✦';
+    position: absolute;
+    top: -0.3em;
+    right: -0.6em;
+    font-size: 0.35em;
+    -webkit-text-fill-color: var(--brand-9);
+    animation: sparkle-float 2s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes sparkle-float {
+    0%, 100% {
+      opacity: 0;
+      transform: scale(0.5) rotate(0deg);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1) rotate(180deg);
+    }
+  }
+
   .float-animation {
     animation: float 3s ease-in-out infinite;
   }
@@ -389,4 +417,17 @@
   .glass {
     background: var(--bg-glass-strong);
   }
+}
+
+canvas,
+canvas + div,
+[data-engine],
+[data-engine] * {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Hide Spline watermark */
+spline-viewer::part(logo) {
+  display: none !important;
 }

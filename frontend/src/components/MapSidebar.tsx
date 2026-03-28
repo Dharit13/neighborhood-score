@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import ScrollReveal3D from './ScrollReveal3D';
 import { ChevronDown, TrendingUp, Droplets, LayoutDashboard, Heart, Route, MapPin, Users, Sparkles, UtensilsCrossed, Wine, Baby, Trophy, ShieldCheck, Trees, ShoppingBag, Palette, Dumbbell } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -316,6 +317,7 @@ export default function MapSidebar({ data, freshness: _freshness }: Props) {
 
       {/* Sticky header */}
       <div className="flex-shrink-0 border-b border-white/[0.08] relative z-10">
+        <ScrollReveal3D rotateX={-6} delay={0.05}>
         <div id="sidebar-overview" className="px-4 pt-3 pb-2 flex items-center gap-4">
           <motion.div className="float-animation" whileHover={{ scale: 1.1, rotate: 5 }}
             transition={{ type: 'spring', stiffness: 400, damping: 15 }}
@@ -331,6 +333,7 @@ export default function MapSidebar({ data, freshness: _freshness }: Props) {
             </Badge>
           </div>
         </div>
+        </ScrollReveal3D>
 
         {/* Gradient menu nav */}
         <div className="flex gap-1 px-4 pb-2">

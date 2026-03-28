@@ -77,7 +77,7 @@ const AnimatedShaderBackground = ({ className }: AnimatedShaderBackgroundProps) 
 
         void main() {
           vec2 shake = vec2(sin(iTime * 1.2) * 0.005, cos(iTime * 2.1) * 0.005);
-          vec2 p = ((gl_FragCoord.xy + shake * iResolution.xy) - iResolution.xy * 0.5) / min(iResolution.x, iResolution.y) * mat2(6.0, -4.0, 4.0, 6.0);
+          vec2 p = ((gl_FragCoord.xy + shake * iResolution.xy) - iResolution.xy * 0.5) / min(iResolution.x, iResolution.y) * mat2(4.0, -2.5, 2.5, 4.0);
           vec2 v;
           vec4 o = vec4(0.0);
 
@@ -86,10 +86,12 @@ const AnimatedShaderBackground = ({ className }: AnimatedShaderBackgroundProps) 
           for (float i = 0.0; i < 35.0; i++) {
             v = p + cos(i * i + (iTime + p.x * 0.08) * 0.025 + i * vec2(13.0, 11.0)) * 3.5 + vec2(sin(iTime * 3.0 + i) * 0.003, cos(iTime * 3.5 - i) * 0.003);
             float tailNoise = fbm(v + vec2(iTime * 0.5, i)) * 0.3 * (1.0 - (i / 35.0));
+            float phase = i * 0.18 + iTime * 0.25;
+            float greenPulse = max(sin(phase * 0.9 + 3.8), 0.0);
             vec4 auroraColors = vec4(
-              0.0 + 0.12 * sin(i * 0.2 + iTime * 0.4),
-              0.3 + 0.4 * cos(i * 0.3 + iTime * 0.5),
-              0.35 + 0.2 * sin(i * 0.4 + iTime * 0.3),
+              0.12 + 0.25 * max(sin(phase * 1.1), 0.0) + 0.15 * max(sin(phase * 0.7 + 1.5), 0.0) + 0.16 * greenPulse,
+              0.15 + 0.35 * max(cos(phase * 0.8 + 0.5), 0.0) + 0.55 * greenPulse,
+              0.3 + 0.4 * max(sin(phase * 0.6 + 2.5), 0.0) + 0.2 * max(cos(phase * 1.2), 0.0) + 0.33 * greenPulse,
               1.0
             );
             vec4 currentContribution = auroraColors * exp(sin(i * i + iTime * 0.8)) / length(max(v, vec2(v.x * f * 0.015, v.y * 1.5)));

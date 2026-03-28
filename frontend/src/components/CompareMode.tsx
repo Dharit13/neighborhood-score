@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Section3DHeading from './Section3DHeading';
+import ScrollReveal3D from './ScrollReveal3D';
 import { Scale, ArrowRightLeft } from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { ShuffleNumber } from '@/components/ui/shuffle-number';
@@ -114,9 +116,7 @@ export default function CompareMode(_props: Props) {
   return (
     <div className="space-y-6">
       <div className="sticky top-12 z-20 bg-black/50 backdrop-blur-md pb-4 pt-2">
-        <h1 className="text-2xl sm:text-3xl font-semibold text-foreground text-center mb-4">
-          Compare Neighborhoods
-        </h1>
+        <Section3DHeading title="Compare Neighborhoods" className="mb-4" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
           {addresses.map((addr, idx) => (
@@ -167,9 +167,8 @@ export default function CompareMode(_props: Props) {
       )}
 
       {loaded.length >= 2 && !comparing && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+        <ScrollReveal3D rotateX={-10} translateZ={10}>
+        <div
           className="rounded-xl bg-white/[0.03] backdrop-blur-sm p-6 max-w-4xl mx-auto"
         >
           <h3 className="text-sm font-semibold gradient-text mb-4 text-center uppercase tracking-widest">Score Overlay</h3>
@@ -202,14 +201,13 @@ export default function CompareMode(_props: Props) {
               ))}
             </RadarChart>
           </ResponsiveContainer>
-        </motion.div>
+        </div>
+        </ScrollReveal3D>
       )}
 
       {loaded.length >= 2 && !comparing && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+        <ScrollReveal3D delay={0.05} rotateX={-6}>
+        <div
           className="max-w-4xl mx-auto space-y-3"
         >
           <div className="flex items-center py-3">
@@ -265,7 +263,8 @@ export default function CompareMode(_props: Props) {
               </motion.div>
             );
           })}
-        </motion.div>
+        </div>
+        </ScrollReveal3D>
       )}
 
       {loaded.length < 2 && !comparing && (

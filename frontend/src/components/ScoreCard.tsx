@@ -1,5 +1,6 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { use3DMouseTrack } from '@/hooks/use3DMouseTrack';
 import { ChevronDown, Footprints, Shield, Volume2, Sparkles, Hospital, GraduationCap, Train, Car, Package, Wind, Droplets, Zap, Waves, Building2, Construction, TrendingUp, Briefcase } from 'lucide-react';
 import ScoreRing from './ScoreRing';
 import { Badge } from '@/components/ui/badge';
@@ -89,8 +90,7 @@ function TransitRow({ detail, icon }: { detail: TransitDetail; icon: string }) {
 export default function ScoreCard({ title, icon, result, freshness, compact, ringColor }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const cardRef = useRef<HTMLDivElement>(null);
+  const { rotateX, rotateY, handleMouseMove, handleMouseLeave } = use3DMouseTrack({ maxRotation: 8 });
   const Icon = ICON_MAP[icon] || Sparkles;
   const transitResult = 'nearest_metro' in result ? result as TransitScoreResult : null;
   const builderResult = 'builders' in result ? result as BuilderScoreResult : null;
@@ -98,21 +98,6 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
     ? (result.score >= 90 ? '#ec4899' : result.score >= 70 ? '#22c55e' : result.score >= 50 ? '#fbbf24' : '#f87171')
     : null;
   const color = safetyColor || getScoreColor(result.score);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    setTilt({
-      x: (y - 0.5) * -8,
-      y: (x - 0.5) * 8,
-    });
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setTilt({ x: 0, y: 0 });
-  }, []);
 
   const handleClick = useCallback(() => {
     if (!expanded) {
@@ -140,15 +125,11 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
     return (
       <Collapsible open={expanded} onOpenChange={setExpanded}>
         <motion.div
-          ref={cardRef}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
-          animate={{
-            rotateX: tilt.x,
-            rotateY: tilt.y,
-          }}
-          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
           style={{
+            rotateX,
+            rotateY,
             transformStyle: 'preserve-3d',
             perspective: '800px',
           }}
@@ -158,7 +139,7 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
           <div
             className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none"
             style={{
-              background: `radial-gradient(circle at ${(tilt.y / 8 + 0.5) * 100}% ${(-tilt.x / 8 + 0.5) * 100}%, rgba(42,213,135,0.06), transparent 60%)`,
+              background: 'radial-gradient(circle at 50% 50%, rgba(42,213,135,0.06), transparent 60%)',
             }}
           />
 
