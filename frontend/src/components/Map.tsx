@@ -126,12 +126,12 @@ export default function NeighborhoodMap({ data, onMapClick, loading, featuredNei
 
     if (mapIdConfig) {
       mapOptions.mapId = mapIdConfig;
-      mapOptions.tilt = 45;
-      mapOptions.heading = 0;
       if (isDark) mapOptions.colorScheme = 'DARK' as unknown as google.maps.ColorScheme;
     } else {
       mapOptions.styles = isDark ? DARK_STYLE : LIGHT_STYLE;
     }
+    mapOptions.tilt = 45;
+    mapOptions.heading = 0;
 
     const map = new google.maps.Map(containerRef.current, mapOptions);
 

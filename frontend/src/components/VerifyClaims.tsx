@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Shield } from 'lucide-react';
+import Section3DHeading from './Section3DHeading';
+import ScrollReveal3D from './ScrollReveal3D';
 import { AnimatedGlowingSearchBar } from '@/components/ui/animated-glowing-search-bar';
 import TetrisLoading from '@/components/ui/tetris-loader';
 import PropertyIntelligencePanel from './PropertyIntelligencePanel';
@@ -41,16 +43,14 @@ export default function VerifyClaims() {
   return (
     <div>
       <div className="sticky top-12 z-20 bg-black/50 backdrop-blur-md pb-4 pt-2">
-        <div className="mb-4 text-center">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-foreground">
-            Verify Property Claims
-          </h1>
-          <p className="text-sm text-white mt-1">
-            Paste marketing text from a property listing — AI will extract each claim and verify it against real data.
-          </p>
-        </div>
+        <Section3DHeading
+          title="Verify Property Claims"
+          subtitle="Paste marketing text from a property listing — AI will extract each claim and verify it against real data."
+          className="mb-4"
+        />
 
         {/* Input card */}
+        <ScrollReveal3D rotateX={-5}>
         <div className="rounded-xl bg-white/[0.03] backdrop-blur-sm p-5 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch">
           <div className="flex flex-col">
@@ -92,6 +92,7 @@ export default function VerifyClaims() {
           </button>
         </div>
       </div>
+      </ScrollReveal3D>
       </div>
 
       <div className="space-y-6 pt-4">
@@ -110,6 +111,7 @@ export default function VerifyClaims() {
 
         {/* Results — full intelligence panel */}
         {result && !loading && (
+          <ScrollReveal3D rotateX={-8} delay={0.1}>
           <div className="space-y-4">
             <div className="rounded-xl bg-white/[0.03] backdrop-blur-sm px-6 py-3 space-y-2">
               <p className="text-sm text-white/60">
@@ -134,6 +136,7 @@ export default function VerifyClaims() {
               narrative={result.narrative}
             />
           </div>
+          </ScrollReveal3D>
         )}
 
         {/* Empty state */}
