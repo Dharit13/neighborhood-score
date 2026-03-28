@@ -43,12 +43,15 @@ async def compute_flood_risk_score(lat: float, lon: float) -> ScoreResult:
                JOIN neighborhoods n ON fr.neighborhood_id = n.id
                ORDER BY ST_Distance(n.center_geog, ST_Point($1, $2)::geography)
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
     if not row:
         return ScoreResult(
-            score=70.0, label="Good", data_confidence="low",
+            score=70.0,
+            label="Good",
+            data_confidence="low",
             breakdown={"note": "No flood data available for this location"},
             sources=["No BBMP flood data within range"],
         )
@@ -71,11 +74,15 @@ async def compute_flood_risk_score(lat: float, lon: float) -> ScoreResult:
         if elevation_m > 930:
             elevation_insight = f"Well above Bangalore avg ({BANGALORE_AVG_ELEVATION_M}m) — natural drainage advantage, lower flood risk"
         elif elevation_m >= 910:
-            elevation_insight = f"Near Bangalore avg elevation ({BANGALORE_AVG_ELEVATION_M}m) — typical flood risk for the city"
+            elevation_insight = (
+                f"Near Bangalore avg elevation ({BANGALORE_AVG_ELEVATION_M}m) — typical flood risk for the city"
+            )
         elif elevation_m >= 880:
             elevation_insight = f"Below city average ({BANGALORE_AVG_ELEVATION_M}m) — check drainage infrastructure, moderate flood concern"
         else:
-            elevation_insight = f"Significantly below avg ({BANGALORE_AVG_ELEVATION_M}m) — low-lying area, higher waterlogging risk"
+            elevation_insight = (
+                f"Significantly below avg ({BANGALORE_AVG_ELEVATION_M}m) — low-lying area, higher waterlogging risk"
+            )
     else:
         elevation_insight = None
 

@@ -132,7 +132,9 @@ def _compute_score(db_data: dict, amenities: dict) -> float:
     green = min(parks / 3.0, 1.0) * 100
 
     # Subscale 6: Commercial access (0-100)
-    commercial = amenities.get("grocery_or_supermarket", 0) + amenities.get("restaurant", 0) + amenities.get("pharmacy", 0)
+    commercial = (
+        amenities.get("grocery_or_supermarket", 0) + amenities.get("restaurant", 0) + amenities.get("pharmacy", 0)
+    )
     commercial_score = min(commercial / 15.0, 1.0) * 100
 
     # Equal weight per NEWS-India
@@ -187,10 +189,13 @@ def run(neighborhood_name: str | None = None):
                          pharmacy_count_1km = EXCLUDED.pharmacy_count_1km,
                          park_count_1km = EXCLUDED.park_count_1km,
                          fetched_at = now()""",
-                    (nid, amenities.get("grocery_or_supermarket", 0),
-                     amenities.get("restaurant", 0),
-                     amenities.get("pharmacy", 0),
-                     amenities.get("park", 0)),
+                    (
+                        nid,
+                        amenities.get("grocery_or_supermarket", 0),
+                        amenities.get("restaurant", 0),
+                        amenities.get("pharmacy", 0),
+                        amenities.get("park", 0),
+                    ),
                 )
 
                 # Step 3: Compute score

@@ -6,9 +6,9 @@ Seed landmark_registry from:
 """
 
 import json
-import sys
 import os
 import re
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -17,7 +17,7 @@ from app.db import get_sync_conn
 
 
 def _slugify(name: str) -> str:
-    return re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
 def _metro_aliases(name: str) -> list[str]:
@@ -25,10 +25,10 @@ def _metro_aliases(name: str) -> list[str]:
     aliases = []
 
     # "Mahatma Gandhi Road (MG Road)" -> aliases: MG Road, Mahatma Gandhi Road
-    paren_match = re.search(r'\(([^)]+)\)', name)
+    paren_match = re.search(r"\(([^)]+)\)", name)
     if paren_match:
         inner = paren_match.group(1)
-        outer = re.sub(r'\s*\([^)]+\)\s*', '', name).strip()
+        outer = re.sub(r"\s*\([^)]+\)\s*", "", name).strip()
         aliases.extend([inner, outer])
 
     # "Halasuru (Ulsoor)" -> Ulsoor, Halasuru
@@ -40,10 +40,10 @@ def _metro_aliases(name: str) -> list[str]:
     # Common suffix removal: " Metro", " Metro Station"
     for suffix in [" Metro Station", " Metro", " Station"]:
         if name.endswith(suffix):
-            aliases.append(name[:-len(suffix)])
+            aliases.append(name[: -len(suffix)])
 
     # Add "X Metro" variant
-    clean = re.sub(r'\s*\([^)]+\)\s*', '', name).strip()
+    clean = re.sub(r"\s*\([^)]+\)\s*", "", name).strip()
     aliases.append(f"{clean} Metro")
     aliases.append(f"{clean} Metro Station")
 
@@ -161,5 +161,6 @@ def seed():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     seed()

@@ -13,8 +13,8 @@ data for the air quality scorer.
 import csv
 import io
 import json
-import sys
 import os
+import sys
 import urllib.request
 from collections import defaultdict
 
@@ -54,18 +54,12 @@ def fetch():
     reader = csv.DictReader(io.StringIO(raw))
 
     # station -> period -> [aqi values]
-    station_period_aqi: dict[str, dict[str, list[float]]] = defaultdict(
-        lambda: defaultdict(list)
-    )
+    station_period_aqi: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
     station_overall: dict[str, list[float]] = defaultdict(list)
     rows_parsed = 0
 
     for row in reader:
-        station = (
-            row.get("Station", "")
-            or row.get("station", "")
-            or row.get("Station Name", "")
-        ).strip()
+        station = (row.get("Station", "") or row.get("station", "") or row.get("Station Name", "")).strip()
         if not station:
             continue
 
@@ -120,5 +114,6 @@ def fetch():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     fetch()

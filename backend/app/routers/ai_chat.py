@@ -1,11 +1,12 @@
 """AI Chat endpoint — wraps Claude with neighborhood data context for Q&A."""
-import os
+
+import asyncio
 import json
 import logging
-import asyncio
+import os
 
 from fastapi import APIRouter
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 from app.db import get_pool
@@ -137,14 +138,20 @@ async def ai_chat(input: AIChatInput):
     except ImportError:
         return JSONResponse(
             status_code=503,
-            content={"error": "AI service not available", "detail": "The anthropic package is not installed on the server."},
+            content={
+                "error": "AI service not available",
+                "detail": "The anthropic package is not installed on the server.",
+            },
         )
 
     api_key = os.getenv("ANTHROPIC_API_KEY", "")
     if not api_key:
         return JSONResponse(
             status_code=503,
-            content={"error": "AI service not configured", "detail": "Set ANTHROPIC_API_KEY in backend .env to enable AI chat."},
+            content={
+                "error": "AI service not configured",
+                "detail": "Set ANTHROPIC_API_KEY in backend .env to enable AI chat.",
+            },
         )
 
     # Build context
@@ -152,12 +159,16 @@ async def ai_chat(input: AIChatInput):
     if input.neighborhood:
         data = await _get_neighborhood_summary(input.neighborhood)
         if data:
-            context_parts.append(f"Current neighborhood data for {input.neighborhood}:\n{json.dumps(data, indent=2, default=str)}")
+            context_parts.append(
+                f"Current neighborhood data for {input.neighborhood}:\n{json.dumps(data, indent=2, default=str)}"
+            )
 
     if not context_parts:
         all_data = await _get_all_neighborhoods_summary()
         if all_data:
-            context_parts.append(f"Summary data for all {len(all_data)} neighborhoods:\n{json.dumps(all_data, indent=2, default=str)}")
+            context_parts.append(
+                f"Summary data for all {len(all_data)} neighborhoods:\n{json.dumps(all_data, indent=2, default=str)}"
+            )
 
     context = "\n\n".join(context_parts) if context_parts else "No neighborhood data currently loaded."
     system = SYSTEM_PROMPT.format(context=context)

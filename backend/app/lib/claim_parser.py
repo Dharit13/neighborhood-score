@@ -15,10 +15,10 @@ Also handles free-form marketing paragraphs by splitting them into
 individual atomic claims before parsing.
 """
 
-import os
 import json
 import logging
-from typing import Any, Optional
+import os
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -77,12 +77,10 @@ async def split_claims_text(raw_text: str) -> list[str]:
     if not raw_text or not raw_text.strip():
         return []
 
-    lines = [line.strip() for line in raw_text.strip().split('\n') if line.strip()]
+    lines = [line.strip() for line in raw_text.strip().split("\n") if line.strip()]
 
     looks_atomic = all(
-        len(line.split()) <= 10
-        and (',' not in line or line.count(',') <= 1)
-        and ' and ' not in line.lower()
+        len(line.split()) <= 10 and ("," not in line or line.count(",") <= 1) and " and " not in line.lower()
         for line in lines
     )
     if looks_atomic and len(lines) >= 1:
@@ -94,6 +92,7 @@ async def split_claims_text(raw_text: str) -> list[str]:
 
     try:
         import httpx
+
         combined = "\n".join(lines)
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
@@ -171,7 +170,7 @@ async def verify_claims_via_ai(
     lat: float,
     lon: float,
     unresolved_claims: list[str],
-    locality_data: Optional[dict] = None,
+    locality_data: dict | None = None,
 ) -> list[dict]:
     """Use AI to verify claims that couldn't be resolved through the database."""
     if not ANTHROPIC_API_KEY or not unresolved_claims:
@@ -179,6 +178,7 @@ async def verify_claims_via_ai(
 
     try:
         import httpx
+
         context = f"Property location: {address} (lat: {lat}, lon: {lon})\n\n"
         if locality_data:
             context += "NEIGHBORHOOD DATA (use as ground truth):\n"
@@ -265,7 +265,7 @@ async def generate_claim_narrative(
     address: str,
     verifications: list[dict],
     summary: str,
-    locality_data: Optional[dict] = None,
+    locality_data: dict | None = None,
 ) -> str:
     """Generate a readable narrative analysis of claim verification results."""
     if not ANTHROPIC_API_KEY or not verifications:
@@ -274,7 +274,7 @@ async def generate_claim_narrative(
     context_lines = []
     for v in verifications:
         d = v.get("details", {})
-        line = f"Claim: \"{v['original_claim']}\"\n"
+        line = f'Claim: "{v["original_claim"]}"\n'
         line += f"  Verdict: {v['verdict']}\n"
         line += f"  Claimed: {v['claimed_value']}, Actual: {v['actual_value']}, Gap: {v['difference']}\n"
         if d.get("destination"):
@@ -296,6 +296,7 @@ async def generate_claim_narrative(
 
     try:
         import httpx
+
         async with httpx.AsyncClient(timeout=25.0) as client:
             resp = await client.post(
                 "https://api.anthropic.com/v1/messages",
@@ -387,6 +388,7 @@ async def parse_claims(claims: list[str]) -> list[dict]:
 
     try:
         import httpx
+
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
                 "https://api.anthropic.com/v1/messages",
@@ -436,6 +438,7 @@ async def parse_claims(claims: list[str]) -> list[dict]:
 def _regex_fallback(claims: list[str]) -> list[dict]:
     """Fallback regex parser when Claude is unavailable."""
     import re
+
     results = []
     for claim in claims:
         cl = claim.lower().strip()
@@ -449,11 +452,11 @@ def _regex_fallback(claims: list[str]) -> list[dict]:
         }
 
         # "X min walk/drive to/from Y"
-        m = re.search(r'(\d+)\s*min\w*\s*(?:walk\w*\s*)?(?:from|to)\s+(?:the\s+)?(?:nearest\s+)?(.+)', cl)
+        m = re.search(r"(\d+)\s*min\w*\s*(?:walk\w*\s*)?(?:from|to)\s+(?:the\s+)?(?:nearest\s+)?(.+)", cl)
         if m:
             parsed["claimed_value"] = int(m.group(1))
             parsed["claimed_unit"] = "min"
-            dest = m.group(2).strip().rstrip('.')
+            dest = m.group(2).strip().rstrip(".")
             parsed["destination"] = dest
             if "walk" in cl:
                 parsed["travel_mode"] = "walk"
@@ -467,26 +470,26 @@ def _regex_fallback(claims: list[str]) -> list[dict]:
             continue
 
         # "X km from/to Y"
-        m = re.search(r'(\d+(?:\.\d+)?)\s*km\s*(?:from|to|near)\s+(.+)', cl)
+        m = re.search(r"(\d+(?:\.\d+)?)\s*km\s*(?:from|to|near)\s+(.+)", cl)
         if m:
             parsed["claimed_value"] = float(m.group(1))
             parsed["claimed_unit"] = "km"
-            parsed["destination"] = m.group(2).strip().rstrip('.')
+            parsed["destination"] = m.group(2).strip().rstrip(".")
             results.append(parsed)
             continue
 
         # "near X" / "close to X"
-        m = re.search(r'(?:near|close\s+to|adjacent\s+to|next\s+to)\s+(.+)', cl)
+        m = re.search(r"(?:near|close\s+to|adjacent\s+to|next\s+to)\s+(.+)", cl)
         if m:
-            parsed["destination"] = m.group(1).strip().rstrip('.')
+            parsed["destination"] = m.group(1).strip().rstrip(".")
             parsed["is_proximity_claim"] = True
             results.append(parsed)
             continue
 
         # "walking distance to X"
-        m = re.search(r'walk\w*\s+distance\s+(?:to|from)\s+(.+)', cl)
+        m = re.search(r"walk\w*\s+distance\s+(?:to|from)\s+(.+)", cl)
         if m:
-            parsed["destination"] = m.group(1).strip().rstrip('.')
+            parsed["destination"] = m.group(1).strip().rstrip(".")
             parsed["travel_mode"] = "walk"
             parsed["is_proximity_claim"] = True
             results.append(parsed)

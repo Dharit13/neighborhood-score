@@ -133,8 +133,7 @@ const ColorOrb: React.FC<OrbProps> = ({
 
 const SPEED_FACTOR = 1
 const FORM_WIDTH = 400
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const FORM_HEIGHT = 280
+// const FORM_HEIGHT = 280
 
 interface ContextShape {
   showForm: boolean

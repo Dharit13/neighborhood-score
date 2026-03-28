@@ -1,4 +1,5 @@
 import os
+
 import asyncpg
 import psycopg2
 from dotenv import load_dotenv
@@ -8,11 +9,11 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 # Parse connection params for keyword-based connections (avoids URL encoding issues)
-DB_HOST = os.getenv("DB_HOST", "aws-0-ap-south-1.pooler.supabase.com")
+DB_HOST = os.getenv("DB_HOST", "")
 DB_PORT = int(os.getenv("DB_PORT", "6543"))
 DB_NAME = os.getenv("DB_NAME", "postgres")
-DB_USER = os.getenv("DB_USER", "postgres.usizbvzwcftfqpovtsxf")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "Jskjhj!41516")
+DB_USER = os.getenv("DB_USER", "")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 
 _pool: asyncpg.Pool | None = None
 

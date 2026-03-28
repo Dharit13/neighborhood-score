@@ -12,13 +12,13 @@ walkability scorer as a green space access sub-score.
 import csv
 import io
 import json
-import sys
 import os
+import sys
 import urllib.request
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from app.config import CURATED_DIR, BANGALORE_BBOX
+from app.config import BANGALORE_BBOX, CURATED_DIR
 from app.db import get_sync_conn
 
 PARKS_CSV_URL = "https://data.opencity.in/dataset/bengaluru-parks/resource/download"
@@ -43,10 +43,7 @@ def fetch():
 
     for row in reader:
         name = (
-            row.get("Park Name", "")
-            or row.get("park_name", "")
-            or row.get("Name", "")
-            or row.get("name", "")
+            row.get("Park Name", "") or row.get("park_name", "") or row.get("Name", "") or row.get("name", "")
         ).strip()
 
         lat_str = row.get("Latitude", row.get("latitude", row.get("lat", "")))
@@ -61,8 +58,10 @@ def fetch():
         except ValueError:
             continue
 
-        if not (BANGALORE_BBOX["south"] <= lat <= BANGALORE_BBOX["north"]
-                and BANGALORE_BBOX["west"] <= lon <= BANGALORE_BBOX["east"]):
+        if not (
+            BANGALORE_BBOX["south"] <= lat <= BANGALORE_BBOX["north"]
+            and BANGALORE_BBOX["west"] <= lon <= BANGALORE_BBOX["east"]
+        ):
             continue
 
         area_sqm = None
@@ -75,13 +74,15 @@ def fetch():
 
         ward = (row.get("Ward", "") or row.get("ward", "")).strip() or None
 
-        parks.append({
-            "name": name,
-            "latitude": lat,
-            "longitude": lon,
-            "area_sqm": area_sqm,
-            "ward": ward,
-        })
+        parks.append(
+            {
+                "name": name,
+                "latitude": lat,
+                "longitude": lon,
+                "area_sqm": area_sqm,
+                "ward": ward,
+            }
+        )
 
     if not parks:
         print("  No valid parks parsed from CSV. Data format may have changed.")
@@ -120,8 +121,7 @@ def fetch():
                 cur.execute(
                     """INSERT INTO parks (name, area_sqm, ward, geog)
                        VALUES (%s, %s, %s, ST_Point(%s, %s)::geography)""",
-                    (p["name"], p.get("area_sqm"), p.get("ward"),
-                     p["longitude"], p["latitude"]),
+                    (p["name"], p.get("area_sqm"), p.get("ward"), p["longitude"], p["latitude"]),
                 )
         conn.commit()
         print(f"  OK: {len(parks)} parks seeded into DB")
@@ -133,5 +133,6 @@ def fetch():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     fetch()

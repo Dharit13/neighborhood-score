@@ -21,9 +21,10 @@ Data: Unified pois table (Google Places bulk + curated ranked schools).
 """
 
 import json
+
 from app.db import get_pool
+from app.models import NearbyDetail, ScoreResult, score_label
 from app.utils.geo import decay_score
-from app.models import ScoreResult, NearbyDetail, score_label
 
 RTE_PRIMARY_RADIUS_KM = 1.0
 RTE_UPPER_PRIMARY_RADIUS_KM = 3.0
@@ -59,12 +60,16 @@ async def compute_school_score(lat: float, lon: float) -> ScoreResult:
     async with pool.acquire() as conn:
         within_primary = await conn.fetchval(
             "SELECT COUNT(*) FROM pois WHERE category = 'school' AND ST_DWithin(geog, ST_Point($1, $2)::geography, $3)",
-            lon, lat, RTE_PRIMARY_RADIUS_KM * 1000,
+            lon,
+            lat,
+            RTE_PRIMARY_RADIUS_KM * 1000,
         )
 
         within_upper = await conn.fetchval(
             "SELECT COUNT(*) FROM pois WHERE category = 'school' AND ST_DWithin(geog, ST_Point($1, $2)::geography, $3)",
-            lon, lat, RTE_UPPER_PRIMARY_RADIUS_KM * 1000,
+            lon,
+            lat,
+            RTE_UPPER_PRIMARY_RADIUS_KM * 1000,
         )
 
         nearest_ranked = await conn.fetch(
@@ -76,7 +81,8 @@ async def compute_school_score(lat: float, lon: float) -> ScoreResult:
                  AND (tags->>'rank')::int <= 25
                ORDER BY geog <-> ST_Point($1, $2)::geography
                LIMIT 5""",
-            lon, lat,
+            lon,
+            lat,
         )
 
         nearest_other_ranked = await conn.fetch(
@@ -88,7 +94,8 @@ async def compute_school_score(lat: float, lon: float) -> ScoreResult:
                  AND (tags->>'rank')::int > 25
                ORDER BY geog <-> ST_Point($1, $2)::geography
                LIMIT 5""",
-            lon, lat,
+            lon,
+            lat,
         )
 
         boards_nearby = await conn.fetch(
@@ -97,7 +104,8 @@ async def compute_school_score(lat: float, lon: float) -> ScoreResult:
                WHERE category = 'school'
                  AND (tags->>'board') IS NOT NULL
                  AND ST_DWithin(geog, ST_Point($1, $2)::geography, 5000)""",
-            lon, lat,
+            lon,
+            lat,
         )
 
         nearby_with_tags = await conn.fetch(
@@ -106,12 +114,14 @@ async def compute_school_score(lat: float, lon: float) -> ScoreResult:
                WHERE category = 'school'
                  AND (tags->>'admission_difficulty') IS NOT NULL
                  AND ST_DWithin(geog, ST_Point($1, $2)::geography, 5000)""",
-            lon, lat,
+            lon,
+            lat,
         )
 
         total_nearby = await conn.fetchval(
             "SELECT COUNT(*) FROM pois WHERE category = 'school' AND ST_DWithin(geog, ST_Point($1, $2)::geography, 5000)",
-            lon, lat,
+            lon,
+            lat,
         )
 
     # --- Component 1: RTE compliance (30%) ---
@@ -162,10 +172,20 @@ async def compute_school_score(lat: float, lon: float) -> ScoreResult:
     else:
         fee_score = 50.0
 
-    final_score = round(min(max(
-        0.30 * rte_score + 0.25 * quality_score + 0.15 * diversity_score
-        + 0.15 * admission_score + 0.15 * fee_score,
-        0), 100), 1)
+    final_score = round(
+        min(
+            max(
+                0.30 * rte_score
+                + 0.25 * quality_score
+                + 0.15 * diversity_score
+                + 0.15 * admission_score
+                + 0.15 * fee_score,
+                0,
+            ),
+            100,
+        ),
+        1,
+    )
 
     DIFFICULTY_LABELS = {
         "easy": "Easy",
@@ -191,19 +211,24 @@ async def compute_school_score(lat: float, lon: float) -> ScoreResult:
             parts.append(f"Fee: {tags['fee_range']}L/yr")
         if tags.get("admission_difficulty"):
             parts.append(DIFFICULTY_LABELS.get(tags["admission_difficulty"], tags["admission_difficulty"]))
-        details.append(NearbyDetail(
-            name=f"{s['name']} ({', '.join(p for p in parts if p)})",
-            distance_km=round(s["distance_km"], 2),
-            category="school_rank",
-            latitude=s["latitude"], longitude=s["longitude"],
-        ))
+        details.append(
+            NearbyDetail(
+                name=f"{s['name']} ({', '.join(p for p in parts if p)})",
+                distance_km=round(s["distance_km"], 2),
+                category="school_rank",
+                latitude=s["latitude"],
+                longitude=s["longitude"],
+            )
+        )
 
     admission_summary = {}
     for d in admission_entries:
         admission_summary[d] = admission_summary.get(d, 0) + 1
 
     return ScoreResult(
-        score=final_score, label=score_label(final_score), details=details[:15],
+        score=final_score,
+        label=score_label(final_score),
+        details=details[:15],
         breakdown={
             "methodology": "RTE Act 2009 Section 6 + admission difficulty + fee affordability",
             "rte_compliance": round(rte_score, 1),

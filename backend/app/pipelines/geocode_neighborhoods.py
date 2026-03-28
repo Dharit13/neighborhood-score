@@ -67,9 +67,7 @@ def run():
                            WHERE id = %s""",
                         (new_lon, new_lat, nid),
                     )
-                    moved_m = (
-                        ((new_lat - old_lat) ** 2 + (new_lon - old_lon) ** 2) ** 0.5
-                    ) * 111000
+                    moved_m = (((new_lat - old_lat) ** 2 + (new_lon - old_lon) ** 2) ** 0.5) * 111000
                     status = f"({new_lat:.4f}, {new_lon:.4f})"
                     if moved_m > 100:
                         status += f" [moved {moved_m:.0f}m]"

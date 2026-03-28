@@ -28,7 +28,7 @@ export default function SearchAutocomplete({ onSearch, loading, address, classNa
   const [results, setResults] = useState<SearchResults | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searching, setSearching] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchResults = useCallback(async (query: string) => {
@@ -133,7 +133,7 @@ export default function SearchAutocomplete({ onSearch, loading, address, classNa
                       <span className="text-sm text-white/90 flex-1 truncate">
                         {String(item.name || item.project_name || '')}
                       </span>
-                      {item.trust_tier && (
+                      {item.trust_tier != null && (
                         <Badge
                           variant={item.trust_tier === 'trusted' ? 'success' : item.trust_tier === 'emerging' ? 'info' : item.trust_tier === 'cautious' ? 'warning' : 'mono'}
                           className="text-[8px]"
@@ -141,10 +141,10 @@ export default function SearchAutocomplete({ onSearch, loading, address, classNa
                           {String(item.trust_tier)}
                         </Badge>
                       )}
-                      {item.status && (
+                      {item.status != null && (
                         <Badge variant="mono" className="text-[8px]">{String(item.status)}</Badge>
                       )}
-                      {item.category && (
+                      {item.category != null && (
                         <span className="text-[10px] text-white/30">{String(item.category)}</span>
                       )}
                     </button>

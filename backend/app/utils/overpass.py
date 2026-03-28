@@ -1,8 +1,9 @@
 import asyncio
 import hashlib
-import time
-import httpx
 import logging
+import time
+
+import httpx
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,7 @@ async def query_overpass(query: str) -> list[dict]:
                         continue
 
                     if resp.status_code in (504, 503, 502):
-                        wait = BACKOFF_BASE ** attempt
+                        wait = BACKOFF_BASE**attempt
                         logger.warning(f"Overpass {resp.status_code} from {url}, retrying in {wait:.1f}s")
                         await asyncio.sleep(wait)
                         continue
@@ -62,7 +63,7 @@ async def query_overpass(query: str) -> list[dict]:
             except (httpx.TimeoutException, httpx.ConnectError) as e:
                 logger.warning(f"Overpass {url} failed: {type(e).__name__}")
                 if attempt < MAX_RETRIES - 1:
-                    await asyncio.sleep(BACKOFF_BASE ** attempt)
+                    await asyncio.sleep(BACKOFF_BASE**attempt)
                 continue
 
     return []
@@ -78,10 +79,12 @@ def parse_elements(elements: list[dict]) -> list[dict]:
         tags = el.get("tags", {})
         name = tags.get("name", "Unnamed")
         category = tags.get("amenity") or tags.get("shop") or tags.get("leisure") or "unknown"
-        results.append({
-            "name": name,
-            "latitude": lat,
-            "longitude": lon,
-            "category": category,
-        })
+        results.append(
+            {
+                "name": name,
+                "latitude": lat,
+                "longitude": lon,
+                "category": category,
+            }
+        )
     return results

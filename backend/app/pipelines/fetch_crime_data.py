@@ -13,8 +13,8 @@ safety_zones.json with more granular crime rates.
 import csv
 import io
 import json
-import sys
 import os
+import sys
 import urllib.request
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -100,5 +100,6 @@ def fetch():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     fetch()

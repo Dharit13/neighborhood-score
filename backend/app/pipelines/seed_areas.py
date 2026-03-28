@@ -6,13 +6,13 @@ with lat/lon, price, growth data) merged with landmarks.json area entries.
 """
 
 import json
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from app.db import get_sync_conn
 from app.config import CURATED_DIR
+from app.db import get_sync_conn
 
 
 def seed():
@@ -59,5 +59,6 @@ def seed():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     seed()

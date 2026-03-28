@@ -11,8 +11,8 @@ Methodology:
   Coverage score = (services_available / 4) * 80 + delivery_time_bonus.
 """
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -22,47 +22,147 @@ from app.db import get_sync_conn
 # Central/urban areas are covered by all 4 services; suburban by 2-3; outer by 1-2.
 
 _CORE_AREAS = {
-    "Koramangala", "Indiranagar", "HSR Layout", "BTM Layout", "Jayanagar",
-    "JP Nagar", "Malleshwaram", "Rajajinagar", "Basavanagudi", "Domlur",
-    "Wilson Garden", "Richmond Town", "Sadashivanagar", "Frazer Town",
-    "Shivaji Nagar", "Vasanth Nagar", "Ulsoor", "Langford Town",
-    "Chickpet", "Shanti Nagar", "Gandhinagar", "Cottonpet", "Majestic",
-    "Srinagar", "Hanumanthanagar", "Girinagar", "Thyagarajanagar",
-    "Chamrajpet", "Seshadripuram", "Cox Town", "Cooke Town",
-    "MG Road", "MG Road / Central", "Byappanahalli",
+    "Koramangala",
+    "Indiranagar",
+    "HSR Layout",
+    "BTM Layout",
+    "Jayanagar",
+    "JP Nagar",
+    "Malleshwaram",
+    "Rajajinagar",
+    "Basavanagudi",
+    "Domlur",
+    "Wilson Garden",
+    "Richmond Town",
+    "Sadashivanagar",
+    "Frazer Town",
+    "Shivaji Nagar",
+    "Vasanth Nagar",
+    "Ulsoor",
+    "Langford Town",
+    "Chickpet",
+    "Shanti Nagar",
+    "Gandhinagar",
+    "Cottonpet",
+    "Majestic",
+    "Srinagar",
+    "Hanumanthanagar",
+    "Girinagar",
+    "Thyagarajanagar",
+    "Chamrajpet",
+    "Seshadripuram",
+    "Cox Town",
+    "Cooke Town",
+    "MG Road",
+    "MG Road / Central",
+    "Byappanahalli",
 }
 
 _SUBURBAN_AREAS = {
-    "Whitefield", "Marathahalli", "Hebbal", "Banashankari", "Electronic City",
-    "Bellandur", "Sarjapur Road", "Bommanahalli", "Yelahanka", "Thanisandra",
-    "HAL", "Brookefield", "Kundalahalli", "Kadubeesanahalli", "HBR Layout",
-    "Banaswadi", "Vijayanagar", "Nagarbhavi", "Sahakara Nagar", "RT Nagar",
-    "Old Madras Road", "KR Puram", "Jakkur", "Bannerghatta Road",
-    "Hennur", "Horamavu", "Kammanahalli", "Panathur", "Hoodi",
-    "Varthur", "Harlur", "HSR Layout", "Kadugodi", "Nagavara",
-    "Basaveshwaranagar", "Attiguppe", "Lingarajapuram", "Kalyan Nagar",
-    "HRBR Layout", "Ganganagar", "Sanjaynagar", "Mathikere",
-    "Nandini Layout", "Yeshwanthpur", "Peenya", "Padmanabhanagar",
-    "Kumaraswamy Layout", "Hosur Road", "Gottigere", "Hulimavu",
-    "Kasavanahalli", "Haralur", "Somasundarapalya", "Bilekahalli",
-    "Arekere", "Kodichikkanahalli", "Kudlu Gate", "Begur",
-    "AECS Layout", "Vignana Nagar", "CV Raman Nagar", "Kasturi Nagar",
-    "Tin Factory", "Ramamurthy Nagar", "Vidyaranyapura",
-    "Chandra Layout", "JP Nagar Phase 7",
+    "Whitefield",
+    "Marathahalli",
+    "Hebbal",
+    "Banashankari",
+    "Electronic City",
+    "Bellandur",
+    "Sarjapur Road",
+    "Bommanahalli",
+    "Yelahanka",
+    "Thanisandra",
+    "HAL",
+    "Brookefield",
+    "Kundalahalli",
+    "Kadubeesanahalli",
+    "HBR Layout",
+    "Banaswadi",
+    "Vijayanagar",
+    "Nagarbhavi",
+    "Sahakara Nagar",
+    "RT Nagar",
+    "Old Madras Road",
+    "KR Puram",
+    "Jakkur",
+    "Bannerghatta Road",
+    "Hennur",
+    "Horamavu",
+    "Kammanahalli",
+    "Panathur",
+    "Hoodi",
+    "Varthur",
+    "Harlur",
+    "HSR Layout",
+    "Kadugodi",
+    "Nagavara",
+    "Basaveshwaranagar",
+    "Attiguppe",
+    "Lingarajapuram",
+    "Kalyan Nagar",
+    "HRBR Layout",
+    "Ganganagar",
+    "Sanjaynagar",
+    "Mathikere",
+    "Nandini Layout",
+    "Yeshwanthpur",
+    "Peenya",
+    "Padmanabhanagar",
+    "Kumaraswamy Layout",
+    "Hosur Road",
+    "Gottigere",
+    "Hulimavu",
+    "Kasavanahalli",
+    "Haralur",
+    "Somasundarapalya",
+    "Bilekahalli",
+    "Arekere",
+    "Kodichikkanahalli",
+    "Kudlu Gate",
+    "Begur",
+    "AECS Layout",
+    "Vignana Nagar",
+    "CV Raman Nagar",
+    "Kasturi Nagar",
+    "Tin Factory",
+    "Ramamurthy Nagar",
+    "Vidyaranyapura",
+    "Chandra Layout",
+    "JP Nagar Phase 7",
 }
 
 _OUTER_AREAS = {
-    "Devanahalli", "Kengeri", "Kanakapura Road", "Mahadevapura",
-    "Rajarajeshwari Nagar", "RR Nagar", "Uttarahalli", "Carmelaram",
-    "Singasandra", "Akshayanagar", "Konanakunte", "Yelachenahalli",
-    "Hosakerehalli", "Laggere", "Jalahalli", "Magadi Road", "Mysore Road",
-    "Hosa Road", "Varthur Road", "Sarjapur", "Tumkur Road",
-    "Bommasandra", "Talaghattapura", "Anjanapura",
-    "Kogilu", "Nagashettyhalli", "Bagalur",
+    "Devanahalli",
+    "Kengeri",
+    "Kanakapura Road",
+    "Mahadevapura",
+    "Rajarajeshwari Nagar",
+    "RR Nagar",
+    "Uttarahalli",
+    "Carmelaram",
+    "Singasandra",
+    "Akshayanagar",
+    "Konanakunte",
+    "Yelachenahalli",
+    "Hosakerehalli",
+    "Laggere",
+    "Jalahalli",
+    "Magadi Road",
+    "Mysore Road",
+    "Hosa Road",
+    "Varthur Road",
+    "Sarjapur",
+    "Tumkur Road",
+    "Bommasandra",
+    "Talaghattapura",
+    "Anjanapura",
+    "Kogilu",
+    "Nagashettyhalli",
+    "Bagalur",
 }
 
 _VERY_OUTER = {
-    "Chandapura", "Anekal", "Jigani", "Nelamangala",
+    "Chandapura",
+    "Anekal",
+    "Jigani",
+    "Nelamangala",
 }
 
 # Zepto: strong in core + suburban
@@ -79,9 +179,9 @@ BIGBASKET_AREAS = _CORE_AREAS | _SUBURBAN_AREAS | _OUTER_AREAS | _VERY_OUTER
 
 # Average delivery times by area type (minutes)
 DELIVERY_TIMES = {
-    "core": 12,      # Central areas with multiple dark stores
-    "suburban": 18,   # Suburban with some coverage
-    "peripheral": 30, # Far suburbs with limited coverage
+    "core": 12,  # Central areas with multiple dark stores
+    "suburban": 18,  # Suburban with some coverage
+    "peripheral": 30,  # Far suburbs with limited coverage
 }
 
 
@@ -146,5 +246,6 @@ def fetch():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     fetch()

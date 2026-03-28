@@ -4,8 +4,8 @@ Also seeds tech_parks (referenced by commute_times).
 """
 
 import json
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -17,12 +17,30 @@ TECH_PARKS = [
     {"name": "Embassy Tech Village", "lat": 12.9249, "lon": 77.6779, "company_count": 40, "employee_estimate": 40000},
     {"name": "RMZ Ecospace", "lat": 12.9266, "lon": 77.6846, "company_count": 30, "employee_estimate": 30000},
     {"name": "Bagmane Tech Park", "lat": 12.9694, "lon": 77.6483, "company_count": 25, "employee_estimate": 25000},
-    {"name": "ITPL (International Tech Park)", "lat": 12.9856, "lon": 77.7319, "company_count": 80, "employee_estimate": 45000},
-    {"name": "Embassy TechVillage Outer Ring Road", "lat": 12.9321, "lon": 77.6901, "company_count": 35, "employee_estimate": 35000},
+    {
+        "name": "ITPL (International Tech Park)",
+        "lat": 12.9856,
+        "lon": 77.7319,
+        "company_count": 80,
+        "employee_estimate": 45000,
+    },
+    {
+        "name": "Embassy TechVillage Outer Ring Road",
+        "lat": 12.9321,
+        "lon": 77.6901,
+        "company_count": 35,
+        "employee_estimate": 35000,
+    },
     {"name": "Prestige Tech Park", "lat": 12.9335, "lon": 77.6102, "company_count": 20, "employee_estimate": 20000},
     {"name": "Brigade Gateway / WTC", "lat": 12.9959, "lon": 77.5546, "company_count": 15, "employee_estimate": 10000},
     {"name": "Cessna Business Park", "lat": 12.9350, "lon": 77.6806, "company_count": 20, "employee_estimate": 15000},
-    {"name": "Electronic City Phase 1 & 2", "lat": 12.8450, "lon": 77.6600, "company_count": 150, "employee_estimate": 100000},
+    {
+        "name": "Electronic City Phase 1 & 2",
+        "lat": 12.8450,
+        "lon": 77.6600,
+        "company_count": 150,
+        "employee_estimate": 100000,
+    },
 ]
 
 
@@ -43,7 +61,9 @@ def seed():
                 )
             operational = sum(1 for s in data["stations"] if s.get("status", "operational") == "operational")
             construction = sum(1 for s in data["stations"] if s.get("status") == "construction")
-            print(f"  Metro stations: {len(data['stations'])} seeded ({operational} operational, {construction} under construction)")
+            print(
+                f"  Metro stations: {len(data['stations'])} seeded ({operational} operational, {construction} under construction)"
+            )
 
             # --- Bus stops ---
             cur.execute("DELETE FROM bus_stops")

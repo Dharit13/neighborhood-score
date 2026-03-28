@@ -11,10 +11,9 @@ Uses:
   - Haversine for crow-fly distance
 """
 
-import os
-import math
 import logging
-from typing import Optional
+import math
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -25,12 +24,7 @@ def haversine_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> floa
     R = 6_371_000
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
-    a = (
-        math.sin(dlat / 2) ** 2
-        + math.cos(math.radians(lat1))
-        * math.cos(math.radians(lat2))
-        * math.sin(dlon / 2) ** 2
-    )
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
@@ -73,7 +67,11 @@ async def get_commute_data(
                  AND destination_lat = $3 AND destination_lng = $4
                  AND travel_mode = $5
                  AND expires_at > now()""",
-            o_lat, o_lng, d_lat, d_lng, travel_mode,
+            o_lat,
+            o_lng,
+            d_lat,
+            d_lng,
+            travel_mode,
         )
 
         if cached:
@@ -88,9 +86,7 @@ async def get_commute_data(
     # Google Maps Distance Matrix API
     if GOOGLE_MAPS_API_KEY and travel_mode in ("driving", "walk", "walking"):
         gm_mode = "walking" if travel_mode in ("walk", "walking") else "driving"
-        result = await _google_distance_matrix(
-            origin_lat, origin_lon, dest_lat, dest_lon, gm_mode
-        )
+        result = await _google_distance_matrix(origin_lat, origin_lon, dest_lat, dest_lon, gm_mode)
         if result:
             result["crow_fly_distance_meters"] = int(crow_fly_m)
             result["source"] = "google_api"
@@ -112,7 +108,12 @@ async def get_commute_data(
                          crow_fly_distance_meters = EXCLUDED.crow_fly_distance_meters,
                          queried_at = now(),
                          expires_at = now() + interval '7 days'""",
-                    o_lat, o_lng, d_lat, d_lng, dest_name, travel_mode,
+                    o_lat,
+                    o_lng,
+                    d_lat,
+                    d_lng,
+                    dest_name,
+                    travel_mode,
                     result["peak_duration_seconds"],
                     result["offpeak_duration_seconds"],
                     result["distance_meters"],
@@ -146,9 +147,7 @@ async def get_commute_data(
         }
 
 
-async def _google_distance_matrix(
-    lat1: float, lon1: float, lat2: float, lon2: float, mode: str
-) -> Optional[dict]:
+async def _google_distance_matrix(lat1: float, lon1: float, lat2: float, lon2: float, mode: str) -> dict | None:
     """Call Google Maps Distance Matrix API with peak traffic modeling."""
     try:
         import httpx
@@ -163,7 +162,8 @@ async def _google_distance_matrix(
         if mode == "driving":
             # Monday 8:30 AM IST = Sunday 27:00 UTC... approximate next Monday
             import datetime
-            now = datetime.datetime.now(datetime.timezone.utc)
+
+            now = datetime.datetime.now(datetime.UTC)
             days_until_monday = (7 - now.weekday()) % 7
             if days_until_monday == 0 and now.hour >= 3:
                 days_until_monday = 7

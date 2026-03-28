@@ -18,7 +18,7 @@ Scoring formula (weighted):
 """
 
 from app.db import get_pool
-from app.models import ScoreResult, NearbyDetail, score_label
+from app.models import NearbyDetail, ScoreResult, score_label
 
 SOURCES = [
     "Bengaluru Slums Map — data.opencity.in (CNN satellite, DN deprivation index)",
@@ -98,7 +98,9 @@ async def compute_cleanliness_score(lat: float, lon: float) -> ScoreResult:
                       COALESCE(MIN(ST_Distance(centroid_geog, ST_Point($1, $2)::geography)), 99999) as nearest_m
                FROM slum_zones
                WHERE ST_DWithin(centroid_geog, ST_Point($1, $2)::geography, $3)""",
-            lon, lat, SLUM_RADIUS_M,
+            lon,
+            lat,
+            SLUM_RADIUS_M,
         )
 
         # 2. Nearest dry waste centre + count within 2km
@@ -110,13 +112,16 @@ async def compute_cleanliness_score(lat: float, lon: float) -> ScoreResult:
                WHERE type = 'dry_waste_centre'
                ORDER BY geog <-> ST_Point($1, $2)::geography
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
         dry_waste_count = await conn.fetchval(
             """SELECT COUNT(*) FROM waste_infrastructure
                WHERE type = 'dry_waste_centre'
                AND ST_DWithin(geog, ST_Point($1, $2)::geography, $3)""",
-            lon, lat, WASTE_SEARCH_RADIUS_M,
+            lon,
+            lat,
+            WASTE_SEARCH_RADIUS_M,
         )
 
         # 3. Nearest landfill
@@ -128,7 +133,8 @@ async def compute_cleanliness_score(lat: float, lon: float) -> ScoreResult:
                WHERE type = 'landfill'
                ORDER BY geog <-> ST_Point($1, $2)::geography
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
         # 4. Nearest processing plant or biomethanisation
@@ -140,7 +146,8 @@ async def compute_cleanliness_score(lat: float, lon: float) -> ScoreResult:
                WHERE type IN ('waste_processing', 'biomethanisation')
                ORDER BY geog <-> ST_Point($1, $2)::geography
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
     slum_count = int(slum_stats["cnt"]) if slum_stats else 0
@@ -161,26 +168,35 @@ async def compute_cleanliness_score(lat: float, lon: float) -> ScoreResult:
 
     details = []
     if dry_waste:
-        details.append(NearbyDetail(
-            name=f"Dry Waste Centre: {dry_waste['name']}",
-            distance_km=round(nearest_dry_waste_m / 1000, 2),
-            category="dry_waste_centre",
-            latitude=dry_waste["lat"], longitude=dry_waste["lon"],
-        ))
+        details.append(
+            NearbyDetail(
+                name=f"Dry Waste Centre: {dry_waste['name']}",
+                distance_km=round(nearest_dry_waste_m / 1000, 2),
+                category="dry_waste_centre",
+                latitude=dry_waste["lat"],
+                longitude=dry_waste["lon"],
+            )
+        )
     if landfill:
-        details.append(NearbyDetail(
-            name=f"Landfill: {landfill['name']}",
-            distance_km=round(nearest_landfill_m / 1000, 2),
-            category="landfill",
-            latitude=landfill["lat"], longitude=landfill["lon"],
-        ))
+        details.append(
+            NearbyDetail(
+                name=f"Landfill: {landfill['name']}",
+                distance_km=round(nearest_landfill_m / 1000, 2),
+                category="landfill",
+                latitude=landfill["lat"],
+                longitude=landfill["lon"],
+            )
+        )
     if processing:
-        details.append(NearbyDetail(
-            name=f"{processing['type'].replace('_', ' ').title()}: {processing['name']}",
-            distance_km=round(nearest_processing_m / 1000, 2),
-            category="waste_processing",
-            latitude=processing["lat"], longitude=processing["lon"],
-        ))
+        details.append(
+            NearbyDetail(
+                name=f"{processing['type'].replace('_', ' ').title()}: {processing['name']}",
+                distance_km=round(nearest_processing_m / 1000, 2),
+                category="waste_processing",
+                latitude=processing["lat"],
+                longitude=processing["lon"],
+            )
+        )
 
     return ScoreResult(
         score=final,

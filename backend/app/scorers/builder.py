@@ -16,7 +16,7 @@ Builder score = weighted average of active-area builders' RERA metrics.
 """
 
 from app.db import get_pool
-from app.models import BuilderScoreResult, BuilderDetail, score_label
+from app.models import BuilderDetail, BuilderScoreResult, score_label
 
 SOURCES = [
     "RERA Karnataka Portal (rera.karnataka.gov.in)",
@@ -43,23 +43,26 @@ async def compute_builder_score(
 
     builder_details = []
     for b in rows:
-        active_in_area = any(
-            _area_match(b["active_areas"] or [], kw) for kw in area_keywords
-        ) if area_keywords else False
+        active_in_area = (
+            any(_area_match(b["active_areas"] or [], kw) for kw in area_keywords) if area_keywords else False
+        )
 
         pct = b["on_time_delivery_pct"] or 0
         delivery_rating = (
-            "Excellent" if pct >= 85 else
-            "Good" if pct >= 75 else
-            "Average" if pct >= 65 else "Below Average"
+            "Excellent" if pct >= 85 else "Good" if pct >= 75 else "Average" if pct >= 65 else "Below Average"
         )
 
-        builder_details.append(BuilderDetail(
-            name=b["name"], score=b["score"],
-            rera_projects=b["rera_projects"], complaints=b["complaints"],
-            complaints_ratio=b["complaints_ratio"],
-            delivery_rating=delivery_rating, active_in_area=active_in_area,
-        ))
+        builder_details.append(
+            BuilderDetail(
+                name=b["name"],
+                score=b["score"],
+                rera_projects=b["rera_projects"],
+                complaints=b["complaints"],
+                complaints_ratio=b["complaints_ratio"],
+                delivery_rating=delivery_rating,
+                active_in_area=active_in_area,
+            )
+        )
 
     if builder_name:
         name_lower = builder_name.lower()
@@ -78,10 +81,7 @@ async def compute_builder_score(
     builder_details.sort(key=lambda x: (-x.active_in_area, -x.score))
 
     # Split into recommended and avoid lists
-    recommended = [
-        bd for bd in builder_details
-        if bd.active_in_area and bd.score >= 70 and bd.complaints_ratio < 1.5
-    ]
+    recommended = [bd for bd in builder_details if bd.active_in_area and bd.score >= 70 and bd.complaints_ratio < 1.5]
     to_avoid = []
     for bd in builder_details:
         if not bd.active_in_area:
@@ -98,7 +98,9 @@ async def compute_builder_score(
             to_avoid.append(bd)
 
     return BuilderScoreResult(
-        score=final_score, label=score_label(final_score), details=[],
+        score=final_score,
+        label=score_label(final_score),
+        details=[],
         breakdown={
             "methodology": "RERA Karnataka quarterly compliance metrics",
             "area_average_score": final_score,
@@ -122,12 +124,35 @@ def _area_match(builder_areas: list[str], query_area: str) -> bool:
 
 def _extract_area_from_address(address: str) -> list[str]:
     known_areas = [
-        "Whitefield", "Sarjapur", "Hennur", "Yelahanka", "Electronic City",
-        "Bannerghatta", "Kanakapura", "Hebbal", "Indiranagar", "Koramangala",
-        "JP Nagar", "Jayanagar", "Marathahalli", "Brookefield", "Old Madras Road",
-        "Rajajinagar", "Malleshwaram", "HSR Layout", "BTM Layout", "Devanahalli",
-        "KR Puram", "Thanisandra", "Sahakara Nagar", "Basavanagudi",
-        "Banashankari", "Vijayanagar", "Kengeri", "Bommanahalli", "Hosur Road",
+        "Whitefield",
+        "Sarjapur",
+        "Hennur",
+        "Yelahanka",
+        "Electronic City",
+        "Bannerghatta",
+        "Kanakapura",
+        "Hebbal",
+        "Indiranagar",
+        "Koramangala",
+        "JP Nagar",
+        "Jayanagar",
+        "Marathahalli",
+        "Brookefield",
+        "Old Madras Road",
+        "Rajajinagar",
+        "Malleshwaram",
+        "HSR Layout",
+        "BTM Layout",
+        "Devanahalli",
+        "KR Puram",
+        "Thanisandra",
+        "Sahakara Nagar",
+        "Basavanagudi",
+        "Banashankari",
+        "Vijayanagar",
+        "Kengeri",
+        "Bommanahalli",
+        "Hosur Road",
     ]
     address_lower = address.lower()
     return [a for a in known_areas if a.lower() in address_lower]

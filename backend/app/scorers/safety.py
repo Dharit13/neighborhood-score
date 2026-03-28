@@ -20,7 +20,7 @@ zones rather than arbitrary min-max scaling.
 """
 
 from app.db import get_pool
-from app.models import ScoreResult, NearbyDetail, score_label
+from app.models import NearbyDetail, ScoreResult, score_label
 
 # MOHUA EoLI Safety Pillar — 4 equal-weight indicators
 INDICATOR_WEIGHT = 0.25
@@ -49,7 +49,8 @@ async def compute_safety_score(lat: float, lon: float) -> ScoreResult:
                WHERE category = 'police'
                ORDER BY geog <-> ST_Point($1, $2)::geography
                LIMIT 5""",
-            lon, lat,
+            lon,
+            lat,
         )
 
         zone = await conn.fetchrow(
@@ -58,12 +59,11 @@ async def compute_safety_score(lat: float, lon: float) -> ScoreResult:
                FROM safety_zones
                ORDER BY ST_Distance(center_geog, ST_Point($1, $2)::geography)
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
-        all_zones = await conn.fetch(
-            "SELECT crime_rate_per_100k FROM safety_zones"
-        )
+        all_zones = await conn.fetch("SELECT crime_rate_per_100k FROM safety_zones")
 
     if not zone:
         return ScoreResult(score=50.0, label="Average", data_confidence="low", sources=["No safety data"])
@@ -99,24 +99,35 @@ async def compute_safety_score(lat: float, lon: float) -> ScoreResult:
     police_access = min(police_access + min(stations_within_2km * 5, 15), 100)
 
     # --- Composite: equal weights per EoLI methodology ---
-    final_score = round(min(max(
-        INDICATOR_WEIGHT * cctv_score
-        + INDICATOR_WEIGHT * crime_percentile_score
-        + INDICATOR_WEIGHT * streetlight_score
-        + INDICATOR_WEIGHT * police_access,
-        0), 100), 1)
+    final_score = round(
+        min(
+            max(
+                INDICATOR_WEIGHT * cctv_score
+                + INDICATOR_WEIGHT * crime_percentile_score
+                + INDICATOR_WEIGHT * streetlight_score
+                + INDICATOR_WEIGHT * police_access,
+                0,
+            ),
+            100,
+        ),
+        1,
+    )
 
     details = [
         NearbyDetail(
-            name=s["name"], distance_km=round(s["distance_km"], 2),
+            name=s["name"],
+            distance_km=round(s["distance_km"], 2),
             category="police_station",
-            latitude=s["latitude"], longitude=s["longitude"],
+            latitude=s["latitude"],
+            longitude=s["longitude"],
         )
         for s in nearest_stations
     ]
 
     return ScoreResult(
-        score=final_score, label=score_label(final_score), details=details,
+        score=final_score,
+        label=score_label(final_score),
+        details=details,
         breakdown={
             "methodology": "MOHUA EoLI Safety Pillar — 4 equal-weight indicators",
             "surveillance_coverage": round(cctv_score, 1),

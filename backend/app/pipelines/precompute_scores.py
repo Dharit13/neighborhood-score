@@ -13,8 +13,8 @@ Takes ~15-30 minutes for ~130 neighborhoods (~13s each).
 """
 
 import json
-import sys
 import os
+import sys
 import time
 import urllib.request
 
@@ -59,15 +59,17 @@ def precompute():
 
     for i, (name, lat, lon) in enumerate(neighborhoods):
         if name in results:
-            print(f"  [{i+1}/{total}] {name}: cached ({results[name]['composite_score']})")
+            print(f"  [{i + 1}/{total}] {name}: cached ({results[name]['composite_score']})")
             continue
 
         try:
-            payload = json.dumps({
-                "address": f"{name}, Bangalore",
-                "latitude": lat,
-                "longitude": lon,
-            }).encode()
+            payload = json.dumps(
+                {
+                    "address": f"{name}, Bangalore",
+                    "latitude": lat,
+                    "longitude": lon,
+                }
+            ).encode()
 
             req = urllib.request.Request(
                 API_URL,
@@ -81,23 +83,25 @@ def precompute():
             results[name] = data
 
             elapsed = time.time() - start_time
-            computed = sum(1 for j, (n, _, _) in enumerate(neighborhoods[:i+1]) if n not in results or j == i)
+            computed = sum(1 for j, (n, _, _) in enumerate(neighborhoods[: i + 1]) if n not in results or j == i)
             avg_per = elapsed / max(computed, 1)
-            remaining_count = sum(1 for n, _, _ in neighborhoods[i+1:] if n not in results)
+            remaining_count = sum(1 for n, _, _ in neighborhoods[i + 1 :] if n not in results)
             remaining = avg_per * remaining_count
 
-            print(f"  [{i+1}/{total}] {name}: {data['composite_score']} ({data['composite_label']}) "
-                  f"[~{remaining/60:.0f}m remaining]")
+            print(
+                f"  [{i + 1}/{total}] {name}: {data['composite_score']} ({data['composite_label']}) "
+                f"[~{remaining / 60:.0f}m remaining]"
+            )
 
             _save(results)
 
         except Exception as e:
-            print(f"  [{i+1}/{total}] {name}: ERROR - {e}")
+            print(f"  [{i + 1}/{total}] {name}: ERROR - {e}")
             errors.append(name)
 
     _save(results)
     elapsed = time.time() - start_time
-    print(f"\nDone: {len(results)} full score responses cached in {elapsed/60:.1f} minutes")
+    print(f"\nDone: {len(results)} full score responses cached in {elapsed / 60:.1f} minutes")
     if errors:
         print(f"Errors ({len(errors)}): {', '.join(errors)}")
 

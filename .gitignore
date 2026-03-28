@@ -4,10 +4,16 @@ __pycache__/
 *.pyo
 venv/
 .venv/
+*.egg-info/
+.ruff_cache/
+.pytest_cache/
 
-# Environment
+# Environment — never commit secrets
 .env
 .env.local
+.env.production
+**/.env
+**/.env.local
 
 # Node
 node_modules/
@@ -22,3 +28,10 @@ dist/
 
 # Logs
 *.log
+
+# AI/agent tooling (not part of the project)
+.agent/
+.agents/
+.claude/
+.gemini/
+.gsd/

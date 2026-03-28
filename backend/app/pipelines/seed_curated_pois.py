@@ -5,15 +5,15 @@ Run BEFORE or AFTER fetch_google_places — curated entries use ON CONFLICT to m
 Usage: python -m app.pipelines.seed_curated_pois
 """
 
-import sys
-import os
-import json
 import hashlib
+import json
+import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from app.db import get_sync_conn, run_sql_file
 from app.config import CURATED_DIR
+from app.db import get_sync_conn, run_sql_file
 
 
 def _synthetic_place_id(prefix: str, name: str) -> str:

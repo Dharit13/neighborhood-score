@@ -11,16 +11,16 @@ Cost: ~$10 total (Distance Matrix Advanced is $10/1000 elements)
 
 import json
 import math
-import sys
 import os
+import sys
 import time
-import urllib.request
 import urllib.parse
+import urllib.request
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from app.db import get_sync_conn
 from app.config import GOOGLE_MAPS_API_KEY
+from app.db import get_sync_conn
 
 DISTANCE_MATRIX_URL = "https://maps.googleapis.com/maps/api/distancematrix/json"
 
@@ -73,22 +73,29 @@ def fetch():
 
             # Next Monday 9 AM IST for peak traffic
             import datetime
-            now = datetime.datetime.now(datetime.timezone.utc)
+
+            now = datetime.datetime.now(datetime.UTC)
             # Find next Monday
             days_ahead = 0 - now.weekday()
             if days_ahead <= 0:
                 days_ahead += 7
             next_monday = now + datetime.timedelta(days=days_ahead)
-            peak_time = int(next_monday.replace(hour=3, minute=30, second=0, microsecond=0).timestamp())  # 9 AM IST = 3:30 UTC
-            offpeak_time = int(next_monday.replace(hour=8, minute=30, second=0, microsecond=0).timestamp())  # 2 PM IST = 8:30 UTC
+            peak_time = int(
+                next_monday.replace(hour=3, minute=30, second=0, microsecond=0).timestamp()
+            )  # 9 AM IST = 3:30 UTC
+            offpeak_time = int(
+                next_monday.replace(hour=8, minute=30, second=0, microsecond=0).timestamp()
+            )  # 2 PM IST = 8:30 UTC
 
             total = len(neighborhoods)
             for batch_start in range(0, total, BATCH_SIZE):
-                batch = neighborhoods[batch_start:batch_start + BATCH_SIZE]
+                batch = neighborhoods[batch_start : batch_start + BATCH_SIZE]
                 origins = [(n[2], n[3]) for n in batch]
                 n_ids = [n[0] for n in batch]
 
-                print(f"  Batch {batch_start // BATCH_SIZE + 1}/{math.ceil(total / BATCH_SIZE)}: {len(batch)} neighborhoods x {len(tech_parks)} tech parks...")
+                print(
+                    f"  Batch {batch_start // BATCH_SIZE + 1}/{math.ceil(total / BATCH_SIZE)}: {len(batch)} neighborhoods x {len(tech_parks)} tech parks..."
+                )
 
                 # Peak traffic (9 AM Monday)
                 try:
@@ -115,14 +122,22 @@ def fetch():
                         # duration = base route time (no traffic model)
                         # duration_in_traffic = real traffic-aware estimate
                         no_traffic_duration = peak_row["duration"]["value"] / 60.0
-                        peak_duration = peak_row["duration_in_traffic"]["value"] / 60.0 if "duration_in_traffic" in peak_row else no_traffic_duration
+                        peak_duration = (
+                            peak_row["duration_in_traffic"]["value"] / 60.0
+                            if "duration_in_traffic" in peak_row
+                            else no_traffic_duration
+                        )
                         distance_km = peak_row["distance"]["value"] / 1000.0
 
                         offpeak_duration = no_traffic_duration
                         if offpeak_result:
                             offpeak_row = offpeak_result["rows"][i]["elements"][j]
                             if offpeak_row["status"] == "OK":
-                                offpeak_duration = offpeak_row["duration_in_traffic"]["value"] / 60.0 if "duration_in_traffic" in offpeak_row else offpeak_row["duration"]["value"] / 60.0
+                                offpeak_duration = (
+                                    offpeak_row["duration_in_traffic"]["value"] / 60.0
+                                    if "duration_in_traffic" in offpeak_row
+                                    else offpeak_row["duration"]["value"] / 60.0
+                                )
 
                         # car_no_traffic: base route duration (Google's default, no traffic model)
                         cur.execute(
@@ -131,7 +146,13 @@ def fetch():
                                VALUES (%s, %s, 'car_no_traffic', %s, %s, %s)
                                ON CONFLICT (neighborhood_id, tech_park_id, mode) DO UPDATE SET
                                  duration_min = EXCLUDED.duration_min, distance_km = EXCLUDED.distance_km""",
-                            (nid, tp_id, round(no_traffic_duration, 1), round(distance_km, 1), f"Driving (no traffic) to {tp_names[j]}"),
+                            (
+                                nid,
+                                tp_id,
+                                round(no_traffic_duration, 1),
+                                round(distance_km, 1),
+                                f"Driving (no traffic) to {tp_names[j]}",
+                            ),
                         )
 
                         # car_peak: Monday 9 AM with traffic
@@ -141,7 +162,13 @@ def fetch():
                                VALUES (%s, %s, 'car_peak', %s, %s, %s)
                                ON CONFLICT (neighborhood_id, tech_park_id, mode) DO UPDATE SET
                                  duration_min = EXCLUDED.duration_min, distance_km = EXCLUDED.distance_km""",
-                            (nid, tp_id, round(peak_duration, 1), round(distance_km, 1), f"Driving (Mon 9AM traffic) to {tp_names[j]}"),
+                            (
+                                nid,
+                                tp_id,
+                                round(peak_duration, 1),
+                                round(distance_km, 1),
+                                f"Driving (Mon 9AM traffic) to {tp_names[j]}",
+                            ),
                         )
 
                         # car_offpeak: Monday 2 PM with traffic
@@ -151,7 +178,13 @@ def fetch():
                                VALUES (%s, %s, 'car_offpeak', %s, %s, %s)
                                ON CONFLICT (neighborhood_id, tech_park_id, mode) DO UPDATE SET
                                  duration_min = EXCLUDED.duration_min, distance_km = EXCLUDED.distance_km""",
-                            (nid, tp_id, round(offpeak_duration, 1), round(distance_km, 1), f"Driving (Mon 2PM traffic) to {tp_names[j]}"),
+                            (
+                                nid,
+                                tp_id,
+                                round(offpeak_duration, 1),
+                                round(distance_km, 1),
+                                f"Driving (Mon 2PM traffic) to {tp_names[j]}",
+                            ),
                         )
 
                         # bike: estimated 1.3x no-traffic car time
@@ -162,7 +195,13 @@ def fetch():
                                VALUES (%s, %s, 'bike', %s, %s, %s)
                                ON CONFLICT (neighborhood_id, tech_park_id, mode) DO UPDATE SET
                                  duration_min = EXCLUDED.duration_min, distance_km = EXCLUDED.distance_km""",
-                            (nid, tp_id, round(bike_duration, 1), round(distance_km, 1), f"Two-wheeler to {tp_names[j]}"),
+                            (
+                                nid,
+                                tp_id,
+                                round(bike_duration, 1),
+                                round(distance_km, 1),
+                                f"Two-wheeler to {tp_names[j]}",
+                            ),
                         )
 
                         count += 4
@@ -178,5 +217,6 @@ def fetch():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     fetch()

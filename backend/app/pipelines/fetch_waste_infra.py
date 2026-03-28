@@ -8,8 +8,8 @@ Sources (all from data.opencity.in, CC BY, updated Nov 2025):
   - Biomethanisation Plants: 11 locations
 """
 
-import sys
 import os
+import sys
 import urllib.request
 import xml.etree.ElementTree as ET
 
@@ -72,12 +72,14 @@ def _parse_waste_kml(content: str, infra_type: str) -> list[dict]:
         if not (12.5 <= lat <= 13.5 and 77.0 <= lon <= 78.2):
             continue
 
-        records.append({
-            "name": name,
-            "type": infra_type,
-            "lat": lat,
-            "lon": lon,
-        })
+        records.append(
+            {
+                "name": name,
+                "type": infra_type,
+                "lat": lat,
+                "lon": lon,
+            }
+        )
 
     return records
 
@@ -123,5 +125,6 @@ def fetch():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     fetch()

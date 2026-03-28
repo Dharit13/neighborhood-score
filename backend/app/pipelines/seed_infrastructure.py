@@ -22,8 +22,8 @@ Delay multipliers (from research on Bangalore infra delivery):
 Sources: News research as of March 2026
 """
 
-import sys
 import os
+import sys
 from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -78,7 +78,16 @@ PROJECTS = [
         "completion_percentage": 82.0,
         "length_km": 18.8,
         "route_description": "ORR Blue Line extension: Silk Board - HSR Layout - Bellandur - Marathahalli - KR Puram, 13 stations",
-        "affected_areas": ["Silk Board", "HSR Layout", "Bellandur", "Marathahalli", "Mahadevapura", "KR Puram", "Sarjapur Road", "Kadubeesanahalli"],
+        "affected_areas": [
+            "Silk Board",
+            "HSR Layout",
+            "Bellandur",
+            "Marathahalli",
+            "Mahadevapura",
+            "KR Puram",
+            "Sarjapur Road",
+            "Kadubeesanahalli",
+        ],
         "prediction_confidence": "medium",
         "prediction_rationale": "82% complete, viaduct done on most stretches. BMRCL targets June 2026 opening. Station finishing work ongoing.",
         "last_progress_update": "2026-03-25",
@@ -93,7 +102,16 @@ PROJECTS = [
         "completion_percentage": 45.0,
         "length_km": 38.4,
         "route_description": "Blue Line extension north: KR Puram corridor to Nagawara, then Hebbal - Yelahanka - Airport. Includes Pink Line (Nagawara-Gottigere)",
-        "affected_areas": ["KR Puram", "Kalyan Nagar", "Nagawara", "Hebbal", "Yelahanka", "Devanahalli", "Thanisandra", "Hennur"],
+        "affected_areas": [
+            "KR Puram",
+            "Kalyan Nagar",
+            "Nagawara",
+            "Hebbal",
+            "Yelahanka",
+            "Devanahalli",
+            "Thanisandra",
+            "Hennur",
+        ],
         "prediction_confidence": "low",
         "prediction_rationale": "45% complete, pier work 59-96% by section. Track plinth barely started. Pink Line 95% tunnel done, Dec 2026 target.",
         "last_progress_update": "2026-03-01",
@@ -108,7 +126,16 @@ PROJECTS = [
         "completion_percentage": 0.0,
         "length_km": 80.0,
         "route_description": "Orbital ORR line: Hebbal - Yeshwanthpur - Banashankari - JP Nagar - HSR Layout - Silk Board, completing the ring",
-        "affected_areas": ["Hebbal", "Yeshwanthpur", "Rajajinagar", "Banashankari", "JP Nagar", "BTM Layout", "HSR Layout", "Silk Board"],
+        "affected_areas": [
+            "Hebbal",
+            "Yeshwanthpur",
+            "Rajajinagar",
+            "Banashankari",
+            "JP Nagar",
+            "BTM Layout",
+            "HSR Layout",
+            "Silk Board",
+        ],
         "prediction_confidence": "very_low",
         "prediction_rationale": "Still in planning/DPR stage. 5x multiplier on announced timelines for Bangalore metro historically.",
         "last_progress_update": "2026-01-01",
@@ -124,7 +151,16 @@ PROJECTS = [
         "length_km": 74.0,
         "cost_crore": 27000,
         "route_description": "8-lane expressway (rebranded from PRR) with 5m median for future metro. Tumkur Road to Bellary Road section tendering first.",
-        "affected_areas": ["Whitefield", "Sarjapur Road", "Electronic City", "Bannerghatta Road", "Kanakapura Road", "Mysore Road", "Tumkur Road", "Yelahanka"],
+        "affected_areas": [
+            "Whitefield",
+            "Sarjapur Road",
+            "Electronic City",
+            "Bannerghatta Road",
+            "Kanakapura Road",
+            "Mysore Road",
+            "Tumkur Road",
+            "Yelahanka",
+        ],
         "prediction_confidence": "very_low",
         "prediction_rationale": "50% land acquisition done for first 23km stretch. Project stalled for 20 years, recently rebranded. 3.5x multiplier.",
         "last_progress_update": "2026-02-01",
@@ -200,7 +236,17 @@ PROJECTS = [
         "completion_percentage": 90.0,
         "length_km": 21.25,
         "route_description": "North-south line: Kalena Agrahara - Bannerghatta Road - JP Nagar - Jayanagar - Lalbagh - MG Road - Shivajinagar - Nagawara. 18 stations (12 underground, 6 elevated). Phase 1 elevated (7.5 km) opening May 2026, full corridor Dec 2026.",
-        "affected_areas": ["Bannerghatta Road", "JP Nagar", "Jayanagar", "Basavanagudi", "MG Road / Central", "Shivajinagar", "Nagawara", "Gottigere", "Hulimavu"],
+        "affected_areas": [
+            "Bannerghatta Road",
+            "JP Nagar",
+            "Jayanagar",
+            "Basavanagudi",
+            "MG Road / Central",
+            "Shivajinagar",
+            "Nagawara",
+            "Gottigere",
+            "Hulimavu",
+        ],
         "prediction_confidence": "high",
         "prediction_rationale": "Trial runs started March 2026 on elevated stretch. RDSO safety trials completing. 95% tunnel boring done. Phase 1 opening May 2026 is highly likely.",
         "last_progress_update": "2026-03-25",
@@ -215,7 +261,17 @@ PROJECTS = [
         "completion_percentage": 100.0,
         "length_km": 18.82,
         "route_description": "Fully operational since August 2025. RV Road - Ragigudda - Jayadeva - BTM Layout - Silk Board - HSR Layout - Electronic City - Bommasandra. 16 stations. 10-min peak frequency.",
-        "affected_areas": ["Banashankari", "BTM Layout", "Silk Board", "HSR Layout", "Electronic City", "Bommasandra", "Arekere", "Singasandra", "Kudlu Gate"],
+        "affected_areas": [
+            "Banashankari",
+            "BTM Layout",
+            "Silk Board",
+            "HSR Layout",
+            "Electronic City",
+            "Bommasandra",
+            "Arekere",
+            "Singasandra",
+            "Kudlu Gate",
+        ],
         "prediction_confidence": "high",
         "prediction_rationale": "Fully operational. No construction risk. Direct impact on property values along corridor already visible.",
         "last_progress_update": "2026-03-25",
@@ -324,7 +380,16 @@ PROJECTS = [
         "length_km": 20.0,
         "cost_crore": 450,
         "route_description": "Global-standard corridor upgrade of Outer Ring Road from Silk Board to KR Puram. Pedestrian walkways, EV charging, cycling lanes, landscaping. Part of 2026-27 budget allocation.",
-        "affected_areas": ["Silk Board", "Bellandur", "Marathahalli", "Mahadevapura", "KR Puram", "Whitefield", "Kadubeesanahalli", "Domlur"],
+        "affected_areas": [
+            "Silk Board",
+            "Bellandur",
+            "Marathahalli",
+            "Mahadevapura",
+            "KR Puram",
+            "Whitefield",
+            "Kadubeesanahalli",
+            "Domlur",
+        ],
         "prediction_confidence": "very_low",
         "prediction_rationale": "Budget announced but no construction started. ORR is already congested. 2.5x multiplier on announced timeline.",
         "last_progress_update": "2026-03-01",
@@ -340,7 +405,17 @@ PROJECTS = [
         "length_km": 73.0,
         "cost_crore": 40000,
         "route_description": "Underground tunnel road component of Bengaluru Business Corridor. 73 km tunnel connecting key corridors. Land acquisition for surface BBC complete. Tunnel DPR being prepared.",
-        "affected_areas": ["Hebbal", "Yeshwanthpur", "Rajajinagar", "Banashankari", "JP Nagar", "Silk Board", "Whitefield", "Electronic City", "Sarjapur Road"],
+        "affected_areas": [
+            "Hebbal",
+            "Yeshwanthpur",
+            "Rajajinagar",
+            "Banashankari",
+            "JP Nagar",
+            "Silk Board",
+            "Whitefield",
+            "Electronic City",
+            "Sarjapur Road",
+        ],
         "prediction_confidence": "very_low",
         "prediction_rationale": "₹40,000 Cr mega project still in DPR stage. Bangalore has never built a road tunnel. 6x multiplier minimum. Unlikely before 2040.",
         "last_progress_update": "2026-03-01",
@@ -439,7 +514,9 @@ def seed():
 
                 print(f"  {project['name']}")
                 print(f"    Official: {project['official_completion_date']} | Realistic: {low_eta} to {high_eta}")
-                print(f"    Status: {project['current_status']} ({project['completion_percentage']}%) | Multiplier: {delay_mult}x")
+                print(
+                    f"    Status: {project['current_status']} ({project['completion_percentage']}%) | Multiplier: {delay_mult}x"
+                )
 
         conn.commit()
         print(f"\n  OK: {len(PROJECTS)} infrastructure projects seeded")
@@ -450,5 +527,6 @@ def seed():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     seed()

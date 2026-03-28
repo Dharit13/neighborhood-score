@@ -10,14 +10,13 @@ to existing builders in the DB.
 Usage: python -m app.pipelines.scrape_sitesetu
 """
 
+import logging
+import os
 import re
 import sys
-import os
 import time
-import logging
 import urllib.request
 from html.parser import HTMLParser
-from typing import Optional
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -73,9 +72,15 @@ class _ProjectPageParser(HTMLParser):
 
         # Capture key-value pairs from project details table
         known_labels = [
-            "Project Name", "Developer/Promoter", "Location", "City",
-            "Project Type", "Units/Towers", "Expected Completion",
-            "RERA Number", "Registration Date",
+            "Project Name",
+            "Developer/Promoter",
+            "Location",
+            "City",
+            "Project Type",
+            "Units/Towers",
+            "Expected Completion",
+            "RERA Number",
+            "Registration Date",
         ]
         for label in known_labels:
             if text == label:
@@ -94,7 +99,7 @@ class _ProjectPageParser(HTMLParser):
             self.project_name = self._text_buffer.strip()
 
 
-def _fetch_url(url: str) -> Optional[str]:
+def _fetch_url(url: str) -> str | None:
     """Fetch URL with rate limiting."""
     try:
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -108,10 +113,10 @@ def _fetch_url(url: str) -> Optional[str]:
 
 
 def _slugify(name: str) -> str:
-    return re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
-def _extract_area(location: str) -> Optional[str]:
+def _extract_area(location: str) -> str | None:
     """Extract the primary area name from a SiteSetu location string."""
     if not location:
         return None
@@ -141,7 +146,7 @@ def scrape():
     projects = []
     for i, link in enumerate(project_links):
         url = f"{SITESETU_BASE}{link}"
-        print(f"  [{i+1}/{len(project_links)}] {link.split('/')[-1]}...", end=" ", flush=True)
+        print(f"  [{i + 1}/{len(project_links)}] {link.split('/')[-1]}...", end=" ", flush=True)
 
         html = _fetch_url(url)
         if not html:

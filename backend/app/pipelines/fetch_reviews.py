@@ -11,10 +11,10 @@ This pipeline specifically targets builder company reviews.
 """
 
 import json
+import logging
 import os
 import sys
 import time
-import logging
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -34,6 +34,7 @@ def _google_places_rating(builder_name: str) -> dict | None:
 
     try:
         import httpx
+
         query = f"{builder_name} real estate office Bangalore"
         resp = httpx.get(
             "https://maps.googleapis.com/maps/api/place/textsearch/json",
@@ -72,7 +73,7 @@ def _claude_sentiment_analysis(builder_name: str, rating: float, complaints: int
 - Google rating: {rating}/5
 - RERA registered projects: {rera_projects}
 - RERA complaints filed: {complaints}
-- Complaints per project ratio: {round(complaints/max(rera_projects,1), 2)}
+- Complaints per project ratio: {round(complaints / max(rera_projects, 1), 2)}
 
 Based on your knowledge of this builder and these metrics, provide:
 1. A sentiment score from 0.0 (very negative) to 1.0 (very positive)
@@ -120,9 +121,7 @@ def fetch_reviews():
     conn = get_sync_conn()
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                "SELECT id, name, avg_rating, complaints, rera_projects FROM builders ORDER BY name"
-            )
+            cur.execute("SELECT id, name, avg_rating, complaints, rera_projects FROM builders ORDER BY name")
             builders = cur.fetchall()
 
             updated = 0
@@ -143,9 +142,7 @@ def fetch_reviews():
                 time.sleep(0.5)
 
                 # 2. Claude sentiment analysis
-                sentiment = _claude_sentiment_analysis(
-                    name, google_rating or 3.5, complaints or 0, rera_projects or 0
-                )
+                sentiment = _claude_sentiment_analysis(name, google_rating or 3.5, complaints or 0, rera_projects or 0)
                 if sentiment:
                     sentiment_score = sentiment.get("sentiment_score", 0.5)
                     common_complaints = sentiment.get("common_complaints", [])[:5]
@@ -186,6 +183,7 @@ def fetch_reviews():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
     fetch_reviews()

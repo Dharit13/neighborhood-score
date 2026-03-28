@@ -13,7 +13,7 @@ No external API calls at runtime.
 """
 
 from app.db import get_pool
-from app.models import ScoreResult, NearbyDetail, score_label
+from app.models import NearbyDetail, ScoreResult, score_label
 
 SOURCES = [
     "NEWS-India (Sallis et al. 2016, MDPI IJERPH 13(4):401)",
@@ -35,7 +35,8 @@ async def compute_walkability_score(lat: float, lon: float) -> ScoreResult:
                FROM walkability_zones
                ORDER BY ST_Distance(center_geog, ST_Point($1, $2)::geography)
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
         parks_within_1km = 0
@@ -43,7 +44,8 @@ async def compute_walkability_score(lat: float, lon: float) -> ScoreResult:
         try:
             parks_within_1km = await conn.fetchval(
                 "SELECT COUNT(*) FROM pois WHERE category = 'park' AND ST_DWithin(geog, ST_Point($1, $2)::geography, 1000)",
-                lon, lat,
+                lon,
+                lat,
             )
             nearest_park = await conn.fetchrow(
                 """SELECT name,
@@ -51,7 +53,8 @@ async def compute_walkability_score(lat: float, lon: float) -> ScoreResult:
                    FROM pois WHERE category = 'park'
                    ORDER BY geog <-> ST_Point($1, $2)::geography
                    LIMIT 1""",
-                lon, lat,
+                lon,
+                lat,
             )
             if nearest_park:
                 nearest_park_km = round(float(nearest_park["distance_km"]), 2)
@@ -59,7 +62,9 @@ async def compute_walkability_score(lat: float, lon: float) -> ScoreResult:
             pass
 
     if not zone:
-        return ScoreResult(score=50.0, label="Average", data_confidence="low", sources=["No walkability data for this area"])
+        return ScoreResult(
+            score=50.0, label="Average", data_confidence="low", sources=["No walkability data for this area"]
+        )
 
     base_score = float(zone["score"])
 

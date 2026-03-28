@@ -13,7 +13,7 @@ Completion weighting: projects completing sooner get more weight
 """
 
 from app.db import get_pool
-from app.models import ScoreResult, NearbyDetail, score_label
+from app.models import NearbyDetail, ScoreResult, score_label
 
 # MOHUA TOD distance norms (meters)
 TOD_OPTIMAL_M = 500
@@ -71,12 +71,15 @@ async def compute_future_infra_score(lat: float, lon: float) -> ScoreResult:
                JOIN future_infra_projects p ON s.project_id = p.id
                WHERE ST_DWithin(s.geog, ST_Point($1, $2)::geography, 5000)
                ORDER BY ST_Distance(s.geog, ST_Point($1, $2)::geography)""",
-            lon, lat,
+            lon,
+            lat,
         )
 
     if not nearby:
         return ScoreResult(
-            score=20.0, label="Below Average", data_confidence="low",
+            score=20.0,
+            label="Below Average",
+            data_confidence="low",
             breakdown={"projects_within_5km": 0},
             sources=["No planned infrastructure projects within 5km"],
         )
@@ -106,15 +109,20 @@ async def compute_future_infra_score(lat: float, lon: float) -> ScoreResult:
     for s in nearby[:10]:
         if s["station_name"] not in seen:
             seen.add(s["station_name"])
-            details.append(NearbyDetail(
-                name=f"{s['station_name']} ({s['project_name']}) — {s['status'].replace('_', ' ').title()}, ETA {(s['expected_completion'] or '')[:4]}",
-                distance_km=round(s["distance_km"], 2),
-                category=f"future_{s['type']}",
-                latitude=s["latitude"], longitude=s["longitude"],
-            ))
+            details.append(
+                NearbyDetail(
+                    name=f"{s['station_name']} ({s['project_name']}) — {s['status'].replace('_', ' ').title()}, ETA {(s['expected_completion'] or '')[:4]}",
+                    distance_km=round(s["distance_km"], 2),
+                    category=f"future_{s['type']}",
+                    latitude=s["latitude"],
+                    longitude=s["longitude"],
+                )
+            )
 
     return ScoreResult(
-        score=final_score, label=score_label(final_score), details=details[:8],
+        score=final_score,
+        label=score_label(final_score),
+        details=details[:8],
         breakdown={
             "methodology": "MOHUA TOD 500m/800m norms + completion timeline",
             "proximity_score": round(proximity_score, 1),

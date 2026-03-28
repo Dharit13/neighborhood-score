@@ -15,8 +15,8 @@ Usage: python -m app.pipelines.verify_ai [--neighborhood NAME]
 """
 
 import json
-import sys
 import os
+import sys
 import time
 from typing import Any
 
@@ -121,14 +121,17 @@ def _collect_neighborhood_data(cur, neighborhood_id: int, name: str) -> dict:
            WHERE n.id = %s
            ORDER BY m.geog <-> n.center_geog
            LIMIT 1""",
-        (neighborhood_id,)
+        (neighborhood_id,),
     )
     row = cur.fetchone()
     if row:
         data["nearest_metro"] = {"name": row[0], "status": row[1], "distance_km": round(row[2], 2)}
 
     # Flood risk
-    cur.execute("SELECT risk_level, flood_history_events, drainage_quality, score FROM flood_risk WHERE neighborhood_id = %s", (neighborhood_id,))
+    cur.execute(
+        "SELECT risk_level, flood_history_events, drainage_quality, score FROM flood_risk WHERE neighborhood_id = %s",
+        (neighborhood_id,),
+    )
     row = cur.fetchone()
     if row:
         data["flood_risk"] = {"risk_level": row[0], "events": row[1], "drainage": row[2], "score": row[3]}
@@ -139,7 +142,7 @@ def _collect_neighborhood_data(cur, neighborhood_id: int, name: str) -> dict:
            FROM commute_times ct JOIN tech_parks tp ON ct.tech_park_id = tp.id
            WHERE ct.neighborhood_id = %s AND ct.mode = 'car_peak'
            ORDER BY ct.duration_min LIMIT 3""",
-        (neighborhood_id,)
+        (neighborhood_id,),
     )
     rows_ct = cur.fetchall()
     if rows_ct:
@@ -148,7 +151,7 @@ def _collect_neighborhood_data(cur, neighborhood_id: int, name: str) -> dict:
     # Delivery coverage
     cur.execute(
         "SELECT swiggy_serviceable, zepto_serviceable, blinkit_serviceable, bigbasket_serviceable, coverage_score FROM delivery_coverage WHERE neighborhood_id = %s",
-        (neighborhood_id,)
+        (neighborhood_id,),
     )
     row = cur.fetchone()
     if row:
@@ -166,11 +169,17 @@ def _collect_neighborhood_data(cur, neighborhood_id: int, name: str) -> dict:
     # Noise
     cur.execute(
         "SELECT avg_noise_db_estimate, noise_label, airport_flight_path, highway_proximity_km, score FROM noise_zones WHERE neighborhood_id = %s",
-        (neighborhood_id,)
+        (neighborhood_id,),
     )
     row = cur.fetchone()
     if row:
-        data["noise"] = {"db": round(row[0], 0), "label": row[1], "airport": row[2], "highway_km": round(row[3], 1), "score": row[4]}
+        data["noise"] = {
+            "db": round(row[0], 0),
+            "label": row[1],
+            "airport": row[2],
+            "highway_km": round(row[3], 1),
+            "score": row[4],
+        }
 
     return data
 
@@ -181,7 +190,11 @@ def _verify_with_claude(neighborhood_data: dict) -> dict:
         import anthropic
     except ImportError:
         print("  WARNING: anthropic package not installed. Skipping AI verification.")
-        return {"confidence": 50, "flags": ["AI verification unavailable — anthropic package not installed"], "narrative": ""}
+        return {
+            "confidence": 50,
+            "flags": ["AI verification unavailable — anthropic package not installed"],
+            "narrative": "",
+        }
 
     api_key = os.getenv("ANTHROPIC_API_KEY", "")
     if not api_key:
@@ -208,7 +221,10 @@ def _verify_with_claude(neighborhood_data: dict) -> dict:
                 model=ANTHROPIC_MODEL,
                 max_tokens=1200,
                 messages=[
-                    {"role": "user", "content": f"{VERIFICATION_PROMPT}\n\nNeighborhood data:\n{json.dumps(serializable, indent=2, default=str)}"}
+                    {
+                        "role": "user",
+                        "content": f"{VERIFICATION_PROMPT}\n\nNeighborhood data:\n{json.dumps(serializable, indent=2, default=str)}",
+                    }
                 ],
             )
             result = json.loads(message.content[0].text)  # type: ignore[union-attr]
@@ -286,8 +302,7 @@ def verify(neighborhood_name: str | None = None):
                          narrative = EXCLUDED.narrative,
                          verified_at = EXCLUDED.verified_at,
                          model_used = EXCLUDED.model_used""",
-                    (nid, result["confidence"], json.dumps(result["flags"]),
-                     result["narrative"], ANTHROPIC_MODEL),
+                    (nid, result["confidence"], json.dumps(result["flags"]), result["narrative"], ANTHROPIC_MODEL),
                 )
                 conn.commit()
 

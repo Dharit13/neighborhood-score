@@ -13,16 +13,16 @@ Also adds `avoid_reason` field for builders with poor track records.
 """
 
 import json
-import sys
 import os
-import urllib.request
+import sys
 import urllib.parse
+import urllib.request
 from html.parser import HTMLParser
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from app.db import get_sync_conn
 from app.config import CURATED_DIR
+from app.db import get_sync_conn
 
 RERA_BASE = "https://rera.karnataka.gov.in"
 
@@ -32,6 +32,7 @@ RERA_SEARCH_URL = RERA_BASE + "/projectViewDetails"
 
 class _ComplaintCountParser(HTMLParser):
     """Extract complaint count from RERA complaint report pages."""
+
     def __init__(self):
         super().__init__()
         self.in_table = False
@@ -135,10 +136,16 @@ def fetch():
                          complaints_ratio = EXCLUDED.complaints_ratio,
                          score = EXCLUDED.score""",
                     (
-                        b["name"], b["rera_projects"], b["total_projects_blr"],
-                        b["complaints"], b["complaints_ratio"],
-                        b["on_time_delivery_pct"], b["avg_rating"],
-                        b["reputation_tier"], b["active_areas"], b["score"],
+                        b["name"],
+                        b["rera_projects"],
+                        b["total_projects_blr"],
+                        b["complaints"],
+                        b["complaints_ratio"],
+                        b["on_time_delivery_pct"],
+                        b["avg_rating"],
+                        b["reputation_tier"],
+                        b["active_areas"],
+                        b["score"],
                     ),
                 )
         conn.commit()
@@ -151,5 +158,6 @@ def fetch():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     fetch()
