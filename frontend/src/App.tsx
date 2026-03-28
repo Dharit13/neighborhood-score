@@ -24,7 +24,7 @@ import { MorphPanel } from '@/components/ui/ai-input';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
-type AppMode = 'score' | 'verify' | 'compare' | 'sources' | null;
+type AppMode = 'score' | 'verify' | 'compare' | 'sources';
 
 function Logo({ className }: { className?: string }) {
   return (

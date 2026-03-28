@@ -4,13 +4,14 @@ Accepts pre-computed score data, sends to Claude with a detailed prompt,
 returns structured JSON with narrative sections, scoring model, comparisons,
 property tables, and relocator advice.
 """
-import os
+
 import json
 import logging
+import os
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -203,10 +204,12 @@ async def generate_report(input: ReportInput):
             message = await client.messages.create(
                 model=ANTHROPIC_MODEL,
                 max_tokens=4000,
-                messages=[{
-                    "role": "user",
-                    "content": f"{REPORT_PROMPT}\n\nNEIGHBOURHOOD SCORE DATA:\n{score_json}",
-                }],
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f"{REPORT_PROMPT}\n\nNEIGHBOURHOOD SCORE DATA:\n{score_json}",
+                    }
+                ],
             )
 
             raw = message.content[0].text.strip()  # type: ignore[union-attr]
@@ -214,7 +217,7 @@ async def generate_report(input: ReportInput):
             if raw.startswith("```"):
                 first_newline = raw.find("\n")
                 if first_newline != -1:
-                    raw = raw[first_newline + 1:]
+                    raw = raw[first_newline + 1 :]
                 else:
                     raw = raw[3:]
                 if raw.endswith("```"):
@@ -228,6 +231,7 @@ async def generate_report(input: ReportInput):
             logger.error(f"Claude returned unparseable response on attempt {attempt + 1}: {e}")
             if attempt < max_retries - 1:
                 import asyncio
+
                 await asyncio.sleep(2)
                 continue
             raise HTTPException(
@@ -240,6 +244,7 @@ async def generate_report(input: ReportInput):
             if "overloaded" in str(e).lower() or "rate" in str(e).lower():
                 if attempt < max_retries - 1:
                     import asyncio
+
                     await asyncio.sleep(4)
                     continue
             logger.error(f"Report generation failed: {error_name}: {e}")

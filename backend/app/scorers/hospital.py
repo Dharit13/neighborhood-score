@@ -18,24 +18,25 @@ Scoring combines:
 
 import json
 import re
+
 from app.db import get_pool
+from app.models import NearbyDetail, ScoreResult, score_label
 from app.utils.geo import decay_score
-from app.models import ScoreResult, NearbyDetail, score_label
 
 _NOT_HOSPITAL_RE = re.compile(
-    r'clinic|dental|ayurved|homeo|physio|aesthetic|diagnost|skin|hair|'
-    r'wellness center|wellness centre|eye care|\blab\b|pharma|veterinar|'
-    r'yoga|\bspa\b|salon|essentials|fertility|ivf|docsapp|medibuddy|'
-    r'healthcare &|health care &|\bnursing\b|pathology|x.?ray|scan centre|'
-    r'chemist|medical store|medical shop|vaccine center|tooth|residency|'
-    r'dispensary',
+    r"clinic|dental|ayurved|homeo|physio|aesthetic|diagnost|skin|hair|"
+    r"wellness center|wellness centre|eye care|\blab\b|pharma|veterinar|"
+    r"yoga|\bspa\b|salon|essentials|fertility|ivf|docsapp|medibuddy|"
+    r"healthcare &|health care &|\bnursing\b|pathology|x.?ray|scan centre|"
+    r"chemist|medical store|medical shop|vaccine center|tooth|residency|"
+    r"dispensary",
     re.IGNORECASE,
 )
 
 _REAL_HOSPITAL_RE = re.compile(
-    r'\bhospital\b|institute of|medical college|children.s hospital|'
-    r'maternity|\besi\b|\besic\b|\buphc\b|\bphc\b|health cent|'
-    r'\bgovt\b|government|victoria|bowring|minto|isolation|nimhans',
+    r"\bhospital\b|institute of|medical college|children.s hospital|"
+    r"maternity|\besi\b|\besic\b|\buphc\b|\bphc\b|health cent|"
+    r"\bgovt\b|government|victoria|bowring|minto|isolation|nimhans",
     re.IGNORECASE,
 )
 
@@ -72,7 +73,8 @@ async def compute_hospital_score(lat: float, lon: float) -> ScoreResult:
                  AND COALESCE((tags->>'tier')::int, 1) = 1
                ORDER BY geog <-> ST_Point($1, $2)::geography
                LIMIT 5""",
-            lon, lat,
+            lon,
+            lat,
         )
 
         nearest_other_raw = await conn.fetch(
@@ -84,7 +86,8 @@ async def compute_hospital_score(lat: float, lon: float) -> ScoreResult:
                  AND ((tags->>'accreditation') IS NULL OR COALESCE((tags->>'tier')::int, 2) = 2)
                ORDER BY geog <-> ST_Point($1, $2)::geography
                LIMIT 25""",
-            lon, lat,
+            lon,
+            lat,
         )
         nearest_other = []
         for h in nearest_other_raw:
@@ -103,7 +106,8 @@ async def compute_hospital_score(lat: float, lon: float) -> ScoreResult:
                FROM pois
                WHERE category = 'hospital'
                  AND ST_DWithin(geog, ST_Point($1, $2)::geography, 5000)""",
-            lon, lat,
+            lon,
+            lat,
         )
 
     # --- Component 1: NABH proximity (50%) ---
@@ -124,9 +128,7 @@ async def compute_hospital_score(lat: float, lon: float) -> ScoreResult:
     else:
         emergency_prox = 0.0
 
-    final_score = round(min(max(
-        0.50 * nabh_proximity + 0.30 * bed_density_score + 0.20 * emergency_prox,
-        0), 100), 1)
+    final_score = round(min(max(0.50 * nabh_proximity + 0.30 * bed_density_score + 0.20 * emergency_prox, 0), 100), 1)
 
     details = []
     seen = set()
@@ -143,15 +145,20 @@ async def compute_hospital_score(lat: float, lon: float) -> ScoreResult:
         label = f"{h['name']} ({tier_label}, {beds} beds)"
         if specs:
             label += f" - {specs}"
-        details.append(NearbyDetail(
-            name=label,
-            distance_km=round(h["distance_km"], 2),
-            category=f"hospital_tier_{tier}",
-            latitude=h["latitude"], longitude=h["longitude"],
-        ))
+        details.append(
+            NearbyDetail(
+                name=label,
+                distance_km=round(h["distance_km"], 2),
+                category=f"hospital_tier_{tier}",
+                latitude=h["latitude"],
+                longitude=h["longitude"],
+            )
+        )
 
     return ScoreResult(
-        score=final_score, label=score_label(final_score), details=details[:8],
+        score=final_score,
+        label=score_label(final_score),
+        details=details[:8],
         breakdown={
             "methodology": "IPHS 2022 — bed density vs norm + NABH proximity",
             "nabh_hospital_proximity": round(nabh_proximity, 1),

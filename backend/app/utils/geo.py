@@ -1,7 +1,8 @@
+import logging
 import math
 import os
+
 import httpx
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -14,12 +15,7 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     R = 6371.0
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
-    a = (
-        math.sin(dlat / 2) ** 2
-        + math.cos(math.radians(lat1))
-        * math.cos(math.radians(lat2))
-        * math.sin(dlon / 2) ** 2
-    )
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
@@ -40,10 +36,17 @@ def _lookup_neighborhood_coords(address: str) -> tuple[float, float] | None:
     """Check our neighborhoods DB first — instant, free, and uses our curated coordinates."""
     try:
         from app.db import get_sync_conn
+
         conn = get_sync_conn()
         try:
             with conn.cursor() as cur:
-                addr_lower = address.lower().replace(", bangalore", "").replace(", bengaluru", "").replace(", karnataka, india", "").strip()
+                addr_lower = (
+                    address.lower()
+                    .replace(", bangalore", "")
+                    .replace(", bengaluru", "")
+                    .replace(", karnataka, india", "")
+                    .strip()
+                )
                 # Exact name match
                 cur.execute(
                     """SELECT ST_Y(center_geog::geometry), ST_X(center_geog::geometry)
@@ -141,9 +144,7 @@ def count_within_radius(lat: float, lon: float, points: list[dict], radius_km: f
     return count
 
 
-def _google_walk_time(
-    lat1: float, lon1: float, lat2: float, lon2: float
-) -> tuple[float, float] | None:
+def _google_walk_time(lat1: float, lon1: float, lat2: float, lon2: float) -> tuple[float, float] | None:
     """Google Maps Directions walking time. More accurate than ORS for Indian cities."""
     if not GOOGLE_MAPS_API_KEY:
         return None
@@ -170,9 +171,7 @@ def _google_walk_time(
     return None
 
 
-def actual_walk_time(
-    lat1: float, lon1: float, lat2: float, lon2: float
-) -> tuple[float, float]:
+def actual_walk_time(lat1: float, lon1: float, lat2: float, lon2: float) -> tuple[float, float]:
     """
     Get actual pedestrian walking distance (km) and time (minutes).
     Tries Google Maps Directions first (more accurate for Indian cities),
@@ -210,9 +209,7 @@ def marketing_walk_claim(straight_line_km: float) -> float:
     return round((straight_line_km / 6.0) * 60, 1)
 
 
-def drive_time_estimate(
-    lat1: float, lon1: float, lat2: float, lon2: float
-) -> tuple[float, float, float]:
+def drive_time_estimate(lat1: float, lon1: float, lat2: float, lon2: float) -> tuple[float, float, float]:
     """
     Estimate driving distance and time via OpenRouteService driving profile.
     Returns (drive_distance_km, offpeak_minutes, peak_minutes).

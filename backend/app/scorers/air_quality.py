@@ -21,25 +21,25 @@ nearest CPCB monitoring stations — standard spatial interpolation.
 
 import json
 
-from app.db import get_pool
 from app.config import CURATED_DIR
-from app.models import ScoreResult, NearbyDetail, score_label
+from app.db import get_pool
+from app.models import NearbyDetail, ScoreResult, score_label
 
 # CPCB PM2.5 breakpoints (24-hour avg, ug/m3)
 # Source: cpcb.nic.in, data.gov.in AQI breakpoint dataset (Sep 2024)
 CPCB_PM25_BREAKPOINTS = [
-    (0,   30,  0,   50),   # Good
-    (31,  60,  51,  100),  # Satisfactory
-    (61,  90,  101, 200),  # Moderate
-    (91,  120, 201, 300),  # Poor
+    (0, 30, 0, 50),  # Good
+    (31, 60, 51, 100),  # Satisfactory
+    (61, 90, 101, 200),  # Moderate
+    (91, 120, 201, 300),  # Poor
     (121, 250, 301, 400),  # Very Poor
     (251, 500, 401, 500),  # Severe
 ]
 
 # CPCB AQI categories — official classification
 CPCB_AQI_CATEGORIES = [
-    (0,   50,  "Good"),
-    (51,  100, "Satisfactory"),
+    (0, 50, "Good"),
+    (51, 100, "Satisfactory"),
     (101, 200, "Moderate"),
     (201, 300, "Poor"),
     (301, 400, "Very Poor"),
@@ -89,7 +89,8 @@ async def compute_air_quality_score(lat: float, lon: float) -> ScoreResult:
                FROM aqi_stations
                ORDER BY geog <-> ST_Point($1, $2)::geography
                LIMIT 3""",
-            lon, lat,
+            lon,
+            lat,
         )
 
     if not nearest:
@@ -105,8 +106,10 @@ async def compute_air_quality_score(lat: float, lon: float) -> ScoreResult:
     details = [
         NearbyDetail(
             name=f"{s['name']} (AQI: {s['avg_aqi']}, {_aqi_category(s['avg_aqi'])}) - {s['primary_pollutant'] or 'PM2.5'}",
-            distance_km=round(s["distance_km"], 2), category="aqi_station",
-            latitude=s["latitude"], longitude=s["longitude"],
+            distance_km=round(s["distance_km"], 2),
+            category="aqi_station",
+            latitude=s["latitude"],
+            longitude=s["longitude"],
         )
         for s in nearest
     ]
@@ -137,7 +140,9 @@ async def compute_air_quality_score(lat: float, lon: float) -> ScoreResult:
                 break
 
     return ScoreResult(
-        score=final_score, label=score_label(final_score), details=details,
+        score=final_score,
+        label=score_label(final_score),
+        details=details,
         breakdown=breakdown,
         sources=SOURCES,
     )

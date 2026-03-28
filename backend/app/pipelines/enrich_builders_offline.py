@@ -9,18 +9,18 @@ Usage: python -m app.pipelines.enrich_builders_offline
 """
 
 import json
+import os
 import re
 import sys
-import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from app.db import get_sync_conn
 from app.config import CURATED_DIR
+from app.db import get_sync_conn
 
 
 def _slugify(name: str) -> str:
-    return re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
 def _compute_trust_score(b: dict) -> tuple[int, dict]:
@@ -116,10 +116,16 @@ def enrich():
                          avg_rating = EXCLUDED.avg_rating,
                          active_areas = EXCLUDED.active_areas""",
                     (
-                        name, b.get("rera_projects", 0), b.get("total_projects_blr", 0),
-                        b.get("complaints", 0), b.get("complaints_ratio", 0),
-                        b.get("on_time_delivery_pct", 0), b.get("avg_rating"),
-                        segment, b.get("active_areas", []), b.get("score", trust_score),
+                        name,
+                        b.get("rera_projects", 0),
+                        b.get("total_projects_blr", 0),
+                        b.get("complaints", 0),
+                        b.get("complaints_ratio", 0),
+                        b.get("on_time_delivery_pct", 0),
+                        b.get("avg_rating"),
+                        segment,
+                        b.get("active_areas", []),
+                        b.get("score", trust_score),
                     ),
                 )
 

@@ -1,13 +1,14 @@
 from datetime import datetime
+from typing import Any
+
 from pydantic import BaseModel, Field
-from typing import Any, Optional
 
 
 class LocationInput(BaseModel):
-    latitude: Optional[float] = Field(None, ge=12.5, le=13.5, description="Latitude (Bangalore range)")
-    longitude: Optional[float] = Field(None, ge=77.0, le=78.2, description="Longitude (Bangalore range)")
-    address: Optional[str] = Field(None, description="Address or area name in Bangalore")
-    builder_name: Optional[str] = Field(None, description="Builder name for reputation score")
+    latitude: float | None = Field(None, ge=12.5, le=13.5, description="Latitude (Bangalore range)")
+    longitude: float | None = Field(None, ge=77.0, le=78.2, description="Longitude (Bangalore range)")
+    address: str | None = Field(None, description="Address or area name in Bangalore")
+    builder_name: str | None = Field(None, description="Builder name for reputation score")
 
 
 class NearbyDetail(BaseModel):
@@ -21,7 +22,7 @@ class NearbyDetail(BaseModel):
 class ScoreResult(BaseModel):
     score: float = Field(..., ge=0, le=100)
     label: str
-    data_confidence: Optional[str] = None
+    data_confidence: str | None = None
     details: list[NearbyDetail] = []
     breakdown: dict[str, Any] = {}
     sources: list[str] = []
@@ -32,26 +33,26 @@ class TransitDetail(BaseModel):
     type: str
     distance_km: float
     walk_minutes: float
-    actual_walk_km: Optional[float] = None
-    marketing_claim_minutes: Optional[float] = None
-    straight_line_km: Optional[float] = None
-    drive_km: Optional[float] = None
-    drive_offpeak_minutes: Optional[float] = None
-    drive_peak_minutes: Optional[float] = None
-    recommended_mode: Optional[str] = None
+    actual_walk_km: float | None = None
+    marketing_claim_minutes: float | None = None
+    straight_line_km: float | None = None
+    drive_km: float | None = None
+    drive_offpeak_minutes: float | None = None
+    drive_peak_minutes: float | None = None
+    recommended_mode: str | None = None
     latitude: float
     longitude: float
 
 
 class TransitScoreResult(ScoreResult):
-    nearest_bus_stop: Optional[TransitDetail] = None
-    nearest_metro: Optional[TransitDetail] = None
-    nearest_train: Optional[TransitDetail] = None
-    airport: Optional[TransitDetail] = None
-    majestic: Optional[TransitDetail] = None
-    city_railway: Optional[TransitDetail] = None
-    peak_travel_time_min: Optional[float] = None
-    offpeak_travel_time_min: Optional[float] = None
+    nearest_bus_stop: TransitDetail | None = None
+    nearest_metro: TransitDetail | None = None
+    nearest_train: TransitDetail | None = None
+    airport: TransitDetail | None = None
+    majestic: TransitDetail | None = None
+    city_railway: TransitDetail | None = None
+    peak_travel_time_min: float | None = None
+    offpeak_travel_time_min: float | None = None
 
 
 class BuilderDetail(BaseModel):
@@ -62,7 +63,7 @@ class BuilderDetail(BaseModel):
     complaints_ratio: float
     delivery_rating: str
     active_in_area: bool = False
-    avoid_reason: Optional[str] = None
+    avoid_reason: str | None = None
 
 
 class BuilderScoreResult(ScoreResult):
@@ -87,8 +88,8 @@ class AIVerification(BaseModel):
     avoid_if: str = ""
     flags: list[str] = []
     lifestyle_tags: list[LifestyleTag] = []
-    verified_at: Optional[datetime] = None
-    model_used: Optional[str] = None
+    verified_at: datetime | None = None
+    model_used: str | None = None
 
 
 class NeighborhoodRank(BaseModel):
@@ -111,8 +112,8 @@ class RentVsBuyArea(BaseModel):
 class WardInfo(BaseModel):
     name: str
     corporation: str
-    population: Optional[int] = None
-    distance_km: Optional[float] = None
+    population: int | None = None
+    distance_km: float | None = None
 
 
 class NeighborhoodScoreResponse(BaseModel):
@@ -138,21 +139,21 @@ class NeighborhoodScoreResponse(BaseModel):
     noise: ScoreResult
     business_opportunity: ScoreResult
     cleanliness: ScoreResult
-    ai_verification: Optional[AIVerification] = None
+    ai_verification: AIVerification | None = None
     recommended_neighborhoods: list[NeighborhoodRank] = []
     neighborhoods_to_avoid: list[NeighborhoodRank] = []
     best_to_buy: list[RentVsBuyArea] = []
     best_to_rent: list[RentVsBuyArea] = []
     wards_covered: list[WardInfo] = []
-    wards_total_population: Optional[int] = None
+    wards_total_population: int | None = None
 
 
 class ClaimInput(BaseModel):
-    latitude: Optional[float] = Field(None, ge=12.5, le=13.5)
-    longitude: Optional[float] = Field(None, ge=77.0, le=78.2)
-    address: Optional[str] = None
+    latitude: float | None = Field(None, ge=12.5, le=13.5)
+    longitude: float | None = Field(None, ge=77.0, le=78.2)
+    address: str | None = None
     claims: list[str] = Field(default_factory=list)
-    raw_text: Optional[str] = None
+    raw_text: str | None = None
 
 
 class ClaimVerification(BaseModel):

@@ -17,7 +17,7 @@ The stage system itself is the authoritative assessment of water access in Banga
 """
 
 from app.db import get_pool
-from app.models import ScoreResult, NearbyDetail, score_label
+from app.models import NearbyDetail, ScoreResult, score_label
 
 SOURCES = [
     "BWSSB Stage-wise Cauvery Water Supply Areas — data.opencity.in (CC BY 4.0)",
@@ -39,7 +39,8 @@ async def compute_water_supply_score(lat: float, lon: float) -> ScoreResult:
                FROM water_zones
                ORDER BY ST_Distance(center_geog, ST_Point($1, $2)::geography)
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
     if not zone:
@@ -55,12 +56,15 @@ async def compute_water_supply_score(lat: float, lon: float) -> ScoreResult:
             name=f"BWSSB {stage_label} — {zone['area']} ({zone['supply_hours']}h/day, {zone['reliability']} reliability)",
             distance_km=round(zone["distance_km"], 2),
             category=f"water_stage_{zone['stage']}",
-            latitude=zone["latitude"], longitude=zone["longitude"],
+            latitude=zone["latitude"],
+            longitude=zone["longitude"],
         )
     ]
 
     return ScoreResult(
-        score=final_score, label=score_label(final_score), details=details,
+        score=final_score,
+        label=score_label(final_score),
+        details=details,
         breakdown={
             "methodology": "BWSSB stage classification (direct, not computed)",
             "cauvery_stage": zone["stage"],

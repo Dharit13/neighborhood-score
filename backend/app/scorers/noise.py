@@ -41,12 +41,15 @@ async def compute_noise_score(lat: float, lon: float) -> ScoreResult:
                JOIN neighborhoods n ON nz.neighborhood_id = n.id
                ORDER BY ST_Distance(n.center_geog, ST_Point($1, $2)::geography)
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
     if not row:
         return ScoreResult(
-            score=60.0, label="Good", data_confidence="low",
+            score=60.0,
+            label="Good",
+            data_confidence="low",
             breakdown={"note": "No noise data available"},
             sources=["No noise data within range"],
         )

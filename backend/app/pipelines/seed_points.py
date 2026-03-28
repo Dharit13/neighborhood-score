@@ -3,8 +3,8 @@ Seed hospitals, schools, police stations, AQI stations from curated JSON files.
 """
 
 import json
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -25,9 +25,14 @@ def seed():
                     """INSERT INTO hospitals (name, accreditation, tier, specialties, beds, area, geog)
                        VALUES (%s, %s, %s, %s, %s, %s, ST_Point(%s, %s)::geography)""",
                     (
-                        h["name"], h["accreditation"], h["tier"],
-                        h.get("specialties", []), h.get("beds"),
-                        h.get("area"), h["longitude"], h["latitude"],
+                        h["name"],
+                        h["accreditation"],
+                        h["tier"],
+                        h.get("specialties", []),
+                        h.get("beds"),
+                        h.get("area"),
+                        h["longitude"],
+                        h["latitude"],
                     ),
                 )
             print(f"  Hospitals: {len(data['hospitals'])} seeded")
@@ -42,10 +47,17 @@ def seed():
                                            fee_range_lakh_pa, seats, admission_difficulty, admission_window)
                        VALUES (%s, %s, %s, %s, %s, ST_Point(%s, %s)::geography, %s, %s, %s, %s)""",
                     (
-                        s["name"], s["board"], s["rank"], s["rank_score"],
-                        s.get("area"), s["longitude"], s["latitude"],
-                        s.get("fee_range_lakh_pa"), s.get("seats"),
-                        s.get("admission_difficulty"), s.get("admission_window"),
+                        s["name"],
+                        s["board"],
+                        s["rank"],
+                        s["rank_score"],
+                        s.get("area"),
+                        s["longitude"],
+                        s["latitude"],
+                        s.get("fee_range_lakh_pa"),
+                        s.get("seats"),
+                        s.get("admission_difficulty"),
+                        s.get("admission_window"),
                     ),
                 )
             print(f"  Schools: {len(data['schools'])} seeded")
@@ -72,9 +84,12 @@ def seed():
                     """INSERT INTO aqi_stations (name, area, geog, avg_aqi, primary_pollutant)
                        VALUES (%s, %s, ST_Point(%s, %s)::geography, %s, %s)""",
                     (
-                        a["name"], a.get("area"),
-                        a["longitude"], a["latitude"],
-                        a["avg_aqi"], a.get("primary_pollutant"),
+                        a["name"],
+                        a.get("area"),
+                        a["longitude"],
+                        a["latitude"],
+                        a["avg_aqi"],
+                        a.get("primary_pollutant"),
                     ),
                 )
             print(f"  AQI stations: {len(data['stations'])} seeded")

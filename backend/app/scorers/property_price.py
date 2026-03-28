@@ -19,7 +19,7 @@ Karnataka P/I ratio = 14.0 (IndiaDataMap 2025 State Rankings).
 """
 
 from app.db import get_pool
-from app.models import ScoreResult, NearbyDetail
+from app.models import NearbyDetail, ScoreResult
 
 # RBI + bank rate benchmarks (March 2026)
 RBI_EMI_PER_LAKH_20YR = 836
@@ -27,11 +27,11 @@ BENCHMARK_MONTHLY_INCOME = 115_000  # 20 LPA CTC take-home
 
 # EMI/Income scoring bands (RBI + ANAROCK methodology)
 AFFORDABILITY_BANDS = [
-    (0,   30,  80,  100, "Comfortable"),
-    (30,  40,  60,  80,  "Affordable"),
-    (40,  50,  40,  60,  "Stretched"),
-    (50,  70,  20,  40,  "Unaffordable"),
-    (70,  200, 0,   20,  "Severely Unaffordable"),
+    (0, 30, 80, 100, "Comfortable"),
+    (30, 40, 60, 80, "Affordable"),
+    (40, 50, 40, 60, "Stretched"),
+    (50, 70, 20, 40, "Unaffordable"),
+    (70, 200, 0, 20, "Severely Unaffordable"),
 ]
 
 SOURCES = [
@@ -70,7 +70,8 @@ async def compute_property_price_info(lat: float, lon: float) -> ScoreResult:
                FROM property_prices
                ORDER BY ST_Distance(center_geog, ST_Point($1, $2)::geography)
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
     if not area:
@@ -87,8 +88,10 @@ async def compute_property_price_info(lat: float, lon: float) -> ScoreResult:
     details = [
         NearbyDetail(
             name=f"{area['area']}: Avg \u20b9{avg:,}/sqft | 2BHK ~\u20b9{avg_2bhk}L | EMI {emi_income_pct:.0f}% of income",
-            distance_km=round(area["distance_km"], 2), category="property_price",
-            latitude=area["latitude"], longitude=area["longitude"],
+            distance_km=round(area["distance_km"], 2),
+            category="property_price",
+            latitude=area["latitude"],
+            longitude=area["longitude"],
         )
     ]
 
@@ -117,7 +120,8 @@ async def compute_property_price_info(lat: float, lon: float) -> ScoreResult:
         rental_reasoning = None
 
     return ScoreResult(
-        score=affordability_score, label=f"\u20b9{avg:,}/sqft ({affordability_label})",
+        score=affordability_score,
+        label=f"\u20b9{avg:,}/sqft ({affordability_label})",
         details=details,
         breakdown={
             "methodology": "RBI EMI/Income ratio — 8.00%/20yr, 20 LPA benchmark",

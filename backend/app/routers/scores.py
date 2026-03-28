@@ -1,37 +1,47 @@
-from fastapi import APIRouter, HTTPException
-from app.db import get_pool
-from app.models import (
-    LocationInput, NeighborhoodScoreResponse, AIVerification,
-    NeighborhoodRank, RentVsBuyArea, WardInfo, score_label,
-    ClaimInput, ClaimVerification, ClaimVerificationResponse,
-)
-from app.utils.geo import geocode_address, reverse_geocode
-from app.scorers.walkability import compute_walkability_score
-from app.scorers.safety import compute_safety_score
-from app.scorers.hospital import compute_hospital_score
-from app.scorers.school import compute_school_score
-from app.scorers.transit import compute_transit_score
-from app.scorers.builder import compute_builder_score
-from app.scorers.air_quality import compute_air_quality_score
-from app.scorers.water_supply import compute_water_supply_score
-from app.scorers.power import compute_power_score
-from app.scorers.future_infra import compute_future_infra_score
-from app.scorers.property_price import compute_property_price_info
-from app.scorers.flood_risk import compute_flood_risk_score
-from app.scorers.commute import compute_commute_score
-from app.scorers.delivery_coverage import compute_delivery_coverage_score
-from app.scorers.noise import compute_noise_score
-from app.scorers.business_opportunity import compute_business_opportunity_score
-from app.scorers.cleanliness import compute_cleanliness_score
-from app.config import SCORE_WEIGHTS, CURATED_DIR
 import json as _json
 import logging as _logging
 from math import sqrt as _sqrt
+
+from fastapi import APIRouter, HTTPException
+
+from app.config import CURATED_DIR, SCORE_WEIGHTS
+from app.db import get_pool
+from app.models import (
+    AIVerification,
+    ClaimInput,
+    ClaimVerification,
+    ClaimVerificationResponse,
+    LocationInput,
+    NeighborhoodRank,
+    NeighborhoodScoreResponse,
+    RentVsBuyArea,
+    WardInfo,
+    score_label,
+)
+from app.scorers.air_quality import compute_air_quality_score
+from app.scorers.builder import compute_builder_score
+from app.scorers.business_opportunity import compute_business_opportunity_score
+from app.scorers.cleanliness import compute_cleanliness_score
+from app.scorers.commute import compute_commute_score
+from app.scorers.delivery_coverage import compute_delivery_coverage_score
+from app.scorers.flood_risk import compute_flood_risk_score
+from app.scorers.future_infra import compute_future_infra_score
+from app.scorers.hospital import compute_hospital_score
+from app.scorers.noise import compute_noise_score
+from app.scorers.power import compute_power_score
+from app.scorers.property_price import compute_property_price_info
+from app.scorers.safety import compute_safety_score
+from app.scorers.school import compute_school_score
+from app.scorers.transit import compute_transit_score
+from app.scorers.walkability import compute_walkability_score
+from app.scorers.water_supply import compute_water_supply_score
+from app.utils.geo import geocode_address, reverse_geocode
 
 router = APIRouter(prefix="/api", tags=["scores"])
 
 _score_cache: dict[str, dict] = {}
 _score_cache_coords: list[tuple[str, float, float]] = []
+
 
 def _load_score_cache():
     """Load precomputed full score responses from disk."""
@@ -49,6 +59,7 @@ def _load_score_cache():
         _logging.getLogger(__name__).info(f"Score cache loaded: {len(_score_cache)} neighborhoods")
     except Exception as e:
         _logging.getLogger(__name__).warning(f"Failed to load score cache: {e}")
+
 
 _load_score_cache()
 
@@ -80,10 +91,12 @@ async def _get_ai_verification(lat: float, lon: float) -> AIVerification | None:
                    WHERE ST_DWithin(n.center_geog, ST_Point($1, $2)::geography, 5000)
                    ORDER BY ST_Distance(n.center_geog, ST_Point($1, $2)::geography)
                    LIMIT 1""",
-                lon, lat,
+                lon,
+                lat,
             )
         if row:
             import json as _json
+
             flags_raw = row["flags"]
             if isinstance(flags_raw, str):
                 try:
@@ -111,13 +124,15 @@ async def _get_ai_verification(lat: float, lon: float) -> AIVerification | None:
                 pass
 
             from app.models import LifestyleTag
+
             lifestyle_tags = [
                 LifestyleTag(
                     category=t.get("category", ""),
                     label=t.get("label", ""),
                     detail=t.get("detail", ""),
                 )
-                for t in lifestyle_tags_raw if isinstance(t, dict)
+                for t in lifestyle_tags_raw
+                if isinstance(t, dict)
             ]
 
             return AIVerification(
@@ -135,11 +150,14 @@ async def _get_ai_verification(lat: float, lon: float) -> AIVerification | None:
             )
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).warning(f"AI verification lookup failed: {e}")
     return None
 
 
-async def _get_neighborhood_rankings(exclude_name: str | None = None) -> tuple[list[NeighborhoodRank], list[NeighborhoodRank]]:
+async def _get_neighborhood_rankings(
+    exclude_name: str | None = None,
+) -> tuple[list[NeighborhoodRank], list[NeighborhoodRank]]:
     """Rank all neighborhoods using pre-seeded zone scores. No external API calls."""
     try:
         pool = await get_pool()
@@ -177,10 +195,7 @@ async def _get_neighborhood_rankings(exclude_name: str | None = None) -> tuple[l
             flood = float(r["flood_score"] or 50)
             afford = float(r["affordability_score"] or 50)
 
-            composite = (
-                0.25 * safety + 0.15 * walk + 0.15 * water
-                + 0.10 * power + 0.20 * flood + 0.15 * afford
-            )
+            composite = 0.25 * safety + 0.15 * walk + 0.15 * water + 0.10 * power + 0.20 * flood + 0.15 * afford
 
             highlights = []
             if safety >= 75:
@@ -213,17 +228,16 @@ async def _get_neighborhood_rankings(exclude_name: str | None = None) -> tuple[l
         scored.sort(key=lambda x: x[1], reverse=True)
 
         top_3 = [
-            NeighborhoodRank(name=s[0], score=s[1], label=score_label(s[1]), highlights=s[2][:3])
-            for s in scored[:3]
+            NeighborhoodRank(name=s[0], score=s[1], label=score_label(s[1]), highlights=s[2][:3]) for s in scored[:3]
         ]
         bottom_3 = [
-            NeighborhoodRank(name=s[0], score=s[1], label=score_label(s[1]), highlights=s[2][:3])
-            for s in scored[-3:]
+            NeighborhoodRank(name=s[0], score=s[1], label=score_label(s[1]), highlights=s[2][:3]) for s in scored[-3:]
         ]
         return top_3, bottom_3
 
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).warning(f"Neighborhood ranking failed: {e}")
         return [], []
 
@@ -262,15 +276,17 @@ async def _get_rent_vs_buy_rankings() -> tuple[list[RentVsBuyArea], list[RentVsB
             else:
                 rec = "Strong Buy"
 
-            areas.append(RentVsBuyArea(
-                area=r["area"],
-                recommendation=rec,
-                avg_2bhk_rent=rent,
-                monthly_emi=emi,
-                emi_rent_ratio=ratio,
-                rental_yield_pct=yield_pct,
-                avg_price_sqft=int(r["avg_price_sqft"]),
-            ))
+            areas.append(
+                RentVsBuyArea(
+                    area=r["area"],
+                    recommendation=rec,
+                    avg_2bhk_rent=rent,
+                    monthly_emi=emi,
+                    emi_rent_ratio=ratio,
+                    rental_yield_pct=yield_pct,
+                    avg_price_sqft=int(r["avg_price_sqft"]),
+                )
+            )
 
         buy_winners = sorted(
             [a for a in areas if a.emi_rent_ratio <= 1.5],
@@ -287,6 +303,7 @@ async def _get_rent_vs_buy_rankings() -> tuple[list[RentVsBuyArea], list[RentVsB
 
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).warning(f"Rent vs buy ranking failed: {e}")
         return [], []
 
@@ -405,16 +422,19 @@ async def get_neighborhood_scores(input: LocationInput):
                    WHERE centroid_geog IS NOT NULL
                      AND ST_DWithin(centroid_geog, ST_Point($1, $2)::geography, 5000)
                    ORDER BY ward_name, ST_Distance(centroid_geog, ST_Point($1, $2)::geography)""",
-                lon, lat,
+                lon,
+                lat,
             )
             nearby = sorted(ward_rows, key=lambda r: r["dist_km"])
             for wr in nearby[:8]:
-                wards_covered.append(WardInfo(
-                    name=wr["ward_name"],
-                    corporation=wr["corporation"],
-                    population=wr["population"],
-                    distance_km=round(float(wr["dist_km"]), 2),
-                ))
+                wards_covered.append(
+                    WardInfo(
+                        name=wr["ward_name"],
+                        corporation=wr["corporation"],
+                        population=wr["population"],
+                        distance_km=round(float(wr["dist_km"]), 2),
+                    )
+                )
             pops = [wr["population"] for wr in nearby[:8] if wr["population"]]
             wards_total_pop = sum(pops) if pops else None
     except Exception:
@@ -486,28 +506,31 @@ async def prefetch_data():
     if _score_cache:
         pool = await get_pool()
         async with pool.acquire() as conn:
-            pp_rows = await conn.fetch(
-                "SELECT area, avg_price_sqft, yoy_growth_pct FROM property_prices"
-            )
+            pp_rows = await conn.fetch("SELECT area, avg_price_sqft, yoy_growth_pct FROM property_prices")
         pp_map = {r["area"]: r for r in pp_rows}
 
         neighborhoods = []
         for entry in _score_cache.values():
             name = entry.get("name", entry.get("address", "").split(",")[0].strip())
             pp = pp_map.get(name, {})
-            neighborhoods.append({
-                "name": name,
-                "latitude": entry["latitude"],
-                "longitude": entry["longitude"],
-                "score": entry["composite_score"],
-                "label": entry["composite_label"],
-                "avg_price_sqft": int(pp["avg_price_sqft"]) if pp.get("avg_price_sqft") else None,
-                "yoy_growth_pct": round(float(pp["yoy_growth_pct"]), 1) if pp.get("yoy_growth_pct") else None,
-                "safety_score": entry.get("safety", {}).get("score") if isinstance(entry.get("safety"), dict) else None,
-            })
+            neighborhoods.append(
+                {
+                    "name": name,
+                    "latitude": entry["latitude"],
+                    "longitude": entry["longitude"],
+                    "score": entry["composite_score"],
+                    "label": entry["composite_label"],
+                    "avg_price_sqft": int(pp["avg_price_sqft"]) if pp.get("avg_price_sqft") else None,
+                    "yoy_growth_pct": round(float(pp["yoy_growth_pct"]), 1) if pp.get("yoy_growth_pct") else None,
+                    "safety_score": entry.get("safety", {}).get("score")
+                    if isinstance(entry.get("safety"), dict)
+                    else None,
+                }
+            )
 
         # Deduplicate within 500m
-        from math import radians, sin, cos, sqrt, atan2
+        from math import atan2, cos, radians, sin, sqrt
+
         def _hav(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
             dlat, dlon = radians(lat2 - lat1), radians(lon2 - lon1)
             a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
@@ -671,9 +694,7 @@ async def prefetch_data():
                 nabh_prox = _decay(float(hr["nabh_km"]) if hr["nabh_km"] is not None else 99, 1.0, 8.0) * 100
                 bed_ratio = min(float(hr["beds_5km"]) / 300.0, 1.0) * 100
                 emerg_prox = _decay(float(hr["any_km"]), 1.0, 5.0) * 100
-                hospital_map[hr["id"]] = round(
-                    min(100, 0.50 * nabh_prox + 0.30 * bed_ratio + 0.20 * emerg_prox), 1
-                )
+                hospital_map[hr["id"]] = round(min(100, 0.50 * nabh_prox + 0.30 * bed_ratio + 0.20 * emerg_prox), 1)
 
             # ── School: RTE compliance + quality + diversity ──
             school_rows = await conn.fetch("""
@@ -724,9 +745,7 @@ async def prefetch_data():
                 else:
                     quality = 0
                 diversity = min(int(sr["board_count"]) / 4.0, 1.0) * 100
-                school_map[sr["id"]] = round(
-                    0.30 * rte + 0.25 * quality + 0.15 * diversity + 0.15 * 50 + 0.15 * 50, 1
-                )
+                school_map[sr["id"]] = round(0.30 * rte + 0.25 * quality + 0.15 * diversity + 0.15 * 50 + 0.15 * 50, 1)
 
             # ── Future infrastructure: station proximity + diversity + construction ──
             infra_rows = await conn.fetch("""
@@ -750,12 +769,14 @@ async def prefetch_data():
                         infra_map[current_id] = _compute_infra_score(stations_data)
                     current_id = nid
                     stations_data = []
-                stations_data.append((
-                    float(ir["distance_m"]),
-                    ir["project_name"],
-                    ir["status"],
-                    ir["expected_completion"],
-                ))
+                stations_data.append(
+                    (
+                        float(ir["distance_m"]),
+                        ir["project_name"],
+                        ir["status"],
+                        ir["expected_completion"],
+                    )
+                )
             if current_id is not None:
                 infra_map[current_id] = _compute_infra_score(stations_data)
 
@@ -797,9 +818,7 @@ async def prefetch_data():
                 clean_map[cr["id"]] = round(min(100, max(0, 0.40 * s1 + 0.30 * s2 + 0.15 * s3 + 0.15 * s4)), 1)
 
             # ── Builder reputation: avg score of builders active in area ──
-            all_builders = await conn.fetch(
-                "SELECT name, active_areas, score FROM builders ORDER BY score DESC"
-            )
+            all_builders = await conn.fetch("SELECT name, active_areas, score FROM builders ORDER BY score DESC")
             builder_top10_avg = 50.0
             if all_builders:
                 builder_top10_avg = sum(float(b["score"]) for b in all_builders[:10]) / min(len(all_builders), 10)
@@ -812,6 +831,7 @@ async def prefetch_data():
             if not areas_raw:
                 continue
             import json as _json
+
             if isinstance(areas_raw, str):
                 try:
                     areas_list = _json.loads(areas_raw)
@@ -852,26 +872,26 @@ async def prefetch_data():
                 "builder_reputation": round(builder_val, 1),
             }
 
-            composite = round(sum(
-                SCORE_WEIGHTS.get(key, 0) * dim_scores.get(key, 50)
-                for key in SCORE_WEIGHTS
-            ), 1)
+            composite = round(sum(SCORE_WEIGHTS.get(key, 0) * dim_scores.get(key, 50) for key in SCORE_WEIGHTS), 1)
 
             price_sqft = int(r["avg_price_sqft"]) if r["avg_price_sqft"] else None
             growth = round(float(r["yoy_growth_pct"]), 1) if r["yoy_growth_pct"] else None
 
-            neighborhoods.append({
-                "name": r["name"],
-                "latitude": float(r["lat"]),
-                "longitude": float(r["lon"]),
-                "score": composite,
-                "label": score_label(composite),
-                "avg_price_sqft": price_sqft,
-                "yoy_growth_pct": growth,
-            })
+            neighborhoods.append(
+                {
+                    "name": r["name"],
+                    "latitude": float(r["lat"]),
+                    "longitude": float(r["lon"]),
+                    "score": composite,
+                    "label": score_label(composite),
+                    "avg_price_sqft": price_sqft,
+                    "yoy_growth_pct": growth,
+                }
+            )
 
         # Deduplicate: when two neighborhoods are within 500m, keep the higher-scored one
-        from math import radians, sin, cos, sqrt, atan2
+        from math import atan2, cos, radians, sin, sqrt
+
         def _hav(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
             dlat, dlon = radians(lat2 - lat1), radians(lon2 - lon1)
             a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
@@ -893,12 +913,14 @@ async def prefetch_data():
 
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).warning(f"Prefetch failed: {e}")
         return {"neighborhoods": []}
 
 
 def _compute_infra_score(stations: list[tuple]) -> float:
     """Compute future infra score from list of (distance_m, project_name, status, expected)."""
+
     def completion_weight(expected: str | None) -> float:
         if not expected:
             return 0.3
@@ -996,7 +1018,8 @@ async def health_check():
 
 @router.get("/config/map")
 async def map_config():
-    from app.config import GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_MAP_ID, BANGALORE_CENTER
+    from app.config import BANGALORE_CENTER, GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_MAP_ID
+
     return {
         "google_maps_api_key": GOOGLE_MAPS_API_KEY,
         "google_maps_map_id": GOOGLE_MAPS_MAP_ID,
@@ -1007,10 +1030,11 @@ async def map_config():
 @router.post("/commute/refresh")
 async def refresh_commute(input: LocationInput):
     """Live Google Maps Distance Matrix call for a specific location."""
-    import json
-    import urllib.request
-    import urllib.parse
     import datetime
+    import json
+    import urllib.parse
+    import urllib.request
+
     from app.config import GOOGLE_MAPS_API_KEY
 
     lat, lon = None, None
@@ -1029,30 +1053,35 @@ async def refresh_commute(input: LocationInput):
         # Find nearest neighborhood
         neighborhood = await conn.fetchrow(
             "SELECT id, name FROM neighborhoods ORDER BY ST_Distance(center_geog, ST_Point($1, $2)::geography) LIMIT 1",
-            lon, lat,
+            lon,
+            lat,
         )
         if not neighborhood:
             raise HTTPException(status_code=404, detail="No neighborhood found")
 
         # Get all tech parks
-        tech_parks = await conn.fetch("SELECT id, name, ST_Y(geog::geometry) as lat, ST_X(geog::geometry) as lon FROM tech_parks")
+        tech_parks = await conn.fetch(
+            "SELECT id, name, ST_Y(geog::geometry) as lat, ST_X(geog::geometry) as lon FROM tech_parks"
+        )
 
     tp_coords = "|".join(f"{tp['lat']},{tp['lon']}" for tp in tech_parks)
 
     # Call Google Maps Distance Matrix API with traffic
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     days_ahead = (0 - now.weekday()) % 7 or 7
     next_monday = now + datetime.timedelta(days=days_ahead)
     peak_ts = int(next_monday.replace(hour=3, minute=30, second=0).timestamp())
 
-    params = urllib.parse.urlencode({
-        "origins": f"{lat},{lon}",
-        "destinations": tp_coords,
-        "mode": "driving",
-        "departure_time": str(peak_ts),
-        "traffic_model": "best_guess",
-        "key": GOOGLE_MAPS_API_KEY,
-    })
+    params = urllib.parse.urlencode(
+        {
+            "origins": f"{lat},{lon}",
+            "destinations": tp_coords,
+            "mode": "driving",
+            "departure_time": str(peak_ts),
+            "traffic_model": "best_guess",
+            "key": GOOGLE_MAPS_API_KEY,
+        }
+    )
     url = f"https://maps.googleapis.com/maps/api/distancematrix/json?{params}"
 
     try:
@@ -1081,17 +1110,23 @@ async def refresh_commute(input: LocationInput):
                        VALUES ($1, $2, $3, $4, $5, $6)
                        ON CONFLICT (neighborhood_id, tech_park_id, mode) DO UPDATE SET
                          duration_min = EXCLUDED.duration_min, distance_km = EXCLUDED.distance_km""",
-                    neighborhood["id"], tp["id"], mode, round(dur, 1), round(dist_km, 1),
+                    neighborhood["id"],
+                    tp["id"],
+                    mode,
+                    round(dur, 1),
+                    round(dist_km, 1),
                     f"Live Google Maps ({mode.replace('_', ' ')}) to {tp['name']}",
                 )
 
-            results.append({
-                "tech_park": tp["name"],
-                "no_traffic_min": round(no_traffic, 1),
-                "peak_min": round(peak, 1),
-                "distance_km": round(dist_km, 1),
-                "traffic_multiplier": round(peak / no_traffic, 1) if no_traffic > 0 else 1.0,
-            })
+            results.append(
+                {
+                    "tech_park": tp["name"],
+                    "no_traffic_min": round(no_traffic, 1),
+                    "peak_min": round(peak, 1),
+                    "distance_km": round(dist_km, 1),
+                    "traffic_multiplier": round(peak / no_traffic, 1) if no_traffic > 0 else 1.0,
+                }
+            )
 
     return {
         "neighborhood": neighborhood["name"],
@@ -1105,8 +1140,9 @@ async def refresh_commute(input: LocationInput):
 async def live_transit_walk(input: LocationInput):
     """Live Google Maps Directions walking time to nearest transit stations."""
     import json
-    import urllib.request
     import urllib.parse
+    import urllib.request
+
     from app.config import GOOGLE_MAPS_API_KEY
 
     lat, lon = None, None
@@ -1130,18 +1166,21 @@ async def live_transit_walk(input: LocationInput):
                            ST_Distance(geog, ST_Point($1, $2)::geography) / 1000.0 as straight_km
                     FROM {table}
                     ORDER BY geog <-> ST_Point($1, $2)::geography LIMIT 1""",
-                lon, lat,
+                lon,
+                lat,
             )
             if not row:
                 continue
 
             # Google Directions walking API
-            params = urllib.parse.urlencode({
-                "origin": f"{lat},{lon}",
-                "destination": f"{row['lat']},{row['lon']}",
-                "mode": "walking",
-                "key": GOOGLE_MAPS_API_KEY,
-            })
+            params = urllib.parse.urlencode(
+                {
+                    "origin": f"{lat},{lon}",
+                    "destination": f"{row['lat']},{row['lon']}",
+                    "mode": "walking",
+                    "key": GOOGLE_MAPS_API_KEY,
+                }
+            )
             url = f"https://maps.googleapis.com/maps/api/directions/json?{params}"
 
             walk_km, walk_min = round(float(row["straight_km"]) * 1.4, 2), None
@@ -1158,14 +1197,16 @@ async def live_transit_walk(input: LocationInput):
             if walk_min is None:
                 walk_min = round(walk_km / 5.0 * 60, 1)
 
-            results.append({
-                "type": transit_type,
-                "name": row["name"],
-                "straight_line_km": round(float(row["straight_km"]), 2),
-                "walk_km": walk_km,
-                "walk_minutes": walk_min,
-                "source": "Google Maps Directions API (walking)",
-            })
+            results.append(
+                {
+                    "type": transit_type,
+                    "name": row["name"],
+                    "straight_line_km": round(float(row["straight_km"]), 2),
+                    "walk_km": walk_km,
+                    "walk_minutes": walk_min,
+                    "source": "Google Maps Directions API (walking)",
+                }
+            )
 
     return {"results": results}
 
@@ -1184,6 +1225,7 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
     Mirrors verify_ai._collect_neighborhood_data but async and geography-based.
     """
     import asyncio
+
     from app.lib.commute_verifier import get_commute_data
 
     data: dict = {"latitude": lat, "longitude": lon}
@@ -1195,7 +1237,8 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
                FROM neighborhoods
                WHERE ST_DWithin(center_geog, ST_Point($1,$2)::geography, 5000)
                ORDER BY center_geog <-> ST_Point($1,$2)::geography LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
         if nb:
             data["neighborhood"] = {"name": nb["name"], "distance_km": round(nb["dist_km"], 2)}
@@ -1212,11 +1255,13 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
                  AND ST_DWithin(center_geog, ST_Point($1,$2)::geography, 3000)
                ORDER BY center_geog <-> ST_Point($1,$2)::geography
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
         if not sz and nid:
             sz = await conn.fetchrow(
-                "SELECT zone_name, crime_rate_per_100k, streetlight_pct, cctv_density_per_sqkm, police_density_per_sqkm, score FROM safety_zones WHERE neighborhood_id=$1", nid,
+                "SELECT zone_name, crime_rate_per_100k, streetlight_pct, cctv_density_per_sqkm, police_density_per_sqkm, score FROM safety_zones WHERE neighborhood_id=$1",
+                nid,
             )
         if sz:
             data["safety"] = dict(sz)
@@ -1231,37 +1276,55 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
                  AND ST_DWithin(center_geog, ST_Point($1,$2)::geography, 3000)
                ORDER BY center_geog <-> ST_Point($1,$2)::geography
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
         if not pp and nid:
             pp = await conn.fetchrow(
                 """SELECT area, avg_price_sqft, price_range_low, price_range_high,
                           avg_2bhk_lakh, avg_3bhk_lakh, avg_2bhk_rent, avg_3bhk_rent,
                           yoy_growth_pct, rental_yield_pct, affordability_score, affordability_label
-                   FROM property_prices WHERE neighborhood_id=$1""", nid,
+                   FROM property_prices WHERE neighborhood_id=$1""",
+                nid,
             )
         if pp:
             from decimal import Decimal as _Decimal
+
             data["property_prices"] = {k: (float(v) if isinstance(v, _Decimal) else v) for k, v in dict(pp).items()}
 
         # Water zone
-        wz = await conn.fetchrow(
-            "SELECT area, stage, supply_hours, reliability, score FROM water_zones WHERE neighborhood_id=$1", nid,
-        ) if nid else None
+        wz = (
+            await conn.fetchrow(
+                "SELECT area, stage, supply_hours, reliability, score FROM water_zones WHERE neighborhood_id=$1",
+                nid,
+            )
+            if nid
+            else None
+        )
         if wz:
             data["water_supply"] = dict(wz)
 
         # Power zone
-        pz = await conn.fetchrow(
-            "SELECT area, tier, avg_monthly_outage_hours, score FROM power_zones WHERE neighborhood_id=$1", nid,
-        ) if nid else None
+        pz = (
+            await conn.fetchrow(
+                "SELECT area, tier, avg_monthly_outage_hours, score FROM power_zones WHERE neighborhood_id=$1",
+                nid,
+            )
+            if nid
+            else None
+        )
         if pz:
             data["power_supply"] = dict(pz)
 
         # Walkability
-        wk = await conn.fetchrow(
-            "SELECT area, score FROM walkability_zones WHERE neighborhood_id=$1", nid,
-        ) if nid else None
+        wk = (
+            await conn.fetchrow(
+                "SELECT area, score FROM walkability_zones WHERE neighborhood_id=$1",
+                nid,
+            )
+            if nid
+            else None
+        )
         if wk:
             data["walkability"] = dict(wk)
 
@@ -1271,15 +1334,21 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
                FROM metro_stations m
                WHERE ST_DWithin(m.geog, ST_Point($1,$2)::geography, 10000)
                ORDER BY m.geog <-> ST_Point($1,$2)::geography LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
         if metro:
-            data["nearest_metro"] = {"name": metro["name"], "status": metro["status"], "distance_km": round(metro["dist_km"], 2)}
+            data["nearest_metro"] = {
+                "name": metro["name"],
+                "status": metro["status"],
+                "distance_km": round(metro["dist_km"], 2),
+            }
 
         # Flood risk
         if nid:
             fl = await conn.fetchrow(
-                "SELECT risk_level, flood_history_events, drainage_quality, score FROM flood_risk WHERE neighborhood_id=$1", nid,
+                "SELECT risk_level, flood_history_events, drainage_quality, score FROM flood_risk WHERE neighborhood_id=$1",
+                nid,
             )
             if fl:
                 data["flood_risk"] = dict(fl)
@@ -1290,11 +1359,16 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
                 """SELECT tp.name, ct.duration_min, ct.distance_km
                    FROM commute_times ct JOIN tech_parks tp ON ct.tech_park_id=tp.id
                    WHERE ct.neighborhood_id=$1 AND ct.mode='car_peak'
-                   ORDER BY ct.duration_min LIMIT 3""", nid,
+                   ORDER BY ct.duration_min LIMIT 3""",
+                nid,
             )
             if ct_rows:
                 data["commute_to_tech_parks"] = [
-                    {"tech_park": r["name"], "peak_min": round(float(r["duration_min"])), "km": round(float(r["distance_km"]), 1)}
+                    {
+                        "tech_park": r["name"],
+                        "peak_min": round(float(r["duration_min"])),
+                        "km": round(float(r["distance_km"]), 1),
+                    }
                     for r in ct_rows
                 ]
 
@@ -1303,7 +1377,8 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
             dc = await conn.fetchrow(
                 """SELECT swiggy_serviceable, zepto_serviceable, blinkit_serviceable,
                           bigbasket_serviceable, coverage_score
-                   FROM delivery_coverage WHERE neighborhood_id=$1""", nid,
+                   FROM delivery_coverage WHERE neighborhood_id=$1""",
+                nid,
             )
             if dc:
                 services = []
@@ -1315,14 +1390,19 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
                     services.append("Blinkit")
                 if dc["bigbasket_serviceable"]:
                     services.append("BigBasket")
-                data["delivery_coverage"] = {"services": services, "count": len(services), "score": dc["coverage_score"]}
+                data["delivery_coverage"] = {
+                    "services": services,
+                    "count": len(services),
+                    "score": dc["coverage_score"],
+                }
 
         # Noise
         if nid:
             nz = await conn.fetchrow(
                 """SELECT avg_noise_db_estimate, noise_label, airport_flight_path,
                           highway_proximity_km, score
-                   FROM noise_zones WHERE neighborhood_id=$1""", nid,
+                   FROM noise_zones WHERE neighborhood_id=$1""",
+                nid,
             )
             if nz:
                 data["noise"] = {
@@ -1340,12 +1420,12 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
                FROM schools
                WHERE ST_DWithin(geog, ST_Point($1,$2)::geography, 5000)
                ORDER BY geog <-> ST_Point($1,$2)::geography LIMIT 5""",
-            lon, lat,
+            lon,
+            lat,
         )
         if schools:
             data["nearby_schools"] = [
-                {k: (round(float(v), 2) if k == "distance_km" else v) for k, v in dict(s).items()}
-                for s in schools
+                {k: (round(float(v), 2) if k == "distance_km" else v) for k, v in dict(s).items()} for s in schools
             ]
 
         # Nearby NABH hospitals (5km)
@@ -1355,22 +1435,36 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
                FROM hospitals
                WHERE ST_DWithin(geog, ST_Point($1,$2)::geography, 5000)
                ORDER BY geog <-> ST_Point($1,$2)::geography LIMIT 5""",
-            lon, lat,
+            lon,
+            lat,
         )
         if hospitals:
             data["nearby_hospitals"] = [
-                {k: (round(float(v), 2) if k == "distance_km" else v) for k, v in dict(s).items()}
-                for s in hospitals
+                {k: (round(float(v), 2) if k == "distance_km" else v) for k, v in dict(s).items()} for s in hospitals
             ]
 
     # Precomputed composite scores
     cached_score = _find_cached_score(lat, lon)
     if cached_score:
         dims = {}
-        for key in ("walkability", "safety", "transit_access", "hospital", "school",
-                     "air_quality", "water_supply", "power", "future_infra",
-                     "property_price", "flood_risk", "commute", "delivery_coverage",
-                     "noise", "business_opportunity", "cleanliness"):
+        for key in (
+            "walkability",
+            "safety",
+            "transit_access",
+            "hospital",
+            "school",
+            "air_quality",
+            "water_supply",
+            "power",
+            "future_infra",
+            "property_price",
+            "flood_risk",
+            "commute",
+            "delivery_coverage",
+            "noise",
+            "business_opportunity",
+            "cleanliness",
+        ):
             if key in cached_score and isinstance(cached_score[key], dict):
                 dims[key] = {
                     "score": cached_score[key].get("score"),
@@ -1382,8 +1476,7 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
 
     # Key transit hub distances (airport, Majestic, railway station) via Google Maps
     hub_tasks = [
-        get_commute_data(pool, lat, lon, h_lat, h_lon, h_name, "driving")
-        for h_name, h_lat, h_lon in _KEY_TRANSIT_HUBS
+        get_commute_data(pool, lat, lon, h_lat, h_lon, h_name, "driving") for h_name, h_lat, h_lon in _KEY_TRANSIT_HUBS
     ]
     hub_results = await asyncio.gather(*hub_tasks, return_exceptions=True)
     key_distances = {}
@@ -1405,9 +1498,9 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
 @router.post("/verify-claims", response_model=ClaimVerificationResponse)
 async def verify_claims(input: ClaimInput):
     """Verify property ad claims against real data using Claude + landmark registry."""
-    from app.lib.claim_parser import parse_claims, split_claims_text, generate_claim_narrative, verify_claims_via_ai
+    from app.lib.claim_parser import generate_claim_narrative, parse_claims, split_claims_text, verify_claims_via_ai
+    from app.lib.commute_verifier import compute_verdict, get_commute_data, haversine_meters
     from app.lib.landmark_resolver import resolve_destination
-    from app.lib.commute_verifier import get_commute_data, compute_verdict, haversine_meters
 
     lat, lon = None, None
     if input.latitude is not None and input.longitude is not None:
@@ -1452,23 +1545,33 @@ async def verify_claims(input: ClaimInput):
         is_proximity = parsed.get("is_proximity_claim", False)
 
         # Resolve destination to coordinates
-        resolved = await resolve_destination(
-            pool, destination, dest_type, origin_lat=lat, origin_lon=lon,
-        ) if destination else None
+        resolved = (
+            await resolve_destination(
+                pool,
+                destination,
+                dest_type,
+                origin_lat=lat,
+                origin_lon=lon,
+            )
+            if destination
+            else None
+        )
 
         if not resolved:
-            verifications.append(ClaimVerification(
-                original_claim=claim,
-                claimed_value=str(claimed_value) + f" {claimed_unit}" if claimed_value else "—",
-                actual_value="—",
-                difference="—",
-                verdict="UNRESOLVED",
-                details={
-                    "parsed_destination": destination,
-                    "note": f"Could not resolve '{destination}' to a known location.",
-                    "_needs_ai_verify": True,
-                },
-            ))
+            verifications.append(
+                ClaimVerification(
+                    original_claim=claim,
+                    claimed_value=str(claimed_value) + f" {claimed_unit}" if claimed_value else "—",
+                    actual_value="—",
+                    difference="—",
+                    verdict="UNRESOLVED",
+                    details={
+                        "parsed_destination": destination,
+                        "note": f"Could not resolve '{destination}' to a known location.",
+                        "_needs_ai_verify": True,
+                    },
+                )
+            )
             continue
 
         # For proximity claims without specific values, compute distance
@@ -1485,37 +1588,46 @@ async def verify_claims(input: ClaimInput):
                 explanation = f"{resolved['name']} is {round(crow_km, 1)} km away ({round(road_km, 1)} km by road) — relatively close but not 'nearby'."
             else:
                 verdict = "MISLEADING"
-                explanation = f"{resolved['name']} is {round(crow_km, 1)} km away ({round(road_km, 1)} km by road) — not close."
+                explanation = (
+                    f"{resolved['name']} is {round(crow_km, 1)} km away ({round(road_km, 1)} km by road) — not close."
+                )
 
-            verifications.append(ClaimVerification(
-                original_claim=claim,
-                claimed_value="nearby" if is_proximity else "—",
-                actual_value=f"{round(road_km, 1)} km by road / {round(crow_km, 1)} km straight",
-                difference=f"{round(road_km, 1)} km",
-                verdict=verdict,
-                details={
-                    "destination": resolved["name"],
-                    "destination_category": resolved["category"],
-                    "straight_line_km": round(crow_km, 2),
-                    "road_estimate_km": round(road_km, 2),
-                    "resolution_method": resolved["resolution_method"],
-                    "explanation": explanation,
-                    "destination_lat": resolved["latitude"],
-                    "destination_lng": resolved["longitude"],
-                },
-            ))
+            verifications.append(
+                ClaimVerification(
+                    original_claim=claim,
+                    claimed_value="nearby" if is_proximity else "—",
+                    actual_value=f"{round(road_km, 1)} km by road / {round(crow_km, 1)} km straight",
+                    difference=f"{round(road_km, 1)} km",
+                    verdict=verdict,
+                    details={
+                        "destination": resolved["name"],
+                        "destination_category": resolved["category"],
+                        "straight_line_km": round(crow_km, 2),
+                        "road_estimate_km": round(road_km, 2),
+                        "resolution_method": resolved["resolution_method"],
+                        "explanation": explanation,
+                        "destination_lat": resolved["latitude"],
+                        "destination_lng": resolved["longitude"],
+                    },
+                )
+            )
             continue
 
         # For specific claims (X min, X km), get commute data and verify
         gm_mode = "walking" if travel_mode == "walk" else "driving"
         commute = await get_commute_data(
-            pool, lat, lon,
-            resolved["latitude"], resolved["longitude"],
-            resolved["name"], gm_mode,
+            pool,
+            lat,
+            lon,
+            resolved["latitude"],
+            resolved["longitude"],
+            resolved["name"],
+            gm_mode,
         )
 
         verdict_data = compute_verdict(
-            claimed_value, claimed_unit or "",
+            claimed_value,
+            claimed_unit or "",
             commute["peak_duration_seconds"],
             commute["distance_meters"],
             commute["crow_fly_distance_meters"],
@@ -1525,9 +1637,13 @@ async def verify_claims(input: ClaimInput):
         if claimed_unit in ("min", "minutes"):
             actual_min = commute["peak_duration_seconds"] / 60
             offpeak_min = commute["offpeak_duration_seconds"] / 60
-            actual_formatted = f"{round(actual_min)} min (peak)" + (f" / {round(offpeak_min)} min (off-peak)" if abs(actual_min - offpeak_min) > 2 else "")
+            actual_formatted = f"{round(actual_min)} min (peak)" + (
+                f" / {round(offpeak_min)} min (off-peak)" if abs(actual_min - offpeak_min) > 2 else ""
+            )
             delta = round(actual_min - claimed_value, 1)
-            diff_str = f"+{round(delta)} min" if delta > 0 else ("accurate" if abs(delta) < 2 else f"{round(delta)} min")
+            diff_str = (
+                f"+{round(delta)} min" if delta > 0 else ("accurate" if abs(delta) < 2 else f"{round(delta)} min")
+            )
         else:
             road_km = commute["distance_meters"] / 1000
             crow_km = commute["crow_fly_distance_meters"] / 1000
@@ -1535,33 +1651,34 @@ async def verify_claims(input: ClaimInput):
             delta = round(road_km - claimed_value, 1)
             diff_str = f"+{round(delta, 1)} km" if delta > 0 else "accurate"
 
-        verifications.append(ClaimVerification(
-            original_claim=claim,
-            claimed_value=f"{claimed_value} {claimed_unit}",
-            actual_value=actual_formatted,
-            difference=diff_str,
-            verdict=verdict_data["verdict"],
-            details={
-                "destination": resolved["name"],
-                "destination_category": resolved["category"],
-                "resolution_method": resolved["resolution_method"],
-                "peak_duration_min": round(commute["peak_duration_seconds"] / 60, 1),
-                "offpeak_duration_min": round(commute["offpeak_duration_seconds"] / 60, 1),
-                "road_distance_km": round(commute["distance_meters"] / 1000, 2),
-                "straight_line_km": round(commute["crow_fly_distance_meters"] / 1000, 2),
-                "ratio": verdict_data["ratio"],
-                "reality_gap_multiplier": verdict_data["reality_gap_multiplier"],
-                "explanation": verdict_data["explanation"],
-                "data_source": commute["source"],
-                "destination_lat": resolved["latitude"],
-                "destination_lng": resolved["longitude"],
-            },
-        ))
+        verifications.append(
+            ClaimVerification(
+                original_claim=claim,
+                claimed_value=f"{claimed_value} {claimed_unit}",
+                actual_value=actual_formatted,
+                difference=diff_str,
+                verdict=verdict_data["verdict"],
+                details={
+                    "destination": resolved["name"],
+                    "destination_category": resolved["category"],
+                    "resolution_method": resolved["resolution_method"],
+                    "peak_duration_min": round(commute["peak_duration_seconds"] / 60, 1),
+                    "offpeak_duration_min": round(commute["offpeak_duration_seconds"] / 60, 1),
+                    "road_distance_km": round(commute["distance_meters"] / 1000, 2),
+                    "straight_line_km": round(commute["crow_fly_distance_meters"] / 1000, 2),
+                    "ratio": verdict_data["ratio"],
+                    "reality_gap_multiplier": verdict_data["reality_gap_multiplier"],
+                    "explanation": verdict_data["explanation"],
+                    "data_source": commute["source"],
+                    "destination_lat": resolved["latitude"],
+                    "destination_lng": resolved["longitude"],
+                },
+            )
+        )
 
     # AI fallback for unresolved claims
     unresolved_indices = [
-        i for i, v in enumerate(verifications)
-        if v.verdict == "UNRESOLVED" and v.details.get("_needs_ai_verify")
+        i for i, v in enumerate(verifications) if v.verdict == "UNRESOLVED" and v.details.get("_needs_ai_verify")
     ]
     if unresolved_indices:
         unresolved_texts = [verifications[i].original_claim for i in unresolved_indices]
@@ -1612,8 +1729,11 @@ async def verify_claims(input: ClaimInput):
     narrative = await generate_claim_narrative(property_label, verification_dicts, summary, locality_data=locality_data)
 
     return ClaimVerificationResponse(
-        latitude=lat, longitude=lon, address=address,
-        results=verifications, summary=summary,
+        latitude=lat,
+        longitude=lon,
+        address=address,
+        results=verifications,
+        summary=summary,
         narrative=narrative,
         extracted_claims=claims,
     )

@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -40,21 +41,21 @@ WALKING_SPEED_KMH = 5.0
 # school_access (+0.01).
 # Source: ANAROCK H1 2025, BuildWatch Bangalore 2025, Knight Frank India 2025
 SCORE_WEIGHTS = {
-    "safety":               0.14,
-    "affordability":        0.05,
-    "transit_access":       0.09,
-    "flood_risk":           0.08,
-    "commute":              0.08,
-    "walkability":          0.09,
-    "hospital_access":      0.07,
-    "water_supply":         0.07,
-    "air_quality":          0.08,
-    "school_access":        0.06,
-    "noise":                0.04,
-    "power_reliability":    0.04,
+    "safety": 0.14,
+    "affordability": 0.05,
+    "transit_access": 0.09,
+    "flood_risk": 0.08,
+    "commute": 0.08,
+    "walkability": 0.09,
+    "hospital_access": 0.07,
+    "water_supply": 0.07,
+    "air_quality": 0.08,
+    "school_access": 0.06,
+    "noise": 0.04,
+    "power_reliability": 0.04,
     "future_infrastructure": 0.04,
-    "cleanliness":          0.03,
-    "builder_reputation":   0.03,
-    "delivery_coverage":    0.005,
+    "cleanliness": 0.03,
+    "builder_reputation": 0.03,
+    "delivery_coverage": 0.005,
     "business_opportunity": 0.005,
 }

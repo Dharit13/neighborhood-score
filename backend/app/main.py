@@ -1,15 +1,17 @@
+import os
 from contextlib import asynccontextmanager
+
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
-from app.db import get_pool, close_pool  # noqa: E402
-from app.routers.scores import router as scores_router  # noqa: E402
+from app.db import close_pool, get_pool  # noqa: E402
 from app.routers.ai_chat import router as ai_chat_router  # noqa: E402
-from app.routers.report import router as report_router  # noqa: E402
 from app.routers.property_intelligence import router as property_intelligence_router  # noqa: E402
+from app.routers.report import router as report_router  # noqa: E402
+from app.routers.scores import router as scores_router  # noqa: E402
 
 
 @asynccontextmanager
@@ -32,9 +34,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+_cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

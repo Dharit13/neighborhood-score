@@ -9,9 +9,8 @@ Resolution order:
   5. Google Places API fallback
 """
 
-import os
 import logging
-from typing import Optional
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +21,9 @@ async def resolve_destination(
     pool,
     destination: str,
     destination_type: str = "generic",
-    origin_lat: Optional[float] = None,
-    origin_lon: Optional[float] = None,
-) -> Optional[dict]:
+    origin_lat: float | None = None,
+    origin_lon: float | None = None,
+) -> dict | None:
     """
     Resolve a destination name to coordinates.
 
@@ -112,7 +111,9 @@ async def resolve_destination(
                        WHERE category = $1
                        ORDER BY geog <-> ST_Point($2, $3)::geography
                        LIMIT 1""",
-                    cat, origin_lon, origin_lat,
+                    cat,
+                    origin_lon,
+                    origin_lat,
                 )
                 if row:
                     return _to_result(row, "nearest_by_category")
@@ -137,7 +138,9 @@ async def resolve_destination(
                            WHERE LOWER(line) LIKE '%' || $3 || '%'
                            ORDER BY geog <-> ST_Point($1, $2)::geography
                            LIMIT 1""",
-                        origin_lon, origin_lat, line_name,
+                        origin_lon,
+                        origin_lat,
+                        line_name,
                     )
                     if row:
                         return {
@@ -155,7 +158,9 @@ async def resolve_destination(
                              AND (LOWER(line) LIKE '%' || $3 || '%' OR LOWER(name) LIKE '%' || $3 || '%')
                            ORDER BY geog <-> ST_Point($1, $2)::geography
                            LIMIT 1""",
-                        origin_lon, origin_lat, line_name,
+                        origin_lon,
+                        origin_lat,
+                        line_name,
                     )
                     if row:
                         return _to_result(row, f"nearest_{line_name}_line_landmark")
@@ -170,7 +175,8 @@ async def resolve_destination(
                        FROM metro_stations
                        ORDER BY geog <-> ST_Point($1, $2)::geography
                        LIMIT 1""",
-                    origin_lon, origin_lat,
+                    origin_lon,
+                    origin_lat,
                 )
                 if row:
                     return {
@@ -189,7 +195,8 @@ async def resolve_destination(
                        FROM bus_stops
                        ORDER BY geog <-> ST_Point($1, $2)::geography
                        LIMIT 1""",
-                    origin_lon, origin_lat,
+                    origin_lon,
+                    origin_lat,
                 )
                 if row:
                     return {
@@ -213,7 +220,9 @@ async def resolve_destination(
                WHERE LOWER(name) LIKE '%' || $1 || '%'
                ORDER BY ST_Distance(geog, ST_Point($2, $3)::geography)
                LIMIT 1""",
-            dest_lower, origin_lon or 77.59, origin_lat or 12.97,
+            dest_lower,
+            origin_lon or 77.59,
+            origin_lat or 12.97,
         )
         if row:
             return {
@@ -229,14 +238,15 @@ async def resolve_destination(
 
 
 async def _google_places_resolve(
-    destination: str, origin_lat: Optional[float] = None, origin_lon: Optional[float] = None
-) -> Optional[dict]:
+    destination: str, origin_lat: float | None = None, origin_lon: float | None = None
+) -> dict | None:
     """Last resort: use Google Places text search."""
     if not GOOGLE_MAPS_API_KEY:
         return None
 
     try:
         import httpx
+
         query = f"{destination}, Bangalore" if "bangalore" not in destination.lower() else destination
         params = {
             "query": query,

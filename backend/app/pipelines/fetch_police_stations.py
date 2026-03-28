@@ -8,15 +8,15 @@ Sources:
 Replaces the hardcoded 49-station JSON with real KSRSAC data.
 """
 
-import sys
 import os
+import sys
 import urllib.request
 import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from app.db import get_sync_conn
 from app.config import BANGALORE_BBOX
+from app.db import get_sync_conn
 
 # Bengaluru Urban Police Stations (KSRSAC, updated Nov 2025)
 PS_KML_URL = "https://data.opencity.in/dataset/1fe7e205-d00e-437e-b43d-6237f065dc2d/resource/b862cdc0-bf08-4706-9788-4f712d27f950/download/63a601fc-41a6-4e01-aad0-b053c67b392e.kml"
@@ -65,14 +65,18 @@ def _parse_kml_stations(kml_content, station_type="station"):
             if len(parts) >= 2:
                 try:
                     lon, lat = float(parts[0]), float(parts[1])
-                    if (BANGALORE_BBOX["south"] <= lat <= BANGALORE_BBOX["north"]
-                            and BANGALORE_BBOX["west"] <= lon <= BANGALORE_BBOX["east"]):
-                        stations.append({
-                            "name": name,
-                            "type": station_type,
-                            "latitude": lat,
-                            "longitude": lon,
-                        })
+                    if (
+                        BANGALORE_BBOX["south"] <= lat <= BANGALORE_BBOX["north"]
+                        and BANGALORE_BBOX["west"] <= lon <= BANGALORE_BBOX["east"]
+                    ):
+                        stations.append(
+                            {
+                                "name": name,
+                                "type": station_type,
+                                "latitude": lat,
+                                "longitude": lon,
+                            }
+                        )
                 except ValueError:
                     pass
     except ET.ParseError:
@@ -130,5 +134,6 @@ def fetch():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     fetch()

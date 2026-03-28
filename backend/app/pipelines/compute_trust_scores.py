@@ -21,9 +21,9 @@ Tier mapping:
 """
 
 import json
-import sys
-import os
 import logging
+import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -40,15 +40,32 @@ WEIGHTS = {
 }
 
 QUALITY_NEGATIVE_KEYWORDS = [
-    "water leakage", "seepage", "cracks", "poor quality", "construction defect",
-    "finishing", "low quality", "cheap material", "waterproofing", "structural",
-    "plumbing", "electrical issues",
+    "water leakage",
+    "seepage",
+    "cracks",
+    "poor quality",
+    "construction defect",
+    "finishing",
+    "low quality",
+    "cheap material",
+    "waterproofing",
+    "structural",
+    "plumbing",
+    "electrical issues",
 ]
 
 QUALITY_POSITIVE_KEYWORDS = [
-    "excellent quality", "good construction", "solid build", "well built",
-    "premium material", "superior finish", "earthquake resistant", "green building",
-    "igbc", "leed", "iso certified",
+    "excellent quality",
+    "good construction",
+    "solid build",
+    "well built",
+    "premium material",
+    "superior finish",
+    "earthquake resistant",
+    "green building",
+    "igbc",
+    "leed",
+    "iso certified",
 ]
 
 
@@ -237,11 +254,13 @@ def compute_trust_score(builder: dict) -> dict:
             "quality": round(quality, 1),
         },
         "overrides_applied": [
-            o for o in [
+            o
+            for o in [
                 "nclt_override" if has_nclt else None,
                 "inactive_company_override" if is_inactive else None,
                 "director_risk_override" if (directors_risky and composite < 60) else None,
-            ] if o
+            ]
+            if o
         ],
     }
 
@@ -295,6 +314,7 @@ def compute_all():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
     compute_all()

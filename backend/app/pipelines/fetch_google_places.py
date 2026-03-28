@@ -10,18 +10,19 @@ Usage:
     python -m app.pipelines.fetch_google_places --dry-run # grid preview only
 """
 
-import sys
-import os
-import json
-import time
-import math
 import argparse
+import json
+import math
+import os
+import sys
+import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import httpx
+
+from app.config import CURATED_DIR, GOOGLE_MAPS_API_KEY
 from app.db import get_sync_conn, run_sql_file
-from app.config import GOOGLE_MAPS_API_KEY, CURATED_DIR
 
 # ---------------------------------------------------------------------------
 # Config
@@ -87,14 +88,16 @@ def fetch_nearby(client: httpx.Client, lat: float, lon: float, place_type: str) 
 
         for place in data.get("results", []):
             loc = place.get("geometry", {}).get("location", {})
-            results.append({
-                "place_id": place["place_id"],
-                "name": place["name"],
-                "lat": loc.get("lat"),
-                "lng": loc.get("lng"),
-                "rating": place.get("rating"),
-                "user_ratings_total": place.get("user_ratings_total", 0),
-            })
+            results.append(
+                {
+                    "place_id": place["place_id"],
+                    "name": place["name"],
+                    "lat": loc.get("lat"),
+                    "lng": loc.get("lng"),
+                    "rating": place.get("rating"),
+                    "user_ratings_total": place.get("user_ratings_total", 0),
+                }
+            )
 
         npt = data.get("next_page_token")
         if not npt:
@@ -229,7 +232,9 @@ def fetch():
     school_lookup = load_curated_schools()
     hospital_lookup = load_curated_hospitals()
     metro_lookup = load_curated_metro()
-    print(f"  Curated data: {len(school_lookup)} schools, {len(hospital_lookup)} hospitals, {len(metro_lookup)} metro stations")
+    print(
+        f"  Curated data: {len(school_lookup)} schools, {len(hospital_lookup)} hospitals, {len(metro_lookup)} metro stations"
+    )
 
     # Deduplicate globally by place_id
     seen: dict[str, dict] = {}
@@ -246,7 +251,7 @@ def fetch():
                 for gtype in google_types:
                     api_calls += 1
                     if api_calls % 50 == 0 or api_calls == 1:
-                        print(f"  [{api_calls}/{total_expected}] grid {gi+1}/{len(grid)}: {gtype} @ ({lat}, {lon})")
+                        print(f"  [{api_calls}/{total_expected}] grid {gi + 1}/{len(grid)}: {gtype} @ ({lat}, {lon})")
 
                     try:
                         results = fetch_nearby(client, lat, lon, gtype)
@@ -308,7 +313,7 @@ if __name__ == "__main__":
         print(f"Expected API calls: {len(grid) * total_types}")
         print(f"Estimated cost: ~${len(grid) * total_types * 0.032:.2f}")
         for i, (lat, lon) in enumerate(grid[:5]):
-            print(f"  Sample point {i+1}: ({lat}, {lon})")
+            print(f"  Sample point {i + 1}: ({lat}, {lon})")
         print(f"  ... and {len(grid) - 5} more")
     else:
         fetch()

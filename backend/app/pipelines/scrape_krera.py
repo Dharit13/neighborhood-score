@@ -16,21 +16,20 @@ Rate limiting: 2s between requests. Retry 3x with backoff.
 """
 
 import json
+import logging
+import os
 import re
 import sys
-import os
 import time
-import logging
-import urllib.request
 import urllib.parse
-from html.parser import HTMLParser
-from typing import Optional
+import urllib.request
 from collections import defaultdict
+from html.parser import HTMLParser
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from app.db import get_sync_conn
 from app.config import CURATED_DIR
+from app.db import get_sync_conn
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +123,7 @@ class _ProjectTableParser(HTMLParser):
             self.in_table = False
 
 
-def _fetch_url(url: str, retries: int = MAX_RETRIES) -> Optional[str]:
+def _fetch_url(url: str, retries: int = MAX_RETRIES) -> str | None:
     """Fetch URL with retries and rate limiting."""
     for attempt in range(retries):
         try:
@@ -154,19 +153,21 @@ def _fetch_complaint_count(builder_name: str) -> tuple[int, list[dict]]:
     complaints = []
     for row in parser.rows[1:]:
         if len(row) >= 4:
-            complaints.append({
-                "complaint_no": row[0] if len(row) > 0 else "",
-                "project_name": row[1] if len(row) > 1 else "",
-                "complainant": row[2] if len(row) > 2 else "",
-                "status": row[3] if len(row) > 3 else "",
-            })
+            complaints.append(
+                {
+                    "complaint_no": row[0] if len(row) > 0 else "",
+                    "project_name": row[1] if len(row) > 1 else "",
+                    "complainant": row[2] if len(row) > 2 else "",
+                    "status": row[3] if len(row) > 3 else "",
+                }
+            )
 
     return len(complaints), complaints
 
 
 def _slugify(name: str) -> str:
     """Generate URL slug from builder name."""
-    return re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
 def _compute_trust_tier(score: float, has_nclt: bool = False) -> str:
@@ -185,11 +186,20 @@ def _compute_trust_tier(score: float, has_nclt: bool = False) -> str:
 def _normalize_promoter_name(name: str) -> str:
     """Clean up promoter names from RERA complaint data."""
     name = name.strip()
-    name = re.sub(r'\s+', ' ', name)
-    for suffix in [" Pvt Ltd", " Pvt. Ltd.", " Private Limited", " Pvt.Ltd.",
-                   " Ltd.", " Ltd", " Limited", " LLP", " llp"]:
+    name = re.sub(r"\s+", " ", name)
+    for suffix in [
+        " Pvt Ltd",
+        " Pvt. Ltd.",
+        " Private Limited",
+        " Pvt.Ltd.",
+        " Ltd.",
+        " Ltd",
+        " Limited",
+        " LLP",
+        " llp",
+    ]:
         if name.lower().endswith(suffix.lower()):
-            name = name[:len(name) - len(suffix)].strip()
+            name = name[: len(name) - len(suffix)].strip()
             break
     return name
 
@@ -197,6 +207,7 @@ def _normalize_promoter_name(name: str) -> str:
 # ──────────────────────────────────────────────────────────────
 # Phase 1: Discovery — find all complained-about promoters
 # ──────────────────────────────────────────────────────────────
+
 
 def discover_builders_from_complaints() -> dict[str, list[dict]]:
     """
@@ -243,13 +254,49 @@ def discover_builders_from_complaints() -> dict[str, list[dict]]:
 
     # Approach 3: Try common builder prefixes that might yield different results
     common_prefixes = [
-        "sri", "shri", "sai", "royal", "prestige", "brigade", "sobha",
-        "puravankara", "mantri", "salarpuria", "embassy", "godrej",
-        "mahindra", "tata", "birla", "concorde", "shriram", "assetz",
-        "vaishnavi", "century", "adarsh", "rohan", "kolte", "mana",
-        "dnr", "snn", "provident", "total", "l&t", "ds-max", "sumadhura",
-        "nitesh", "karle", "divyasree", "arvind", "pride", "sattva",
-        "casa", "fortuna", "vertex", "aparna", "sify", "habitat",
+        "sri",
+        "shri",
+        "sai",
+        "royal",
+        "prestige",
+        "brigade",
+        "sobha",
+        "puravankara",
+        "mantri",
+        "salarpuria",
+        "embassy",
+        "godrej",
+        "mahindra",
+        "tata",
+        "birla",
+        "concorde",
+        "shriram",
+        "assetz",
+        "vaishnavi",
+        "century",
+        "adarsh",
+        "rohan",
+        "kolte",
+        "mana",
+        "dnr",
+        "snn",
+        "provident",
+        "total",
+        "l&t",
+        "ds-max",
+        "sumadhura",
+        "nitesh",
+        "karle",
+        "divyasree",
+        "arvind",
+        "pride",
+        "sattva",
+        "casa",
+        "fortuna",
+        "vertex",
+        "aparna",
+        "sify",
+        "habitat",
     ]
     existing_names = {n.lower() for n in all_complaints}
     for prefix in common_prefixes:
@@ -292,11 +339,26 @@ def _extract_promoters_from_rows(rows: list[list[str]], out: dict[str, list[dict
         for idx in range(1, min(len(row), 5)):
             cell = row[idx].strip()
             cell_lower = cell.lower()
-            if any(kw in cell_lower for kw in [
-                "pvt", "ltd", "llp", "developer", "builder", "group",
-                "estate", "realty", "properties", "infra", "housing",
-                "construction", "homes", "ventures", "projects",
-            ]):
+            if any(
+                kw in cell_lower
+                for kw in [
+                    "pvt",
+                    "ltd",
+                    "llp",
+                    "developer",
+                    "builder",
+                    "group",
+                    "estate",
+                    "realty",
+                    "properties",
+                    "infra",
+                    "housing",
+                    "construction",
+                    "homes",
+                    "ventures",
+                    "projects",
+                ]
+            ):
                 promoter = cell
                 break
 
@@ -313,6 +375,7 @@ def _extract_promoters_from_rows(rows: list[list[str]], out: dict[str, list[dict
 # Phase 2: Enrichment + DB upsert
 # ──────────────────────────────────────────────────────────────
 
+
 def _enrich_curated_builder(b: dict, complaint_count: int, complaint_details: list[dict]) -> dict:
     """Enrich a curated builder entry with RERA data and trust scores."""
     name = b["name"]
@@ -321,21 +384,14 @@ def _enrich_curated_builder(b: dict, complaint_count: int, complaint_details: li
     complaints_ratio = round(complaints / rera_projects, 2) if rera_projects > 0 else 0
     on_time_pct = b.get("on_time_delivery_pct", 70)
 
-    project_names = list(set(
-        c["project_name"] for c in complaint_details if c.get("project_name")
-    ))
+    project_names = list(set(c["project_name"] for c in complaint_details if c.get("project_name")))
 
     delivery_score = min(100, on_time_pct * 1.1)
     complaint_penalty = min(50, complaints_ratio * 20)
     legal_score = 100 - complaint_penalty
     satisfaction_score = (b.get("avg_rating", 3.5) / 5.0) * 100
 
-    trust_score = int(
-        delivery_score * 0.35
-        + legal_score * 0.30
-        + satisfaction_score * 0.20
-        + 70 * 0.15
-    )
+    trust_score = int(delivery_score * 0.35 + legal_score * 0.30 + satisfaction_score * 0.20 + 70 * 0.15)
     trust_score = max(0, min(100, trust_score))
 
     return {
@@ -369,19 +425,17 @@ def _enrich_curated_builder(b: dict, complaint_count: int, complaint_details: li
 def _enrich_discovered_builder(name: str, complaints: list[dict]) -> dict:
     """Create a builder entry from discovery data (no curated baseline)."""
     complaint_count = len(complaints)
-    project_names = list(set(
-        c["project_name"] for c in complaints if c.get("project_name")
-    ))
+    project_names = list(set(c["project_name"] for c in complaints if c.get("project_name")))
 
     # With no curated data we only have complaints to work with.
     # High complaints = low trust. Assign conservative defaults.
     complaint_penalty = min(60, complaint_count * 5)
     legal_score = max(10, 100 - complaint_penalty)
     trust_score = int(
-        50 * 0.35        # unknown delivery — assume average
+        50 * 0.35  # unknown delivery — assume average
         + legal_score * 0.30
-        + 50 * 0.20     # unknown satisfaction — assume average
-        + 50 * 0.15     # unknown financial — assume average
+        + 50 * 0.20  # unknown satisfaction — assume average
+        + 50 * 0.15  # unknown financial — assume average
     )
     trust_score = max(0, min(100, trust_score))
 
@@ -444,7 +498,11 @@ def scrape_all_builders():
         # Check if discovery already found complaints for this builder
         discovery_complaints = []
         for disc_name, disc_complaints in discovered.items():
-            if disc_name.lower() == name.lower() or name.lower() in disc_name.lower() or disc_name.lower() in name.lower():
+            if (
+                disc_name.lower() == name.lower()
+                or name.lower() in disc_name.lower()
+                or disc_name.lower() in name.lower()
+            ):
                 discovery_complaints = disc_complaints
                 discovered.pop(disc_name, None)
                 break
@@ -509,10 +567,16 @@ def _upsert_to_db(builders: list[dict]):
                          score = EXCLUDED.score,
                          rera_projects = EXCLUDED.rera_projects""",
                     (
-                        b["name"], b["rera_projects"], b["total_projects_blr"],
-                        b["complaints"], b["complaints_ratio"],
-                        b["on_time_delivery_pct"], b["avg_rating"],
-                        b["reputation_tier"], b["active_areas"], b["score"],
+                        b["name"],
+                        b["rera_projects"],
+                        b["total_projects_blr"],
+                        b["complaints"],
+                        b["complaints_ratio"],
+                        b["on_time_delivery_pct"],
+                        b["avg_rating"],
+                        b["reputation_tier"],
+                        b["active_areas"],
+                        b["score"],
                     ),
                 )
 
@@ -568,6 +632,7 @@ def _upsert_to_db(builders: list[dict]):
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
     scrape_all_builders()

@@ -14,10 +14,10 @@ Falls back to storing placeholders if API is unavailable —
 the curated builder data continues to work without this enrichment.
 """
 
-import sys
-import os
-import time
 import logging
+import os
+import sys
+import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -31,9 +31,13 @@ COMPDATA_COMPANY_URL = "https://technowire.in:5000/capi"
 COMPDATA_DIRECTOR_URL = "https://technowire.in:5000/directorProfile"
 
 FAILED_STATUSES = {
-    "struck off", "under process of striking off",
-    "under liquidation", "liquidated", "dormant",
-    "amalgamated", "dissolved",
+    "struck off",
+    "under process of striking off",
+    "under liquidation",
+    "liquidated",
+    "dormant",
+    "amalgamated",
+    "dissolved",
 }
 
 
@@ -45,6 +49,7 @@ def _fetch_company_data(cin: str) -> dict | None:
 
     try:
         import httpx
+
         resp = httpx.post(
             COMPDATA_COMPANY_URL,
             json={"cin": cin, "key": COMPDATA_API_KEY, "password": COMPDATA_PASSWORD},
@@ -68,6 +73,7 @@ def _fetch_director_profile(din: str) -> dict | None:
 
     try:
         import httpx
+
         resp = httpx.post(
             COMPDATA_DIRECTOR_URL,
             json={"din": din, "key": COMPDATA_API_KEY, "password": COMPDATA_PASSWORD},
@@ -190,6 +196,7 @@ def enrich_builders():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
     enrich_builders()

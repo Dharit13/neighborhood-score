@@ -10,8 +10,8 @@ the neighborhood's radius, creating a ward-to-neighborhood mapping.
 """
 
 import math
-import sys
 import os
+import sys
 import urllib.request
 import xml.etree.ElementTree as ET
 
@@ -85,14 +85,16 @@ def _parse_wards_kml(content: str) -> list[dict]:
         centroid_lat = sum(lats) / len(lats)
         centroid_lon = sum(lons) / len(lons)
 
-        wards.append({
-            "name": ward_name,
-            "name_kn": ward_name_kn,
-            "corporation": corporation or "Unknown",
-            "population": population,
-            "lat": centroid_lat,
-            "lon": centroid_lon,
-        })
+        wards.append(
+            {
+                "name": ward_name,
+                "name_kn": ward_name_kn,
+                "corporation": corporation or "Unknown",
+                "population": population,
+                "lat": centroid_lat,
+                "lon": centroid_lon,
+            }
+        )
 
     return wards
 
@@ -117,7 +119,9 @@ def fetch():
     conn = get_sync_conn()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT id, name, ST_Y(center_geog::geometry) as lat, ST_X(center_geog::geometry) as lon, radius_km FROM neighborhoods")
+            cur.execute(
+                "SELECT id, name, ST_Y(center_geog::geometry) as lat, ST_X(center_geog::geometry) as lon, radius_km FROM neighborhoods"
+            )
             neighborhoods = cur.fetchall()
 
             cur.execute("DELETE FROM ward_mapping")
@@ -131,8 +135,16 @@ def fetch():
                             """INSERT INTO ward_mapping
                                (neighborhood_id, ward_name, ward_name_kn, corporation, population, centroid_geog, distance_km)
                                VALUES (%s, %s, %s, %s, %s, ST_Point(%s, %s)::geography, %s)""",
-                            (nid, w["name"], w["name_kn"], w["corporation"], w["population"],
-                             w["lon"], w["lat"], round(dist, 2)),
+                            (
+                                nid,
+                                w["name"],
+                                w["name_kn"],
+                                w["corporation"],
+                                w["population"],
+                                w["lon"],
+                                w["lat"],
+                                round(dist, 2),
+                            ),
                         )
                         count += 1
 
@@ -145,5 +157,6 @@ def fetch():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     fetch()

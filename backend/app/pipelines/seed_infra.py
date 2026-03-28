@@ -3,8 +3,8 @@ Seed future infrastructure projects and their stations from curated JSON.
 """
 
 import json
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -29,9 +29,12 @@ def seed():
                        VALUES (%s, %s, %s, %s, %s, %s, %s)
                        RETURNING id""",
                     (
-                        proj["name"], proj["type"], proj["status"],
+                        proj["name"],
+                        proj["type"],
+                        proj["status"],
                         proj.get("expected_completion"),
-                        proj.get("length_km"), proj.get("cost_crore"),
+                        proj.get("length_km"),
+                        proj.get("cost_crore"),
                         proj.get("description"),
                     ),
                 )

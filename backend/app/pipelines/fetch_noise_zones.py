@@ -20,8 +20,8 @@ CPCB standards (dB Leq):
 """
 
 import math
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -30,7 +30,7 @@ from app.db import get_sync_conn
 # KIA approach/departure corridor: areas within 5km of the flight path
 # Source: DGCA noise study, Saddahalli 66.7 dB, Reddihalli 69.8 dB
 KIA_FLIGHT_PATH_AREAS = {
-    "Yelahanka": 5.0,    # km from flight path center
+    "Yelahanka": 5.0,  # km from flight path center
     "Jakkur": 4.0,
     "Sahakara Nagar": 6.0,
     "Devanahalli": 2.0,
@@ -50,14 +50,29 @@ HAL_FLIGHT_PATH_AREAS = {
 
 # Major highways with coordinates for proximity calculation
 HIGHWAYS = [
-    {"name": "NH44 (Hebbal-Airport)", "points": [(13.035, 77.591), (13.100, 77.594), (13.150, 77.600), (13.199, 77.707)]},
+    {
+        "name": "NH44 (Hebbal-Airport)",
+        "points": [(13.035, 77.591), (13.100, 77.594), (13.150, 77.600), (13.199, 77.707)],
+    },
     {"name": "NH75 (Old Madras Road)", "points": [(12.987, 77.655), (13.005, 77.687), (13.020, 77.720)]},
-    {"name": "ORR (Outer Ring Road)", "points": [
-        (12.917, 77.623), (12.926, 77.671), (12.936, 77.689), (12.956, 77.701),
-        (12.969, 77.688), (12.994, 77.673), (13.005, 77.658), (13.013, 77.648),
-        (13.025, 77.634), (13.035, 77.618), (13.039, 77.606), (13.040, 77.594),
-        (13.035, 77.591),
-    ]},
+    {
+        "name": "ORR (Outer Ring Road)",
+        "points": [
+            (12.917, 77.623),
+            (12.926, 77.671),
+            (12.936, 77.689),
+            (12.956, 77.701),
+            (12.969, 77.688),
+            (12.994, 77.673),
+            (13.005, 77.658),
+            (13.013, 77.648),
+            (13.025, 77.634),
+            (13.035, 77.618),
+            (13.039, 77.606),
+            (13.040, 77.594),
+            (13.035, 77.591),
+        ],
+    },
     {"name": "NICE Road", "points": [(12.880, 77.573), (12.860, 77.560), (12.845, 77.555), (12.910, 77.484)]},
     {"name": "Hosur Road (NH44 South)", "points": [(12.917, 77.623), (12.900, 77.622), (12.845, 77.660)]},
     {"name": "Mysore Road (NH275)", "points": [(12.958, 77.540), (12.914, 77.484), (12.880, 77.460)]},
@@ -69,12 +84,12 @@ HIGHWAYS = [
 # CPCB residential standard: Day 55 dB, Night 45 dB
 # CPCB commercial standard: Day 65 dB, Night 55 dB
 BASE_NOISE_BY_TYPE = {
-    "commercial_hub": 66,   # MG Road, Brigade Road — busy commercial streets
-    "tech_corridor": 58,    # ORR tech parks, Electronic City — campus setbacks from road
-    "residential_dense": 54, # Jayanagar, Malleshwaram — moderate urban
-    "residential_quiet": 48, # Sadashivanagar, Frazer Town — tree-lined, low traffic
-    "suburban": 50,          # Yelahanka, Kengeri — sparse, low density
-    "mixed": 56,             # Most areas — typical Bangalore residential
+    "commercial_hub": 66,  # MG Road, Brigade Road — busy commercial streets
+    "tech_corridor": 58,  # ORR tech parks, Electronic City — campus setbacks from road
+    "residential_dense": 54,  # Jayanagar, Malleshwaram — moderate urban
+    "residential_quiet": 48,  # Sadashivanagar, Frazer Town — tree-lined, low traffic
+    "suburban": 50,  # Yelahanka, Kengeri — sparse, low density
+    "mixed": 56,  # Most areas — typical Bangalore residential
 }
 
 AREA_TYPES = {
@@ -110,7 +125,7 @@ def _haversine_km(lat1, lon1, lat2, lon2):
     R = 6371
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
-    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
     return R * 2 * math.asin(math.sqrt(a))
 
 
@@ -196,8 +211,7 @@ def fetch():
 
                 # Metro construction noise (temporary but significant)
                 construction_nearby = sum(
-                    1 for clat, clon in construction_stations
-                    if _haversine_km(lat, lon, clat, clon) <= 2.0
+                    1 for clat, clon in construction_stations if _haversine_km(lat, lon, clat, clon) <= 2.0
                 )
                 construction_noise = min(construction_nearby * 3, 12)
 
@@ -220,7 +234,7 @@ def fetch():
                 elif avg_noise_db <= 60:
                     score = 100 - (avg_noise_db - 45) / 15 * 50  # 100 -> 50
                 elif avg_noise_db <= 75:
-                    score = 50 - (avg_noise_db - 60) / 15 * 40   # 50 -> 10
+                    score = 50 - (avg_noise_db - 60) / 15 * 40  # 50 -> 10
                 else:
                     score = max(0, 10 - (avg_noise_db - 75) / 5 * 10)  # 10 -> 0
                 score = round(score, 1)
@@ -231,8 +245,13 @@ def fetch():
                         construction_zones_active, avg_noise_db_estimate, noise_label, score)
                        VALUES (%s, %s, %s, %s, %s, %s, %s)""",
                     (
-                        nid, airport_flight_path, round(min_highway_dist, 2),
-                        construction_nearby, round(avg_noise_db, 1), noise_label, score,
+                        nid,
+                        airport_flight_path,
+                        round(min_highway_dist, 2),
+                        construction_nearby,
+                        round(avg_noise_db, 1),
+                        noise_label,
+                        score,
                     ),
                 )
                 count += 1
@@ -247,5 +266,6 @@ def fetch():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     fetch()

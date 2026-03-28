@@ -15,20 +15,53 @@ Data-driven neighborhood scoring for Bangalore home buyers. Computes 6 sub-score
 
 ## Quick Start
 
-### Backend
+### Prerequisites
+
+You'll need your own API keys:
+
+| Key | Required | Get it from |
+|-----|----------|-------------|
+| **Google Maps API Key** | Yes (for maps, geocoding, commute times) | [Google Cloud Console](https://console.cloud.google.com/apis/credentials) — enable Maps JavaScript, Geocoding, Directions, and Places APIs |
+| **Anthropic API Key** | Yes (for AI chat, reports, verification) | [Anthropic Console](https://console.anthropic.com/) |
+| **Supabase / PostgreSQL** | Yes (data storage) | [Supabase](https://supabase.com/) — create a project with PostGIS enabled |
+
+### Setup
+
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+# 1. Install uv (Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 2. Clone and configure
+cp backend/.env.example backend/.env
+# Edit backend/.env with your API keys
 ```
 
-### Frontend
+### Using Make (recommended)
 ```bash
+make install-dev    # Install all dependencies
+make dev-backend    # Start backend (in one terminal)
+make dev-frontend   # Start frontend (in another terminal)
+make check          # Run lint + typecheck + tests
+```
+
+### Manual Setup
+```bash
+# Backend
+cd backend
+uv sync --group dev
+uv run uvicorn app.main:app --reload
+
+# Frontend
 cd frontend
 npm install
 npm run dev
+```
+
+### Run Tests
+```bash
+make test
+# or manually:
+cd backend && uv run pytest tests/ -v
 ```
 
 ## API

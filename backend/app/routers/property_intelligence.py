@@ -10,10 +10,9 @@ New endpoints for the property intelligence platform:
   - GET /api/search — global search
 """
 
-import os
 import json
 import logging
-from typing import Optional
+import os
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -31,49 +30,50 @@ ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514")
 # Response models
 # ============================================================
 
+
 class BuilderSummary(BaseModel):
     name: str
-    slug: Optional[str] = None
-    trust_score: Optional[int] = None
-    trust_tier: Optional[str] = None
-    segment: Optional[str] = None
+    slug: str | None = None
+    trust_score: int | None = None
+    trust_tier: str | None = None
+    segment: str | None = None
     rera_projects: int = 0
     complaints: int = 0
     complaints_ratio: float = 0
     on_time_delivery_pct: int = 0
-    avg_rating: Optional[float] = None
+    avg_rating: float | None = None
     active_areas: list[str] = []
     notable_projects: list[str] = []
 
 
 class BuilderProfile(BuilderSummary):
     also_known_as: list[str] = []
-    cin: Optional[str] = None
-    company_status: Optional[str] = None
-    incorporated_date: Optional[str] = None
+    cin: str | None = None
+    company_status: str | None = None
+    incorporated_date: str | None = None
     has_nclt_proceedings: bool = False
-    nclt_case_details: Optional[str] = None
+    nclt_case_details: str | None = None
     consumer_court_cases: int = 0
     director_names: list[str] = []
     directors_linked_to_failed: bool = False
-    director_risk_details: Optional[str] = None
-    review_sentiment_score: Optional[float] = None
+    director_risk_details: str | None = None
+    review_sentiment_score: float | None = None
     common_complaints: list[str] = []
     common_praise: list[str] = []
-    trust_score_breakdown: Optional[dict] = None
-    description: Optional[str] = None
-    founded_year: Optional[int] = None
-    website: Optional[str] = None
+    trust_score_breakdown: dict | None = None
+    description: str | None = None
+    founded_year: int | None = None
+    website: str | None = None
     certifications: list[str] = []
-    data_source: Optional[str] = None
+    data_source: str | None = None
     projects: list[dict] = []
     risk_flags: list[dict] = []
 
 
 class IntelligenceBriefRequest(BaseModel):
-    address: Optional[str] = None
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
+    address: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
     claims: list[str] = []
 
 
@@ -105,9 +105,9 @@ No markdown, no explanation outside the JSON."""
 
 
 async def _generate_builder_summaries(
-    area: Optional[str],
+    area: str | None,
     rows: list,
-) -> tuple[Optional[str], dict[str, str]]:
+) -> tuple[str | None, dict[str, str]]:
     """Generate AI area summary and per-builder briefs in a single Claude call."""
     if not ANTHROPIC_API_KEY:
         return None, {}
@@ -145,6 +145,7 @@ async def _generate_builder_summaries(
 
     try:
         import httpx
+
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
                 "https://api.anthropic.com/v1/messages",
@@ -156,10 +157,12 @@ async def _generate_builder_summaries(
                 json={
                     "model": ANTHROPIC_MODEL,
                     "max_tokens": 1500,
-                    "messages": [{
-                        "role": "user",
-                        "content": f"{BUILDER_SUMMARY_PROMPT}\n\n{context}",
-                    }],
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": f"{BUILDER_SUMMARY_PROMPT}\n\n{context}",
+                        }
+                    ],
                 },
             )
 
@@ -191,11 +194,14 @@ async def _generate_builder_summaries(
 # GET /api/builders
 # ============================================================
 
+
 @router.get("/builders")
 async def list_builders(
-    area: Optional[str] = Query(None, description="Filter by area slug or name"),
-    tier: Optional[str] = Query(None, description="Filter by trust tier: trusted, emerging, cautious, avoid"),
-    segment: Optional[str] = Query(None, description="Filter by segment: premium, established, mid-range, affordable, luxury"),
+    area: str | None = Query(None, description="Filter by area slug or name"),
+    tier: str | None = Query(None, description="Filter by trust tier: trusted, emerging, cautious, avoid"),
+    segment: str | None = Query(
+        None, description="Filter by segment: premium, established, mid-range, affordable, luxury"
+    ),
     limit: int = Query(50, ge=1, le=200),
 ):
     """List builders, optionally filtered by area, tier, or segment."""
@@ -212,7 +218,7 @@ async def list_builders(
                 OR EXISTS (SELECT 1 FROM unnest(active_areas) a WHERE LOWER(a) LIKE '%' || LOWER(${param_idx}) || '%')
                 OR EXISTS (SELECT 1 FROM unnest(active_areas) a WHERE LOWER(${param_idx}) LIKE '%' || LOWER(a) || '%')
             )""")
-            params.append(area.replace('-', ' '))
+            params.append(area.replace("-", " "))
 
         if tier:
             param_idx += 1
@@ -247,21 +253,23 @@ async def list_builders(
         tier_key = r["trust_tier"] or "unscored"
         if tier_key not in grouped:
             tier_key = "unscored"
-        grouped[tier_key].append({
-            "name": r["name"],
-            "slug": r["slug"],
-            "trust_score": r["trust_score"],
-            "trust_tier": r["trust_tier"],
-            "segment": r["segment"] or r["reputation_tier"],
-            "rera_projects": r["rera_projects"],
-            "complaints": r["complaints"],
-            "complaints_ratio": float(r["complaints_ratio"]) if r["complaints_ratio"] else 0,
-            "on_time_delivery_pct": r["on_time_delivery_pct"],
-            "avg_rating": float(r["avg_rating"]) if r["avg_rating"] else None,
-            "active_areas": r["active_areas"] or [],
-            "notable_projects": r["notable_projects"] or [],
-            "trust_score_breakdown": json.loads(r["trust_score_breakdown"]) if r["trust_score_breakdown"] else None,
-        })
+        grouped[tier_key].append(
+            {
+                "name": r["name"],
+                "slug": r["slug"],
+                "trust_score": r["trust_score"],
+                "trust_tier": r["trust_tier"],
+                "segment": r["segment"] or r["reputation_tier"],
+                "rera_projects": r["rera_projects"],
+                "complaints": r["complaints"],
+                "complaints_ratio": float(r["complaints_ratio"]) if r["complaints_ratio"] else 0,
+                "on_time_delivery_pct": r["on_time_delivery_pct"],
+                "avg_rating": float(r["avg_rating"]) if r["avg_rating"] else None,
+                "active_areas": r["active_areas"] or [],
+                "notable_projects": r["notable_projects"] or [],
+                "trust_score_breakdown": json.loads(r["trust_score_breakdown"]) if r["trust_score_breakdown"] else None,
+            }
+        )
 
     # Generate AI summaries (area-level + per-builder briefs)
     area_summary, builder_briefs = await _generate_builder_summaries(area, rows)
@@ -278,6 +286,7 @@ async def list_builders(
 # ============================================================
 # GET /api/builder/:slug
 # ============================================================
+
 
 @router.get("/builder/{slug}")
 async def get_builder(slug: str):
@@ -311,17 +320,47 @@ async def get_builder(slug: str):
         # Build risk flags
         risk_flags = []
         if row.get("has_nclt_proceedings"):
-            risk_flags.append({"severity": "critical", "title": "NCLT Insolvency Proceedings", "detail": row.get("nclt_case_details", "Active NCLT case")})
+            risk_flags.append(
+                {
+                    "severity": "critical",
+                    "title": "NCLT Insolvency Proceedings",
+                    "detail": row.get("nclt_case_details", "Active NCLT case"),
+                }
+            )
         if row.get("directors_linked_to_failed"):
-            risk_flags.append({"severity": "warning", "title": "Director Network Risk", "detail": row.get("director_risk_details", "Directors linked to failed/struck-off companies")})
+            risk_flags.append(
+                {
+                    "severity": "warning",
+                    "title": "Director Network Risk",
+                    "detail": row.get("director_risk_details", "Directors linked to failed/struck-off companies"),
+                }
+            )
         complaints = row.get("complaints", 0) or 0
         if complaints > 15:
-            risk_flags.append({"severity": "warning", "title": f"{complaints} RERA Complaints", "detail": f"High complaint count ({complaints}) relative to {row.get('rera_projects', 0)} projects"})
+            risk_flags.append(
+                {
+                    "severity": "warning",
+                    "title": f"{complaints} RERA Complaints",
+                    "detail": f"High complaint count ({complaints}) relative to {row.get('rera_projects', 0)} projects",
+                }
+            )
         if (row.get("on_time_delivery_pct") or 100) < 70:
-            risk_flags.append({"severity": "warning", "title": "Poor Delivery Record", "detail": f"Only {row.get('on_time_delivery_pct')}% on-time delivery"})
+            risk_flags.append(
+                {
+                    "severity": "warning",
+                    "title": "Poor Delivery Record",
+                    "detail": f"Only {row.get('on_time_delivery_pct')}% on-time delivery",
+                }
+            )
         consumer = row.get("consumer_court_cases", 0) or 0
         if consumer >= 5:
-            risk_flags.append({"severity": "warning", "title": f"{consumer} Consumer Court Cases", "detail": "Multiple consumer court complaints"})
+            risk_flags.append(
+                {
+                    "severity": "warning",
+                    "title": f"{consumer} Consumer Court Cases",
+                    "detail": "Multiple consumer court complaints",
+                }
+            )
 
     # Build response
     profile = dict(row)
@@ -329,7 +368,7 @@ async def get_builder(slug: str):
     for key in profile:
         if isinstance(profile[key], (list,)):
             pass
-        elif hasattr(profile[key], 'isoformat'):
+        elif hasattr(profile[key], "isoformat"):
             profile[key] = profile[key].isoformat()
 
     profile["projects"] = [dict(p) for p in projects]
@@ -344,6 +383,7 @@ async def get_builder(slug: str):
 # GET /api/area/:slug
 # ============================================================
 
+
 @router.get("/area/{slug}")
 async def get_area(slug: str):
     """Get area profile with builders, infrastructure, and scores."""
@@ -353,7 +393,8 @@ async def get_area(slug: str):
 
         # Check areas table: exact slug, then fuzzy
         area = await conn.fetchrow(
-            "SELECT * FROM areas WHERE slug = $1", slug,
+            "SELECT * FROM areas WHERE slug = $1",
+            slug,
         )
         if not area:
             area = await conn.fetchrow(
@@ -396,7 +437,8 @@ async def get_area(slug: str):
                WHERE $1 = ANY(active_areas)
                   OR EXISTS (SELECT 1 FROM unnest(active_areas) a WHERE LOWER(a) LIKE '%' || $2 || '%')
                ORDER BY COALESCE(trust_score, score, 0) DESC""",
-            area_name, slug.lower().replace("-", " "),
+            area_name,
+            slug.lower().replace("-", " "),
         )
 
         # Find infrastructure projects affecting this area
@@ -404,7 +446,8 @@ async def get_area(slug: str):
             """SELECT * FROM infrastructure_projects
                WHERE $1 = ANY(affected_areas)
                   OR EXISTS (SELECT 1 FROM unnest(affected_areas) a WHERE LOWER(a) LIKE '%' || $2 || '%')""",
-            area_name, slug.lower().replace("-", " "),
+            area_name,
+            slug.lower().replace("-", " "),
         )
 
         # Get property prices for area
@@ -426,6 +469,7 @@ async def get_area(slug: str):
 # ============================================================
 # POST /api/intelligence-brief
 # ============================================================
+
 
 @router.post("/intelligence-brief")
 async def generate_intelligence_brief(request: IntelligenceBriefRequest):
@@ -466,7 +510,8 @@ async def generate_intelligence_brief(request: IntelligenceBriefRequest):
                       ST_Distance(geog, ST_Point($1, $2)::geography) / 1000.0 as dist_km
                FROM metro_stations
                ORDER BY geog <-> ST_Point($1, $2)::geography LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
         # Property prices
@@ -475,7 +520,8 @@ async def generate_intelligence_brief(request: IntelligenceBriefRequest):
                FROM property_prices
                ORDER BY ST_Distance(center_geog, ST_Point($1, $2)::geography)
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
         # Infrastructure
@@ -487,17 +533,23 @@ async def generate_intelligence_brief(request: IntelligenceBriefRequest):
     context_parts = [f"Location: {address} ({lat:.4f}, {lon:.4f})"]
 
     if metro:
-        context_parts.append(f"Nearest metro: {metro['name']} ({round(float(metro['dist_km']), 1)} km, {metro['status']})")
+        context_parts.append(
+            f"Nearest metro: {metro['name']} ({round(float(metro['dist_km']), 1)} km, {metro['status']})"
+        )
 
     if prices:
-        context_parts.append(f"Property prices: ₹{prices['avg_price_sqft']}/sqft, {prices.get('yoy_growth_pct', 'N/A')}% YoY")
+        context_parts.append(
+            f"Property prices: ₹{prices['avg_price_sqft']}/sqft, {prices.get('yoy_growth_pct', 'N/A')}% YoY"
+        )
 
     if builders:
         builder_lines = []
         for b in builders[:10]:
             tier = b.get("trust_tier", "unscored")
             nclt = " [NCLT!]" if b.get("has_nclt_proceedings") else ""
-            builder_lines.append(f"  - {b['name']}: score {b.get('trust_score', 'N/A')}, tier={tier}, delivery={b.get('on_time_delivery_pct', 'N/A')}%{nclt}")
+            builder_lines.append(
+                f"  - {b['name']}: score {b.get('trust_score', 'N/A')}, tier={tier}, delivery={b.get('on_time_delivery_pct', 'N/A')}%{nclt}"
+            )
         context_parts.append("Builders in area:\n" + "\n".join(builder_lines))
 
     if request.claims:
@@ -507,6 +559,7 @@ async def generate_intelligence_brief(request: IntelligenceBriefRequest):
 
     # Call Claude
     import httpx
+
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
@@ -519,9 +572,10 @@ async def generate_intelligence_brief(request: IntelligenceBriefRequest):
                 json={
                     "model": ANTHROPIC_MODEL,
                     "max_tokens": 1024,
-                    "messages": [{
-                        "role": "user",
-                        "content": f"""You are a Bangalore real estate intelligence analyst. Based on the data below, write a 200-300 word buyer advisory brief.
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": f"""You are a Bangalore real estate intelligence analyst. Based on the data below, write a 200-300 word buyer advisory brief.
 
 Include:
 1. A verdict: STRONG_BUY, BUY, CAUTION, WAIT, or AVOID
@@ -544,7 +598,8 @@ Respond in JSON format:
   "key_risks": ["risk1", "risk2"],
   "price_assessment": "One line on pricing"
 }}""",
-                    }],
+                        }
+                    ],
                 },
             )
 
@@ -571,10 +626,11 @@ Respond in JSON format:
 # GET /api/infrastructure
 # ============================================================
 
+
 @router.get("/infrastructure")
 async def list_infrastructure(
-    area: Optional[str] = Query(None),
-    type: Optional[str] = Query(None, description="metro, expressway, suburban_rail"),
+    area: str | None = Query(None),
+    type: str | None = Query(None, description="metro, expressway, suburban_rail"),
 ):
     """List infrastructure projects with optional area/type filters."""
     pool = await get_pool()
@@ -614,6 +670,7 @@ async def list_infrastructure(
 # ============================================================
 # GET /api/search
 # ============================================================
+
 
 @router.get("/search")
 async def global_search(q: str = Query(..., min_length=2)):

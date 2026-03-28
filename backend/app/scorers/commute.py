@@ -15,7 +15,7 @@ Scoring bands (weighted average of commute to top 3 nearest tech parks):
 """
 
 from app.db import get_pool
-from app.models import ScoreResult, NearbyDetail, score_label
+from app.models import NearbyDetail, ScoreResult, score_label
 
 SOURCES = [
     "Google Maps Distance Matrix API — real traffic-aware driving times",
@@ -50,12 +50,15 @@ async def compute_commute_score(lat: float, lon: float) -> ScoreResult:
             """SELECT id, name FROM neighborhoods
                ORDER BY ST_Distance(center_geog, ST_Point($1, $2)::geography)
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
         if not neighborhood:
             return ScoreResult(
-                score=50.0, label="Average", data_confidence="low",
+                score=50.0,
+                label="Average",
+                data_confidence="low",
                 breakdown={"note": "No neighborhood found"},
                 sources=["No commute data available"],
             )
@@ -94,8 +97,12 @@ async def compute_commute_score(lat: float, lon: float) -> ScoreResult:
 
     if not commutes:
         return ScoreResult(
-            score=50.0, label="Average", data_confidence="low",
-            breakdown={"note": "No commute data for this neighborhood. Run: python -m app.pipelines.runner fetch --commute"},
+            score=50.0,
+            label="Average",
+            data_confidence="low",
+            breakdown={
+                "note": "No commute data for this neighborhood. Run: python -m app.pipelines.runner fetch --commute"
+            },
             sources=["Commute data not yet fetched"],
         )
 
@@ -107,8 +114,7 @@ async def compute_commute_score(lat: float, lon: float) -> ScoreResult:
     top_3 = commutes[:3]
     total_weight = sum(r["employee_estimate"] or 1 for r in top_3)
     weighted_score = sum(
-        _commute_score(float(r["duration_min"])) * (r["employee_estimate"] or 1) / total_weight
-        for r in top_3
+        _commute_score(float(r["duration_min"])) * (r["employee_estimate"] or 1) / total_weight for r in top_3
     )
     final_score = round(min(max(weighted_score, 0), 100), 1)
 
@@ -118,13 +124,15 @@ async def compute_commute_score(lat: float, lon: float) -> ScoreResult:
         _offpeak_min = offpeak_map.get(r["tech_park"], peak_min * 0.7)
         base_min = no_traffic_map.get(r["tech_park"], peak_min * 0.6)
         traffic_multiplier = round(peak_min / base_min, 1) if base_min > 0 else 1.0
-        details.append(NearbyDetail(
-            name=f"{r['tech_park']}: {base_min:.0f}min base → {peak_min:.0f}min peak ({traffic_multiplier}x traffic)",
-            distance_km=round(r["distance_km"], 1),
-            category="tech_park_commute",
-            latitude=r["tp_lat"],
-            longitude=r["tp_lon"],
-        ))
+        details.append(
+            NearbyDetail(
+                name=f"{r['tech_park']}: {base_min:.0f}min base → {peak_min:.0f}min peak ({traffic_multiplier}x traffic)",
+                distance_km=round(r["distance_km"], 1),
+                category="tech_park_commute",
+                latitude=r["tp_lat"],
+                longitude=r["tp_lon"],
+            )
+        )
 
     nearest = commutes[0]
     nearest_base = no_traffic_map.get(nearest["tech_park"])
@@ -136,7 +144,9 @@ async def compute_commute_score(lat: float, lon: float) -> ScoreResult:
     lie_factor = round(nearest_peak / marketing_claim, 2) if marketing_claim else None
 
     return ScoreResult(
-        score=final_score, label=score_label(final_score), details=details,
+        score=final_score,
+        label=score_label(final_score),
+        details=details,
         breakdown={
             "methodology": "Google Maps Distance Matrix API — with and without traffic",
             "neighborhood": neighborhood["name"],

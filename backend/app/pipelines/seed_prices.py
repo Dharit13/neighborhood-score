@@ -3,8 +3,8 @@ Seed property prices, builders, and business opportunity from curated JSON files
 """
 
 import json
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -50,15 +50,25 @@ def seed():
                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                                ST_Point(%s, %s)::geography, %s, %s, %s)""",
                     (
-                        nid, a["area"], a["avg_price_sqft"],
-                        a["price_range_low"], a["price_range_high"],
-                        a["avg_2bhk_lakh"], a["avg_3bhk_lakh"],
-                        a["avg_2bhk_rent"], a["avg_3bhk_rent"],
-                        a["yoy_growth_pct"], a["rental_yield_pct"],
-                        a["emi_to_income_pct"], a["affordability_score"],
+                        nid,
+                        a["area"],
+                        a["avg_price_sqft"],
+                        a["price_range_low"],
+                        a["price_range_high"],
+                        a["avg_2bhk_lakh"],
+                        a["avg_3bhk_lakh"],
+                        a["avg_2bhk_rent"],
+                        a["avg_3bhk_rent"],
+                        a["yoy_growth_pct"],
+                        a["rental_yield_pct"],
+                        a["emi_to_income_pct"],
+                        a["affordability_score"],
                         a["affordability_label"],
-                        a["center_lon"], a["center_lat"], a["radius_km"],
-                        a.get("avg_maintenance_monthly"), a.get("resale_avg_days_on_market"),
+                        a["center_lon"],
+                        a["center_lat"],
+                        a["radius_km"],
+                        a.get("avg_maintenance_monthly"),
+                        a.get("resale_avg_days_on_market"),
                     ),
                 )
                 count += 1
@@ -79,10 +89,16 @@ def seed():
                          rera_projects = EXCLUDED.rera_projects,
                          score = EXCLUDED.score""",
                     (
-                        b["name"], b["rera_projects"], b["total_projects_blr"],
-                        b["complaints"], b["complaints_ratio"],
-                        b["on_time_delivery_pct"], b["avg_rating"],
-                        b["reputation_tier"], b["active_areas"], b["score"],
+                        b["name"],
+                        b["rera_projects"],
+                        b["total_projects_blr"],
+                        b["complaints"],
+                        b["complaints_ratio"],
+                        b["on_time_delivery_pct"],
+                        b["avg_rating"],
+                        b["reputation_tier"],
+                        b["active_areas"],
+                        b["score"],
                     ),
                 )
                 count += 1
@@ -103,12 +119,20 @@ def seed():
                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                                ST_Point(%s, %s)::geography, %s)""",
                     (
-                        nid, z["area"], z["new_business_acceptability_pct"],
-                        z["commercial_rent_sqft"], z["footfall_index"],
-                        z["startup_density"], z["coworking_spaces"],
-                        z["consumer_spending_index"], z["business_type_fit"],
-                        z["score"], z["label"],
-                        z["center_lon"], z["center_lat"], z["radius_km"],
+                        nid,
+                        z["area"],
+                        z["new_business_acceptability_pct"],
+                        z["commercial_rent_sqft"],
+                        z["footfall_index"],
+                        z["startup_density"],
+                        z["coworking_spaces"],
+                        z["consumer_spending_index"],
+                        z["business_type_fit"],
+                        z["score"],
+                        z["label"],
+                        z["center_lon"],
+                        z["center_lat"],
+                        z["radius_km"],
                     ),
                 )
                 count += 1

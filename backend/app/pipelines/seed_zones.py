@@ -4,8 +4,8 @@ Links each zone to its matching neighborhood row via name lookup.
 """
 
 import json
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
@@ -48,9 +48,16 @@ def seed():
                         cctv_density_per_sqkm, police_density_per_sqkm, score, center_geog, radius_km)
                        VALUES (%s, %s, %s, %s, %s, %s, %s, ST_Point(%s, %s)::geography, %s)""",
                     (
-                        nid, z["zone"], z["crime_rate_per_100k"], z["streetlight_pct"],
-                        z["cctv_density_per_sqkm"], z["police_density_per_sqkm"],
-                        z.get("score"), z["center_lon"], z["center_lat"], z["radius_km"],
+                        nid,
+                        z["zone"],
+                        z["crime_rate_per_100k"],
+                        z["streetlight_pct"],
+                        z["cctv_density_per_sqkm"],
+                        z["police_density_per_sqkm"],
+                        z.get("score"),
+                        z["center_lon"],
+                        z["center_lat"],
+                        z["radius_km"],
                     ),
                 )
                 count += 1
@@ -68,9 +75,15 @@ def seed():
                        (neighborhood_id, area, stage, supply_hours, reliability, score, center_geog, radius_km)
                        VALUES (%s, %s, %s, %s, %s, %s, ST_Point(%s, %s)::geography, %s)""",
                     (
-                        nid, z["area"], z["stage"], z["supply_hours_per_day"],
-                        z["reliability"], z["score"],
-                        z["center_lon"], z["center_lat"], z["radius_km"],
+                        nid,
+                        z["area"],
+                        z["stage"],
+                        z["supply_hours_per_day"],
+                        z["reliability"],
+                        z["score"],
+                        z["center_lon"],
+                        z["center_lat"],
+                        z["radius_km"],
                     ),
                 )
                 count += 1
@@ -88,8 +101,14 @@ def seed():
                        (neighborhood_id, area, tier, avg_monthly_outage_hours, score, center_geog, radius_km)
                        VALUES (%s, %s, %s, %s, %s, ST_Point(%s, %s)::geography, %s)""",
                     (
-                        nid, z["area"], z["tier"], z["avg_monthly_outage_hours"],
-                        z["score"], z["center_lon"], z["center_lat"], z["radius_km"],
+                        nid,
+                        z["area"],
+                        z["tier"],
+                        z["avg_monthly_outage_hours"],
+                        z["score"],
+                        z["center_lon"],
+                        z["center_lat"],
+                        z["radius_km"],
                     ),
                 )
                 count += 1
@@ -107,8 +126,12 @@ def seed():
                        (neighborhood_id, area, score, center_geog, radius_km)
                        VALUES (%s, %s, %s, ST_Point(%s, %s)::geography, %s)""",
                     (
-                        nid, z["area"], z["score"],
-                        z["center_lon"], z["center_lat"], z["radius_km"],
+                        nid,
+                        z["area"],
+                        z["score"],
+                        z["center_lon"],
+                        z["center_lat"],
+                        z["radius_km"],
                     ),
                 )
                 count += 1

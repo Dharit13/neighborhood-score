@@ -35,12 +35,15 @@ async def compute_delivery_coverage_score(lat: float, lon: float) -> ScoreResult
                JOIN neighborhoods n ON dc.neighborhood_id = n.id
                ORDER BY ST_Distance(n.center_geog, ST_Point($1, $2)::geography)
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
     if not row:
         return ScoreResult(
-            score=40.0, label="Below Average", data_confidence="low",
+            score=40.0,
+            label="Below Average",
+            data_confidence="low",
             breakdown={"note": "No delivery coverage data"},
             sources=["No delivery data available"],
         )

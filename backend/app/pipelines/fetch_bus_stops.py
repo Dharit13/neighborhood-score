@@ -8,15 +8,15 @@ Filters to Bangalore metro area bounding box and inserts into bus_stops table.
 
 import csv
 import io
-import sys
 import os
+import sys
 import urllib.request
 import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from app.db import get_sync_conn
 from app.config import BANGALORE_BBOX
+from app.db import get_sync_conn
 
 # Primary: data.opencity.in — 9,600 BMTC bus stop locations (KML)
 OPENCITY_KML_URL = "https://data.opencity.in/dataset/8bcca4f2-7392-4ecb-ba1e-28dccd987c34/resource/c8fda6d4-0caa-40ec-ab5a-236984974745/download/bmtc_bus_stops.kml"
@@ -65,9 +65,12 @@ def _parse_csv_stops(csv_content):
 def _filter_bbox(stops):
     """Filter stops to Bangalore bounding box."""
     return [
-        s for s in stops
-        if (BANGALORE_BBOX["south"] <= s["latitude"] <= BANGALORE_BBOX["north"]
-            and BANGALORE_BBOX["west"] <= s["longitude"] <= BANGALORE_BBOX["east"])
+        s
+        for s in stops
+        if (
+            BANGALORE_BBOX["south"] <= s["latitude"] <= BANGALORE_BBOX["north"]
+            and BANGALORE_BBOX["west"] <= s["longitude"] <= BANGALORE_BBOX["east"]
+        )
     ]
 
 
@@ -119,5 +122,6 @@ def fetch():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     fetch()

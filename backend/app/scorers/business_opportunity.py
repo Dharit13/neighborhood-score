@@ -39,12 +39,15 @@ async def compute_business_opportunity_score(lat: float, lon: float) -> ScoreRes
                JOIN neighborhoods n ON bo.neighborhood_id = n.id
                ORDER BY ST_Distance(n.center_geog, ST_Point($1, $2)::geography)
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
     if not row:
         return ScoreResult(
-            score=40.0, label="Below Average", data_confidence="low",
+            score=40.0,
+            label="Below Average",
+            data_confidence="low",
             breakdown={"note": "No business opportunity data"},
             sources=["No data available"],
         )

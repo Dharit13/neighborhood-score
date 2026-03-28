@@ -14,15 +14,15 @@ Methodology:
 """
 
 import math
-import sys
 import os
+import sys
 import urllib.request
 import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from app.db import get_sync_conn
 from app.config import GOOGLE_MAPS_API_KEY
+from app.db import get_sync_conn
 
 # Three BBMP flooding KML datasets on data.opencity.in (updated Nov 2025, source: KSRSAC)
 BBMP_KML_URLS = [
@@ -34,39 +34,48 @@ BBMP_KML_URLS = [
 # BBMP flood ward data from Times Now / Deccan Herald 2025 reports + KSNDMC
 # These are documented flood-prone areas with historical event counts
 DOCUMENTED_FLOOD_ZONES = {
-    "Bellandur":        {"events": 12, "drainage": "critical", "valley": "KC"},
-    "Varthur":          {"events": 10, "drainage": "critical", "valley": "KC"},
-    "Marathahalli":     {"events": 9,  "drainage": "poor",     "valley": "KC"},
-    "Mahadevapura":     {"events": 8,  "drainage": "poor",     "valley": "KC"},
-    "Whitefield":       {"events": 6,  "drainage": "poor",     "valley": "KC"},
-    "KR Puram":         {"events": 7,  "drainage": "poor",     "valley": "KC"},
-    "Yemalur":          {"events": 8,  "drainage": "critical", "valley": "KC"},
-    "Sarjapur Road":    {"events": 5,  "drainage": "poor",     "valley": "KC"},
-    "HSR Layout":       {"events": 5,  "drainage": "poor",     "valley": "KC"},
-    "Koramangala":      {"events": 6,  "drainage": "poor",     "valley": "KC"},
-    "BTM Layout":       {"events": 4,  "drainage": "poor",     "valley": "KC"},
-    "Hebbal":           {"events": 7,  "drainage": "poor",     "valley": "Hebbal"},
-    "Yelahanka":        {"events": 5,  "drainage": "poor",     "valley": "Hebbal"},
-    "Thanisandra":      {"events": 4,  "drainage": "poor",     "valley": "Hebbal"},
-    "Nagawara":         {"events": 3,  "drainage": "poor",     "valley": "Hebbal"},
-    "Bommanahalli":     {"events": 4,  "drainage": "poor",     "valley": "KC"},
-    "Electronic City":  {"events": 3,  "drainage": "good",     "valley": None},
-    "Brookefield":      {"events": 5,  "drainage": "poor",     "valley": "KC"},
-    "Kundalahalli":     {"events": 4,  "drainage": "poor",     "valley": "KC"},
-    "Domlur":           {"events": 3,  "drainage": "poor",     "valley": "KC"},
-    "HAL":              {"events": 3,  "drainage": "poor",     "valley": "KC"},
-    "Banaswadi":        {"events": 3,  "drainage": "poor",     "valley": "Hebbal"},
-    "HBR Layout":       {"events": 3,  "drainage": "poor",     "valley": "Hebbal"},
-    "RT Nagar":         {"events": 2,  "drainage": "poor",     "valley": "Hebbal"},
-    "Sahakara Nagar":   {"events": 2,  "drainage": "good",     "valley": None},
-    "Jakkur":           {"events": 3,  "drainage": "poor",     "valley": "Hebbal"},
+    "Bellandur": {"events": 12, "drainage": "critical", "valley": "KC"},
+    "Varthur": {"events": 10, "drainage": "critical", "valley": "KC"},
+    "Marathahalli": {"events": 9, "drainage": "poor", "valley": "KC"},
+    "Mahadevapura": {"events": 8, "drainage": "poor", "valley": "KC"},
+    "Whitefield": {"events": 6, "drainage": "poor", "valley": "KC"},
+    "KR Puram": {"events": 7, "drainage": "poor", "valley": "KC"},
+    "Yemalur": {"events": 8, "drainage": "critical", "valley": "KC"},
+    "Sarjapur Road": {"events": 5, "drainage": "poor", "valley": "KC"},
+    "HSR Layout": {"events": 5, "drainage": "poor", "valley": "KC"},
+    "Koramangala": {"events": 6, "drainage": "poor", "valley": "KC"},
+    "BTM Layout": {"events": 4, "drainage": "poor", "valley": "KC"},
+    "Hebbal": {"events": 7, "drainage": "poor", "valley": "Hebbal"},
+    "Yelahanka": {"events": 5, "drainage": "poor", "valley": "Hebbal"},
+    "Thanisandra": {"events": 4, "drainage": "poor", "valley": "Hebbal"},
+    "Nagawara": {"events": 3, "drainage": "poor", "valley": "Hebbal"},
+    "Bommanahalli": {"events": 4, "drainage": "poor", "valley": "KC"},
+    "Electronic City": {"events": 3, "drainage": "good", "valley": None},
+    "Brookefield": {"events": 5, "drainage": "poor", "valley": "KC"},
+    "Kundalahalli": {"events": 4, "drainage": "poor", "valley": "KC"},
+    "Domlur": {"events": 3, "drainage": "poor", "valley": "KC"},
+    "HAL": {"events": 3, "drainage": "poor", "valley": "KC"},
+    "Banaswadi": {"events": 3, "drainage": "poor", "valley": "Hebbal"},
+    "HBR Layout": {"events": 3, "drainage": "poor", "valley": "Hebbal"},
+    "RT Nagar": {"events": 2, "drainage": "poor", "valley": "Hebbal"},
+    "Sahakara Nagar": {"events": 2, "drainage": "good", "valley": None},
+    "Jakkur": {"events": 3, "drainage": "poor", "valley": "Hebbal"},
 }
 
 # Areas with documented good drainage (old city with mature stormwater drains)
 WELL_DRAINED_AREAS = {
-    "Jayanagar", "Basavanagudi", "Malleshwaram", "Rajajinagar",
-    "Sadashivanagar", "Frazer Town", "Indiranagar", "Vijayanagar",
-    "Wilson Garden", "Richmond Town", "Banashankari", "JP Nagar",
+    "Jayanagar",
+    "Basavanagudi",
+    "Malleshwaram",
+    "Rajajinagar",
+    "Sadashivanagar",
+    "Frazer Town",
+    "Indiranagar",
+    "Vijayanagar",
+    "Wilson Garden",
+    "Richmond Town",
+    "Banashankari",
+    "JP Nagar",
 }
 
 
@@ -74,7 +83,7 @@ def _haversine_km(lat1, lon1, lat2, lon2):
     R = 6371
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
-    a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
     return R * 2 * math.asin(math.sqrt(a))
 
 
@@ -85,6 +94,7 @@ def _get_elevation(lat, lon):
     url = f"https://maps.googleapis.com/maps/api/elevation/json?locations={lat},{lon}&key={GOOGLE_MAPS_API_KEY}"
     try:
         import json
+
         resp = urllib.request.urlopen(url)
         data = json.loads(resp.read().decode("utf-8"))
         if data["status"] == "OK" and data["results"]:
@@ -110,7 +120,9 @@ def _parse_kml_flood_spots(kml_content):
                             spots.append((lat, lon))
                         except ValueError:
                             continue
-            point = placemark.find(".//{http://www.opengis.net/kml/2.2}Point/{http://www.opengis.net/kml/2.2}coordinates")
+            point = placemark.find(
+                ".//{http://www.opengis.net/kml/2.2}Point/{http://www.opengis.net/kml/2.2}coordinates"
+            )
             if point is not None and point.text:
                 parts = point.text.strip().split(",")
                 if len(parts) >= 2:
@@ -180,15 +192,17 @@ def fetch():
                 rounded = (round(s[0], 4), round(s[1], 4))
                 if rounded not in [(round(x[0], 4), round(x[1], 4)) for x in flood_spots]:
                     flood_spots.append(s)
-            print(f"    KML {i+1}/3: {len(spots)} spots parsed")
+            print(f"    KML {i + 1}/3: {len(spots)} spots parsed")
         except Exception as e:
-            print(f"    KML {i+1}/3: Could not fetch ({e})")
+            print(f"    KML {i + 1}/3: Could not fetch ({e})")
     print(f"  Total: {len(flood_spots)} unique flood-prone spots from BBMP KML")
 
     conn = get_sync_conn()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT id, name, ST_Y(center_geog::geometry), ST_X(center_geog::geometry), radius_km FROM neighborhoods")
+            cur.execute(
+                "SELECT id, name, ST_Y(center_geog::geometry), ST_X(center_geog::geometry), radius_km FROM neighborhoods"
+            )
             neighborhoods = cur.fetchall()
 
             cur.execute("DELETE FROM flood_risk")
@@ -197,8 +211,7 @@ def fetch():
             for nid, name, lat, lon, radius_km in neighborhoods:
                 # Count BBMP flood spots within neighborhood radius
                 spots_nearby = sum(
-                    1 for slat, slon in flood_spots
-                    if _haversine_km(lat, lon, slat, slon) <= (radius_km or 2.0)
+                    1 for slat, slon in flood_spots if _haversine_km(lat, lon, slat, slon) <= (radius_km or 2.0)
                 )
 
                 # Look up documented data
@@ -225,7 +238,9 @@ def fetch():
                     if valley:
                         waterlogging_spots.append(f"{valley} valley zone")
 
-                is_bbmp_flood_ward = (isinstance(events, int) and events >= 4) or (isinstance(spots_nearby, int) and spots_nearby >= 3)
+                is_bbmp_flood_ward = (isinstance(events, int) and events >= 4) or (
+                    isinstance(spots_nearby, int) and spots_nearby >= 3
+                )
 
                 score, risk_level = _classify_risk(events, drainage, spots_nearby, elevation)
 
@@ -235,8 +250,14 @@ def fetch():
                         drainage_quality, waterlogging_prone_spots, bbmp_flood_ward, score)
                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
-                        nid, risk_level, events, elevation,
-                        drainage, waterlogging_spots, is_bbmp_flood_ward, score,
+                        nid,
+                        risk_level,
+                        events,
+                        elevation,
+                        drainage,
+                        waterlogging_spots,
+                        is_bbmp_flood_ward,
+                        score,
                     ),
                 )
                 count += 1
@@ -251,5 +272,6 @@ def fetch():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     fetch()

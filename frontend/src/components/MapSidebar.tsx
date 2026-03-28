@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import ScrollReveal3D from './ScrollReveal3D';
 import { ChevronDown, TrendingUp, Droplets, LayoutDashboard, Heart, Route, MapPin, Users, Sparkles, UtensilsCrossed, Wine, Baby, Trophy, ShieldCheck, Trees, ShoppingBag, Palette, Dumbbell } from 'lucide-react';
@@ -20,22 +20,6 @@ interface Props {
 
 function readableAddress(address: string): string {
   return address.split(',').map(p => p.trim()).filter(p => !/^[A-Z0-9+]{4,}\+/.test(p) && !/^\d+[A-Z]?$/.test(p)).join(', ') || address;
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function fmtPrice(lakh: unknown): string {
-  if (lakh == null) return '—';
-  const n = Number(lakh);
-  if (isNaN(n)) return String(lakh);
-  if (n >= 100) return `₹${(n / 100).toFixed(1)}Cr`;
-  return `₹${n}L`;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function fmt(val: unknown): string {
-  if (val == null) return '—';
-  const n = Number(val);
-  if (isNaN(n)) return String(val);
-  return n % 1 === 0 ? String(n) : n.toFixed(1);
 }
 
 function scoreBadgeVariant(score: number): "success" | "info" | "warning" | "destructive" | "mono" {
@@ -61,48 +45,6 @@ const SECTION_NAV = [
   { id: 'investment', label: 'Investment', icon: TrendingUp, from: '#00943d', to: '#2ad587' },
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function TiltCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [glowPos, setGlowPos] = useState({ x: 50, y: 50 });
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    setTilt({ x: (y - 0.5) * -6, y: (x - 0.5) * 6 });
-    setGlowPos({ x: x * 100, y: y * 100 });
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setTilt({ x: 0, y: 0 });
-  }, []);
-
-  return (
-    <motion.div
-      ref={ref}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      animate={{ rotateX: tilt.x, rotateY: tilt.y }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      style={{ transformStyle: 'preserve-3d', perspective: '800px' }}
-      className={`relative overflow-hidden ${className}`}
-    >
-      <div
-        className="absolute inset-0 pointer-events-none transition-opacity duration-300"
-        style={{
-          background: `radial-gradient(circle at ${glowPos.x}% ${glowPos.y}%, rgba(42,213,135,0.08), transparent 60%)`,
-          opacity: tilt.x !== 0 || tilt.y !== 0 ? 1 : 0,
-        }}
-      />
-      <div className="relative" style={{ transform: 'translateZ(5px)' }}>
-        {children}
-      </div>
-    </motion.div>
-  );
-}
 
 function Section({ title, children, defaultOpen = false, id }: { title: string; children: React.ReactNode; defaultOpen?: boolean; id?: string }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -259,45 +201,8 @@ function AiBriefCard({ ai }: { ai: NonNullable<NeighborhoodScoreResponse['ai_ver
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function StatBox({ label, value, color = 'text-white' }: { label: string; value: string; color?: string }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <motion.div
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
-      animate={{ scale: hovered ? 1.03 : 1, y: hovered ? -2 : 0 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-    >
-      <LiquidGlassCard glassSize="sm" className="!p-3 text-center rounded-lg border-white/[0.08] dark:border-white/[0.08] dark:from-white/[0.02] dark:to-transparent">
-        <div className="text-[11px] text-white/90 uppercase tracking-wider">{label}</div>
-        <div className={cn("font-semibold text-sm mt-0.5 font-mono", color)}>{value}</div>
-      </LiquidGlassCard>
-    </motion.div>
-  );
-}
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function ListRow({ label, value, icon, color }: { label: string; value: string | number; icon?: React.ReactNode; color?: string }) {
-  const numVal = typeof value === 'number' ? value : parseFloat(String(value));
-  const badgeVariant = !isNaN(numVal) ? scoreBadgeVariant(numVal) : (color?.includes('red') ? 'destructive' as const : 'success' as const);
-  return (
-    <motion.div
-      whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.03)' }}
-      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      className="flex items-center justify-between py-1.5 px-1 rounded-md -mx-1"
-    >
-      <div className="flex items-center gap-2">
-        {icon}
-        <span className="text-sm text-white/90">{label}</span>
-      </div>
-      <Badge variant={badgeVariant} className="font-mono text-[10px]">{value}</Badge>
-    </motion.div>
-  );
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function MapSidebar({ data, freshness: _freshness }: Props) {
+export default function MapSidebar({ data }: Props) {
   const [activeNav, setActiveNav] = useState('overview');
 
   const scrollToSection = (id: string) => {
@@ -305,8 +210,6 @@ export default function MapSidebar({ data, freshness: _freshness }: Props) {
     document.getElementById(`sidebar-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const priceLabel = data.property_prices?.label || '';
 
   return (
     <aside

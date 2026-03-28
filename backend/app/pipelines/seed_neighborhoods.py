@@ -5,8 +5,8 @@ then fills in any areas found in other zone files but missing from prices.
 """
 
 import json
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 

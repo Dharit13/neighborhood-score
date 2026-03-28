@@ -11,8 +11,8 @@ Each has a DN (deprivation index) field 0-245 from the CNN model (higher = more 
 We store polygon + centroid + DN for proximity scoring.
 """
 
-import sys
 import os
+import sys
 import urllib.request
 import xml.etree.ElementTree as ET
 
@@ -73,12 +73,14 @@ def _parse_slum_kml(content: str) -> list[dict]:
         wkt_polygon = f"POLYGON(({wkt_ring}))"
         wkt_centroid = f"POINT({centroid_lon} {centroid_lat})"
 
-        records.append({
-            "fid": fid,
-            "dn": dn if dn is not None else 0,
-            "polygon_wkt": wkt_polygon,
-            "centroid_wkt": wkt_centroid,
-        })
+        records.append(
+            {
+                "fid": fid,
+                "dn": dn if dn is not None else 0,
+                "polygon_wkt": wkt_polygon,
+                "centroid_wkt": wkt_centroid,
+            }
+        )
 
     return records
 
@@ -128,5 +130,6 @@ def fetch():
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
     fetch()

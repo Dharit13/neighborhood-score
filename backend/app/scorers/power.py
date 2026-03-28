@@ -18,7 +18,7 @@ published outage data — not a computed formula.
 """
 
 from app.db import get_pool
-from app.models import ScoreResult, NearbyDetail, score_label
+from app.models import NearbyDetail, ScoreResult, score_label
 
 SOURCES = [
     "BESCOM official outage notices (bescom.karnataka.gov.in)",
@@ -40,7 +40,8 @@ async def compute_power_score(lat: float, lon: float) -> ScoreResult:
                FROM power_zones
                ORDER BY ST_Distance(center_geog, ST_Point($1, $2)::geography)
                LIMIT 1""",
-            lon, lat,
+            lon,
+            lat,
         )
 
     if not zone:
@@ -54,12 +55,15 @@ async def compute_power_score(lat: float, lon: float) -> ScoreResult:
             name=f"BESCOM Tier {zone['tier']} — {zone['area']} (~{zone['avg_monthly_outage_hours']}h outage/month)",
             distance_km=round(zone["distance_km"], 2),
             category=f"power_tier_{zone['tier']}",
-            latitude=zone["latitude"], longitude=zone["longitude"],
+            latitude=zone["latitude"],
+            longitude=zone["longitude"],
         )
     ]
 
     return ScoreResult(
-        score=final_score, label=score_label(final_score), details=details,
+        score=final_score,
+        label=score_label(final_score),
+        details=details,
         breakdown={
             "methodology": "BESCOM tier classification (direct, not computed)",
             "bescom_tier": zone["tier"],
