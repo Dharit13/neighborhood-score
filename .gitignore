@@ -35,3 +35,10 @@ dist/
 .claude/
 .gemini/
 .gsd/
+GSD-STYLE.md
+PROJECT_RULES.md
+adapters/
+docs/
+model_capabilities.yaml
+scripts/
+skills-lock.json
