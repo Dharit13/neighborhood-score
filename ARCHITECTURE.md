@@ -9,12 +9,17 @@
 | **Backend** | Python 3.12, FastAPI, Uvicorn |
 | **Database** | PostgreSQL + PostGIS (Supabase) |
 | **DB Drivers** | asyncpg (API), psycopg2 (pipelines) |
-| **AI** | Anthropic Claude (verification + chat + reports) |
+| **AI** | Anthropic Claude (verification + chat + reports + recommendations) |
+| **Auth** | Supabase Auth (email/password + Google OAuth) |
 | **Frontend** | React 19, TypeScript 5.9, Vite 8 |
 | **Styling** | Tailwind CSS 4, Framer Motion |
 | **Maps** | Google Maps JavaScript API |
 | **PDF** | jsPDF (client-side report generation) |
 | **Charts** | Recharts |
+| **Build** | Makefile, uv (Python), npm (frontend) |
+| **CI/CD** | GitHub Actions (lint + typecheck + test + security) |
+| **Testing** | pytest (backend), ruff + ty (static analysis) |
+| **Security** | uv audit, Bandit (SAST), npm audit, Dependabot |
 
 ---
 
@@ -29,9 +34,10 @@ raorpay/
 │   │   ├── db.py                # asyncpg pool + psycopg2 helpers
 │   │   ├── models.py            # Pydantic models (request/response)
 │   │   ├── routers/
-│   │   │   ├── scores.py        # Core scoring API + prefetch + cache
+│   │   │   ├── scores.py        # Core scoring API + prefetch + cache + AI recommend
 │   │   │   ├── ai_chat.py       # Claude streaming chat
-│   │   │   └── report.py        # Claude report generation
+│   │   │   ├── report.py        # Claude report generation
+│   │   │   └── property_intelligence.py  # Builders, areas, search, intel brief
 │   │   ├── scorers/             # 17 dimension scorers
 │   │   │   ├── walkability.py
 │   │   │   ├── safety.py
@@ -60,15 +66,33 @@ raorpay/
 │   │   │   ├── seed_points.py
 │   │   │   ├── seed_infra.py
 │   │   │   ├── seed_curated_pois.py
-│   │   │   ├── fetch_*.py       # 12 external data fetchers
+│   │   │   ├── seed_areas.py         # Area metadata
+│   │   │   ├── seed_landmarks.py     # Landmark registry
+│   │   │   ├── seed_infrastructure.py # Infra projects + timelines
+│   │   │   ├── fetch_*.py            # 16 external data fetchers
+│   │   │   ├── scrape_krera.py       # RERA data scraping
+│   │   │   ├── scrape_sitesetu.py    # Builder data source
+│   │   │   ├── fetch_reviews.py      # Google reviews sentiment
+│   │   │   ├── fetch_compdata.py     # Company data (CIN, NCLT, directors)
+│   │   │   ├── compute_trust_scores.py   # Multi-factor builder trust rating
+│   │   │   ├── enrich_builders_offline.py # Builder enrichment
 │   │   │   ├── precompute_scores.py  # Batch score caching
 │   │   │   └── verify_ai.py     # Claude AI verification
+│   │   ├── lib/
+│   │   │   ├── claim_parser.py      # Extract claims from property ads
+│   │   │   ├── commute_verifier.py  # Verify commute times vs Google Maps
+│   │   │   └── landmark_resolver.py # Fuzzy-match landmarks/destinations
 │   │   ├── utils/
 │   │   │   ├── geo.py           # Geocoding, haversine, walk time
 │   │   │   └── overpass.py      # OSM Overpass API client
 │   │   └── data/curated/        # 16 curated JSON data files
-│   ├── supabase/migrations/     # 5 SQL migration files
-│   └── requirements.txt
+│   ├── tests/                   # pytest test suite
+│   │   ├── test_api.py          # API endpoint tests
+│   │   ├── test_config.py       # Configuration tests
+│   │   ├── test_geo.py          # Geospatial utility tests
+│   │   └── test_models.py       # Pydantic model tests
+│   ├── supabase/migrations/     # 6 SQL migration files
+│   └── pyproject.toml
 │
 └── frontend/
     ├── src/
@@ -78,23 +102,45 @@ raorpay/
     │   ├── index.css            # Tailwind + theme
     │   ├── data/
     │   │   └── defaultScores.json  # Bundled default for instant load
+    │   ├── contexts/
+    │   │   └── AuthContext.tsx  # Supabase auth (email + Google OAuth)
     │   ├── components/
     │   │   ├── Map.tsx          # Google Map + neighborhood pins
     │   │   ├── MapSidebar.tsx   # Score details sidebar
     │   │   ├── ScoreCard.tsx    # Individual dimension card
     │   │   ├── ScoreRing.tsx    # Animated score ring
-    │   │   ├── CompareMode.tsx  # Side-by-side comparison
+    │   │   ├── CompareMode.tsx  # AI-powered neighborhood recommender (4-step questionnaire → 3-way comparison)
     │   │   ├── VerifyClaims.tsx # Ad claim verification
     │   │   ├── DataSources.tsx  # Methodology & sources
+    │   │   ├── PropertyIntelligencePanel.tsx  # Builders, area intel, claims, AI brief (tabbed)
+    │   │   ├── BuilderCard.tsx  # 3D builder card with trust tier + metrics
+    │   │   ├── TrustScoreCircle.tsx   # Animated circular trust score
+    │   │   ├── TrustBreakdownChart.tsx # Trust factor breakdown
+    │   │   ├── InfraTimeline.tsx       # Infrastructure project timeline
+    │   │   ├── ClaimCard.tsx    # Individual claim verification card
+    │   │   ├── MetricCard.tsx   # Area intelligence metric card
+    │   │   ├── RedFlagAlert.tsx # Severity-based risk alerts
+    │   │   ├── SearchAutocomplete.tsx  # Global search (builders/areas/landmarks)
+    │   │   ├── LandingHero.tsx  # Hero section with 3D mouse tracking
+    │   │   ├── LoginPage.tsx    # City selection + auth (email/Google)
     │   │   ├── CategoryChips.tsx
     │   │   ├── NeighborhoodInput.tsx
-    │   │   ├── ui/             # 15 UI primitives (badge, button, etc.)
+    │   │   ├── ScrollReveal3D.tsx      # Scroll-triggered 3D reveal
+    │   │   ├── Section3DHeading.tsx    # 3D section headings
+    │   │   ├── Perspective3DContainer.tsx # 3D perspective wrapper
+    │   │   ├── ui/             # UI primitives (badge, button, beams-background, ai-input, etc.)
     │   │   └── kokonutui/      # Glass card components
+    │   ├── hooks/
+    │   │   └── use3DMouseTrack.ts  # 3D parallax mouse tracking
     │   ├── utils/
     │   │   ├── generateReport.ts
     │   │   ├── generateComprehensiveReport.ts
-    │   │   └── freshnessMap.ts
-    │   └── lib/utils.ts        # cn() helper
+    │   │   ├── freshnessMap.ts
+    │   │   ├── trustTiers.ts   # Trust tier colors/labels
+    │   │   └── categories.ts
+    │   └── lib/
+    │       ├── utils.ts        # cn() helper
+    │       └── supabase.ts     # Supabase client init
     ├── vite.config.ts
     ├── package.json
     └── tsconfig*.json
@@ -139,23 +185,71 @@ External APIs ──────→ Fetch Pipelines ────────┘
                     └─────────────────────┘
 ```
 
+### AI Recommendation Flow
+```
+User answers 4 questions (budget, commute, priorities, lifestyle)
+        │
+        ▼
+POST /api/ai-recommend
+        │
+        ├── Phase 1: Pre-filter from _score_cache (74 neighborhoods)
+        │             Filter by budget → rank by priority-weighted scores → top 8
+        │
+        ├── Phase 2: Claude picks top 3 with reason + highlights (structured JSON)
+        │
+        └── Phase 3: Attach full NeighborhoodScoreResponse from cache
+                │
+                ▼
+        3-way comparison (radar chart + score table + AI cards)
+```
+
+### Claim Verification Flow
+```
+User pastes property ad text
+        │
+        ▼
+POST /api/verify-claims
+        │
+        ├── claim_parser.py → extract distance/time claims from text
+        │
+        ├── landmark_resolver.py → fuzzy-match destinations
+        │
+        ├── commute_verifier.py → Google Maps Distance Matrix for actual times
+        │
+        └── Verdict per claim (ACCURATE / SLIGHTLY_OPTIMISTIC / MISLEADING)
+                │
+                ▼
+        ClaimCards with color-coded verdicts + narrative summary
+```
+
 ---
 
 ## API Endpoints
 
 | Method | Path | Purpose | Response Time |
 |--------|------|---------|---------------|
+| **Core Scoring** | | | |
 | GET | `/api/prefetch` | All neighborhood pins for map | <100ms (cached) |
 | POST | `/api/scores` | Full 17-dimension score | <100ms (cached) / ~13s (live) |
 | GET | `/api/neighborhoods` | Neighborhood name list | <200ms |
 | GET | `/api/config/map` | Google Maps API key | <50ms |
 | GET | `/api/health` | Health check | <50ms |
 | GET | `/api/data-freshness` | Data freshness metadata | <200ms |
+| **Claim Verification** | | | |
 | POST | `/api/verify-claims` | Verify property ad claims | ~2s |
 | POST | `/api/commute/refresh` | Live Google commute data | ~5s |
 | POST | `/api/transit/walk` | Live walking directions | ~3s |
+| **AI Features** | | | |
 | POST | `/api/ai-chat` | Claude streaming chat | SSE stream |
 | POST | `/api/generate-report` | Claude PDF report data | ~10s |
+| POST | `/api/ai-recommend` | AI neighborhood recommendations (lifestyle Q&A → top 3) | ~2s |
+| **Property Intelligence** | | | |
+| GET | `/api/builders` | List builders by area/tier/segment with AI summaries | <200ms |
+| GET | `/api/builder/{slug}` | Full builder profile (trust, NCLT, risk flags) | <200ms |
+| GET | `/api/area/{slug}` | Area intelligence (builders, infra, pricing) | <200ms |
+| POST | `/api/intelligence-brief` | AI-generated buyer advisory for address | ~3s |
+| GET | `/api/infrastructure` | Infrastructure projects with timelines | <200ms |
+| GET | `/api/search` | Global search (builders, projects, areas, landmarks) | <200ms |
 
 ---
 
@@ -268,6 +362,16 @@ python -m app.pipelines.fetch_noise_zones
 python -m app.pipelines.fetch_delivery_coverage
 python -m app.pipelines.fetch_commute_times
 
+# Property intelligence pipelines
+python -m app.pipelines.seed_areas
+python -m app.pipelines.seed_landmarks
+python -m app.pipelines.seed_infrastructure
+python -m app.pipelines.scrape_krera              # RERA builder data
+python -m app.pipelines.fetch_compdata             # Company data (CIN, NCLT, directors)
+python -m app.pipelines.fetch_reviews              # Google reviews sentiment
+python -m app.pipelines.compute_trust_scores       # Multi-factor builder trust rating
+python -m app.pipelines.enrich_builders_offline     # Builder enrichment
+
 # Score precomputation (requires running server)
 python -m app.pipelines.precompute_scores
 
@@ -281,17 +385,18 @@ python -m app.pipelines.verify_ai "Koramangala"  # single neighborhood
 ## Running Locally
 
 ```bash
-# Backend
-cd backend
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000
+# Install everything
+make install-dev
 
-# Frontend
-cd frontend
-npm install
-npm run dev
-# Opens at http://localhost:5173 (proxies /api to :8000)
+# Backend (terminal 1)
+make dev-backend    # uvicorn on :8000
+
+# Frontend (terminal 2)
+make dev-frontend   # vite on :5173 (proxies /api to :8000)
+
+# Quality checks
+make check          # lint + typecheck + test
+make format         # auto-format backend
 ```
 
 ---
@@ -299,7 +404,7 @@ npm run dev
 ## Environment Variables
 
 ```env
-# Required
+# Required — Backend (.env)
 DATABASE_URL=postgresql://...
 DB_HOST=...
 DB_PORT=6543
@@ -307,22 +412,37 @@ DB_NAME=postgres
 DB_USER=...
 DB_PASSWORD=...
 
-# Optional
+# Optional — Backend
 GOOGLE_MAPS_API_KEY=...     # Maps, Distance Matrix, Directions
-ANTHROPIC_API_KEY=...        # Claude AI chat, reports, verification
+ANTHROPIC_API_KEY=...        # Claude AI chat, reports, verification, recommendations
 ANTHROPIC_MODEL=claude-sonnet-4-20250514
+
+# Required — Frontend (.env)
+VITE_SUPABASE_URL=...       # Supabase project URL
+VITE_SUPABASE_ANON_KEY=...  # Supabase anonymous key (public, safe to expose)
 ```
 
 ---
 
 ## Frontend Modes
 
-| Mode | Tab | Section | Feature |
-|------|-----|---------|---------|
-| Explore | Compass | Map + Sidebar | Click pins or search neighborhoods |
-| Compare | MapPin | Side-by-side | Compare 2 neighborhoods dimension by dimension |
-| Verify | Shield | Claim checker | Paste property ad claims, get truth-checked |
-| Sources | Database | Methodology | Data sources, scoring methodology |
+| Mode | Tab | Feature |
+|------|-----|---------|
+| Explore | Compass | Map + sidebar — click pins or search neighborhoods for full 17-dimension scores |
+| Compare | MapPin | AI-powered recommender — 4 lifestyle questions → top 3 neighborhoods with 3-way radar chart |
+| Verify | Shield | Claim checker — paste property ad text, get claims truth-checked against real data |
+| Sources | Database | Data sources, scoring methodology, freshness metadata |
+
+### Authentication
+- **Login page** with city selection (Bengaluru enabled, Mumbai/Delhi coming soon)
+- Email/password signup + Google OAuth via Supabase Auth
+- Session persistence across refreshes
+
+### Property Intelligence (integrated into Explore sidebar)
+- **Claims tab** — verify ad claims with data-backed verdicts
+- **Builders tab** — builder cards with trust scores, RERA data, risk flags
+- **Area Intel tab** — infrastructure timelines, pricing, nearby builders
+- **AI Brief tab** — Claude-generated buyer advisory (verdict, strengths, risks, price assessment)
 
 ---
 
@@ -496,6 +616,17 @@ Claude AI verification results — verdict, pros/cons, lifestyle tags.
 | verified_at | timestamptz | YES | When verified |
 | model_used | text | YES | Claude model version |
 
+### Property Intelligence tables
+
+| Table | Purpose |
+|-------|---------|
+| builders | Builder profiles with trust score, NCLT, director risk, sentiment, certifications |
+| builder_projects | Individual project tracking (RERA number, status, delays) |
+| areas | Area metadata and analytics |
+| infrastructure_projects | Planned metro/road projects with completion timelines |
+| landmark_registry | Unified destination lookup (metro, tech parks, junctions) |
+| commute_cache | Point-to-point Google Maps API response cache (with expiry) |
+
 ### Other tables
 
 | Table | Rows | Purpose |
@@ -504,7 +635,6 @@ Claude AI verification results — verdict, pros/cons, lifestyle tags.
 | water_zones | 25 | BWSSB water supply stage and hours |
 | power_zones | 24 | BESCOM power reliability tier |
 | business_opportunity | 32 | Startup density, footfall, commercial rent |
-| builders | 25 | RERA projects, complaints, delivery rating |
 | tech_parks | 10 | Manyata, Embassy, ITPL, Electronic City, etc. |
 | bus_stops | 50 | BMTC bus stop locations |
 | train_stations | 18 | Railway stations |
@@ -518,3 +648,74 @@ Claude AI verification results — verdict, pros/cons, lifestyle tags.
 | data_freshness | 18 | Metadata tracking per data source |
 | ward_mapping | 0 | BBMP ward boundaries (optional) |
 | neighborhood_amenities | 0 | Google Places amenity counts (optional) |
+
+---
+
+## Security
+
+### Threat Model
+
+This application handles user data (auth credentials, location preferences) and calls external APIs with sensitive keys (Google Maps, Anthropic, Supabase). The primary threats are:
+
+1. **Supply chain attacks** — compromised PyPI/npm packages stealing API keys or credentials
+2. **Injection attacks** — SQL injection via user-supplied neighborhood names or ad text
+3. **Credential exposure** — API keys leaking into git history, logs, or client-side code
+
+### Defenses
+
+| Layer | Defense | Implementation |
+|-------|---------|----------------|
+| **Dependencies** | Minimal dependency tree, direct SDKs only | Anthropic SDK directly (not LiteLLM), no unnecessary wrappers |
+| **Dependency scanning** | `uv audit` (Python) + `npm audit` (Node) | CI workflow (`.github/workflows/security.yml`) + `make security` |
+| **SAST** | Bandit static analysis | Catches SQL injection, hardcoded secrets, shell injection, insecure functions |
+| **Auto-updates** | GitHub Dependabot | Weekly PRs for Python, npm, and GitHub Actions dependencies |
+| **SQL injection** | Parameterized queries everywhere | All DB queries use `$1`/`%s` placeholders, never string interpolation |
+| **Secret management** | Environment variables only | `.env` files gitignored, no secrets in code or config files |
+| **Auth** | Supabase Auth | Email/password + Google OAuth, session tokens managed by Supabase |
+| **CORS** | Explicit origin allowlist | Configured in `main.py` lifespan |
+| **API keys** | Server-side only | Google Maps API key served via `/api/config/map`, Anthropic key never exposed to client |
+
+### CI Security Pipeline
+
+```
+Push / PR → security.yml
+              ├── backend-security
+              │     ├── uv audit          (OSV vulnerability database)
+              │     └── bandit -r app/    (Python SAST)
+              └── frontend-security
+                    └── npm audit         (GitHub Advisory Database)
+```
+
+### Bandit Configuration
+
+Configured in `pyproject.toml` with skips for false positives:
+- **B101** — `assert` in non-test code (used for dev guards)
+- **B110** — `try/except/pass` (used in best-effort parsing)
+- **B310** — `urllib.urlopen` (controlled URLs only)
+- **B405/B314** — XML parsing (no untrusted XML input)
+- **B608** — SQL injection (all flagged queries use parameterized placeholders)
+
+### Supply Chain Decision: Anthropic SDK vs LiteLLM
+
+This project uses the [Anthropic Python SDK](https://github.com/anthropics/anthropic-sdk-python) directly instead of wrapper libraries like LiteLLM. In March 2026, LiteLLM was hit by a [supply chain attack](https://www.bleepingcomputer.com/news/security/popular-litellm-pypi-package-compromised-in-teampcp-supply-chain-attack/) — backdoored versions on PyPI stole credentials, SSH keys, and cloud tokens. LiteLLM sits between your app and every LLM provider's API keys, making it a high-value target.
+
+Using the official SDK directly means fewer dependencies, a smaller attack surface, and no single package that holds all your secrets.
+
+---
+
+## Project Governance
+
+| File | Purpose |
+|------|---------|
+| `LICENSE` | MIT |
+| `README.md` | Setup guide, API overview, data sources |
+| `CONTRIBUTING.md` | PR rules, code style, branch protection |
+| `CODE_OF_CONDUCT.md` | Contributor Covenant 2.1 |
+| `SECURITY.md` | Vulnerability reporting policy |
+| `.github/CODEOWNERS` | Auto-assigns reviewer on PRs |
+| `.github/PULL_REQUEST_TEMPLATE.md` | PR template (What/Why/How + checklist) |
+| `.github/ISSUE_TEMPLATE/` | Bug report + feature request templates |
+| `.github/workflows/ci.yml` | Lint + typecheck + test on push/PR |
+| `.github/workflows/security.yml` | Dependency audit + SAST on push/PR |
+| `.github/dependabot.yml` | Weekly dependency update PRs (Python, npm, Actions) |
+| `Makefile` | `install`, `dev`, `check`, `format`, `security`, `build`, `clean` |

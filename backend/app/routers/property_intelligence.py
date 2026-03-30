@@ -203,6 +203,7 @@ async def list_builders(
         None, description="Filter by segment: premium, established, mid-range, affordable, luxury"
     ),
     limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0, description="Number of records to skip for pagination"),
 ):
     """List builders, optionally filtered by area, tier, or segment."""
     pool = await get_pool()
@@ -231,7 +232,14 @@ async def list_builders(
             params.append(segment)
 
         where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-        param_idx += 1
+
+        # Get total count for pagination
+        count_query = f"SELECT COUNT(*) FROM builders {where}"
+        total_count = await conn.fetchval(count_query, *params)
+
+        limit_param = param_idx + 1
+        offset_param = param_idx + 2
+        param_idx += 2
         query = f"""
             SELECT name, slug, trust_score, trust_tier, segment, reputation_tier,
                    rera_projects, complaints, complaints_ratio,
@@ -241,9 +249,10 @@ async def list_builders(
             FROM builders
             {where}
             ORDER BY COALESCE(trust_score, score, 0) DESC
-            LIMIT ${param_idx}
+            LIMIT ${limit_param} OFFSET ${offset_param}
         """
         params.append(limit)
+        params.append(offset)
 
         rows = await conn.fetch(query, *params)
 
@@ -275,7 +284,10 @@ async def list_builders(
     area_summary, builder_briefs = await _generate_builder_summaries(area, rows)
 
     return {
-        "total": len(rows),
+        "total": total_count,
+        "limit": limit,
+        "offset": offset,
+        "has_more": offset + len(rows) < total_count,
         "builders": grouped,
         "filters": {"area": area, "tier": tier, "segment": segment},
         "area_summary": area_summary,
@@ -482,7 +494,7 @@ async def generate_intelligence_brief(request: IntelligenceBriefRequest):
     lat, lon = request.latitude, request.longitude
     if not lat or not lon:
         if request.address:
-            result = geocode_address(request.address)
+            result = await geocode_address(request.address)
             if result:
                 lat, lon = result
             else:
@@ -490,7 +502,7 @@ async def generate_intelligence_brief(request: IntelligenceBriefRequest):
         else:
             raise HTTPException(status_code=400, detail="Provide lat/lng or address")
 
-    address = reverse_geocode(lat, lon)
+    address = await reverse_geocode(lat, lon)
     pool = await get_pool()
 
     # Gather context data

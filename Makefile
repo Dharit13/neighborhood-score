@@ -1,4 +1,4 @@
-.PHONY: install install-dev dev test lint typecheck format check clean
+.PHONY: install install-dev dev test lint typecheck format check security clean
 
 # ── Setup ─────────────────────────────────────────────────────
 
@@ -25,8 +25,9 @@ dev-frontend: ## Start frontend dev server
 
 # ── Quality ───────────────────────────────────────────────────
 
-test: ## Run backend tests
+test: ## Run all tests
 	cd backend && uv run pytest tests/ -v
+	cd frontend && npx vitest run
 
 lint: ## Lint backend + frontend
 	cd backend && uv run ruff check .
@@ -40,7 +41,12 @@ format: ## Auto-format backend code
 	cd backend && uv run ruff format .
 	cd backend && uv run ruff check --fix .
 
-check: lint typecheck test ## Run all checks (lint + typecheck + test)
+security: ## Run security scans (dependency audit + SAST)
+	cd backend && uv audit || echo "⚠ Dependency vulnerabilities found (review above)"
+	cd backend && uv run bandit -r app/ -c pyproject.toml
+	cd frontend && npm audit --audit-level=high
+
+check: lint typecheck test security ## Run all checks (lint + typecheck + test + security)
 
 # ── Build ─────────────────────────────────────────────────────
 

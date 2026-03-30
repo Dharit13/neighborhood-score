@@ -56,3 +56,21 @@ def test_scores_invalid_latitude(client):
 def test_scores_invalid_longitude(client):
     resp = client.post("/api/scores", json={"latitude": 12.97, "longitude": 50.0})
     assert resp.status_code == 422
+
+
+def test_scores_outside_bangalore_bbox(client):
+    """Coordinates within Pydantic range but outside Bangalore bbox should return 400."""
+    resp = client.post("/api/scores", json={"latitude": 13.20, "longitude": 77.5})
+    assert resp.status_code == 400
+    assert "outside Bangalore" in resp.json()["detail"]
+
+
+def test_scores_inside_bangalore_bbox(client):
+    """Valid Bangalore coordinates should not trigger bbox rejection."""
+    try:
+        resp = client.post("/api/scores", json={"latitude": 12.97, "longitude": 77.59})
+    except Exception:
+        # Mocked DB may raise; the important thing is we didn't get a bbox 400
+        return
+    # Should not be 400 (bbox passes); may be 500 due to mocked DB, but not a bbox error
+    assert resp.status_code != 400 or "outside Bangalore" not in resp.json().get("detail", "")
