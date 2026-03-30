@@ -6,15 +6,22 @@ import pytest
 from fastapi.testclient import TestClient
 
 
+async def _fake_auth():
+    return {"sub": "test-user"}
+
+
 @pytest.fixture
 def client():
-    """Create a test client with DB pool mocked out."""
+    """Create a test client with DB pool and auth mocked out."""
     with patch("app.db.get_pool", new_callable=AsyncMock):
         with patch("app.db.close_pool", new_callable=AsyncMock):
+            from app.auth import require_auth
             from app.main import app
 
+            app.dependency_overrides[require_auth] = _fake_auth
             with TestClient(app) as c:
                 yield c
+            app.dependency_overrides.clear()
 
 
 def test_root(client):
