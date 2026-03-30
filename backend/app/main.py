@@ -21,9 +21,9 @@ from app.routers.scores import router as scores_router  # noqa: E402
 # ---------------------------------------------------------------------------
 _RATE_LIMITS: dict[str, tuple[int, float]] = {
     # path prefix -> (max_tokens, refill_per_second)
-    "/api/ai-chat": (10, 0.5),       # 10 burst, 1 every 2s
-    "/api/report": (5, 0.2),         # 5 burst, 1 every 5s
-    "/api/scores": (30, 2.0),        # 30 burst, 2/s
+    "/api/ai-chat": (10, 0.5),  # 10 burst, 1 every 2s
+    "/api/report": (5, 0.2),  # 5 burst, 1 every 5s
+    "/api/scores": (30, 2.0),  # 30 burst, 2/s
     "/api/verify-claims": (10, 0.5),
 }
 _DEFAULT_LIMIT = (60, 5.0)  # generous default
@@ -88,6 +88,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
