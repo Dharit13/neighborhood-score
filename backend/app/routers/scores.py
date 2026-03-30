@@ -10,6 +10,7 @@ from app.config import BANGALORE_BBOX, CURATED_DIR, SCORE_WEIGHTS
 from app.db import get_pool
 from app.models import (
     AIVerification,
+    BuilderScoreResult,
     ClaimInput,
     ClaimVerification,
     ClaimVerificationResponse,
@@ -20,6 +21,7 @@ from app.models import (
     RecommendItem,
     RecommendResponse,
     RentVsBuyArea,
+    TransitScoreResult,
     WardInfo,
     score_label,
 )
@@ -420,6 +422,10 @@ async def get_neighborhood_scores(input: LocationInput):
         compute_business_opportunity_score(lat, lon),
         compute_cleanliness_score(lat, lon),
     )
+
+    # Narrow types for subclass results (gather loses positional type info)
+    assert isinstance(transit, TransitScoreResult)
+    assert isinstance(builder, BuilderScoreResult)
 
     # Composite score using ANAROCK survey-derived weights (17 dimensions)
     composite = (
