@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { NeighborhoodScoreResponse, FeaturedNeighborhood } from '../types';
 import TetrisLoading from '@/components/ui/tetris-loader';
+import { apiUrl } from '@/lib/api';
 
 const DARK_STYLE: google.maps.MapTypeStyle[] = [
   { elementType: 'geometry', stylers: [{ color: '#0a0f14' }] },
@@ -94,7 +95,7 @@ export default function NeighborhoodMap({ data, onMapClick, loading, featuredNei
   useEffect(() => {
     if (_gmapsLoaded) { setReady(true); return; }
     const timeout = setTimeout(() => { if (!_gmapsLoaded) setMapError(true); }, 15000);
-    fetch('/api/config/map')
+    fetch(apiUrl('/api/config/map'))
       .then(r => r.json())
       .then(d => {
         if (d.google_maps_api_key) {

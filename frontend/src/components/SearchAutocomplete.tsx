@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, MapPin, Landmark, FolderKanban } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AnimatedGlowingSearchBar } from '@/components/ui/animated-glowing-search-bar';
+import { apiUrl } from '@/lib/api';
 import type { SearchResults } from '@/types';
 
 interface Props {
@@ -35,7 +36,7 @@ export default function SearchAutocomplete({ onSearch, loading, address, classNa
     if (query.length < 2) { setResults(null); return; }
     setSearching(true);
     try {
-      const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const resp = await fetch(apiUrl(`/api/search?q=${encodeURIComponent(query)}`));
       if (resp.ok) {
         const data: SearchResults = await resp.json();
         setResults(data);

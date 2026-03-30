@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Shield, MapPin, Building2, Landmark, FolderKanban } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Section3DHeading from './Section3DHeading';
+import { apiUrl } from '@/lib/api';
 import ScrollReveal3D from './ScrollReveal3D';
 import { AnimatedGlowingSearchBar } from '@/components/ui/animated-glowing-search-bar';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +35,7 @@ export default function VerifyClaims() {
     if (query.length < 2) { setSearchResults(null); return; }
     setSearching(true);
     try {
-      const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const resp = await fetch(apiUrl(`/api/search?q=${encodeURIComponent(query)}`));
       if (resp.ok) {
         const data: SearchResults = await resp.json();
         setSearchResults(data);
@@ -103,7 +104,7 @@ export default function VerifyClaims() {
     setResult(null);
 
     try {
-      const resp = await fetch('/api/verify-claims', {
+      const resp = await fetch(apiUrl('/api/verify-claims'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address: address.trim(), raw_text: claimsText.trim() }),

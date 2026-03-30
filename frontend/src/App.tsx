@@ -17,6 +17,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { generateReport } from './utils/generateReport';
 import { generateComprehensiveReport } from './utils/generateComprehensiveReport';
 import { getFreshnessForDimension, type FreshnessData } from './utils/freshnessMap';
+import { apiUrl } from './lib/api';
 import type { NeighborhoodScoreResponse, FeaturedNeighborhood } from './types';
 import defaultScores from './data/defaultScores.json';
 
@@ -490,11 +491,11 @@ function App() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    fetch('/api/prefetch')
+    fetch(apiUrl('/api/prefetch'))
       .then(r => r.json())
       .then(d => { if (d.neighborhoods) setFeaturedNeighborhoods(d.neighborhoods); })
       .catch(() => {});
-    fetch('/api/data-freshness').then(r => r.json()).then(setFreshness).catch(() => {});
+    fetch(apiUrl('/api/data-freshness')).then(r => r.json()).then(setFreshness).catch(() => {});
 
     const params = new URLSearchParams(window.location.search);
     const lat = params.get('lat');
@@ -523,7 +524,7 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const resp = await fetch('/api/scores', {
+      const resp = await fetch(apiUrl('/api/scores'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(query),

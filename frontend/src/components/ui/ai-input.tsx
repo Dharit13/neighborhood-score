@@ -8,6 +8,7 @@ import { marked } from "marked"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import AnthropicDark from "@/components/kokonutui/anthropic-dark"
+import { apiUrl } from "@/lib/api"
 
 interface OrbProps {
   dimension?: string
@@ -178,7 +179,7 @@ export function MorphPanel({ neighborhoodName, className }: MorphPanelProps) {
     setResponse("")
 
     try {
-      const resp = await fetch("/api/ai-chat", {
+      const resp = await fetch(apiUrl("/api/ai-chat"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: message.trim(), neighborhood: neighborhoodName || null }),

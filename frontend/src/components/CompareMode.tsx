@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Section3DHeading from './Section3DHeading';
 import ScrollReveal3D from './ScrollReveal3D';
 import { Sparkles, ChevronLeft, RotateCcw, Wallet, MapPin, Heart, User } from 'lucide-react';
+import { apiUrl } from '@/lib/api';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { ShuffleNumber } from '@/components/ui/shuffle-number';
 import TetrisLoading from '@/components/ui/tetris-loader';
@@ -129,7 +130,7 @@ export default function CompareMode() {
     setResults(null);
 
     try {
-      const resp = await fetch('/api/ai-recommend', {
+      const resp = await fetch(apiUrl('/api/ai-recommend'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

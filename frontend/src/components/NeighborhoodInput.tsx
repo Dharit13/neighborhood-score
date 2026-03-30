@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { apiUrl } from '@/lib/api';
 
 let _cachedNeighborhoods: string[] | null = null;
 let _fetchPromise: Promise<string[]> | null = null;
@@ -8,7 +9,7 @@ let _fetchPromise: Promise<string[]> | null = null;
 function fetchNeighborhoods(): Promise<string[]> {
   if (_cachedNeighborhoods) return Promise.resolve(_cachedNeighborhoods);
   if (_fetchPromise) return _fetchPromise;
-  _fetchPromise = fetch('/api/neighborhoods')
+  _fetchPromise = fetch(apiUrl('/api/neighborhoods'))
     .then(r => r.json())
     .then((data: unknown) => {
       const arr = Array.isArray(data) ? data.filter((x): x is string => typeof x === 'string') : [];

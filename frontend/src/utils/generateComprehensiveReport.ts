@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import type { NeighborhoodScoreResponse } from '../types';
+import { apiUrl } from '../lib/api';
 
 // ── Types ──
 
@@ -513,7 +514,7 @@ class VisualReport {
 // ── Exported function ──
 
 export async function generateComprehensiveReport(data: NeighborhoodScoreResponse): Promise<void> {
-  const response = await fetch('/api/generate-report', {
+  const response = await fetch(apiUrl('/api/generate-report'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ score_data: data }),
