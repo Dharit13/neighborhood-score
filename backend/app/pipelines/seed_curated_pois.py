@@ -18,7 +18,7 @@ from app.db import get_sync_conn, run_sql_file
 
 def _synthetic_place_id(prefix: str, name: str) -> str:
     """Generate a deterministic place_id for curated entries without a Google place_id."""
-    h = hashlib.md5(name.encode()).hexdigest()[:16]
+    h = hashlib.md5(name.encode(), usedforsecurity=False).hexdigest()[:16]
     return f"curated_{prefix}_{h}"
 
 

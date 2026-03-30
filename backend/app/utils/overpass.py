@@ -22,7 +22,7 @@ CACHE_TTL_SECONDS = 600
 
 
 def _cache_key(query: str) -> str:
-    return hashlib.md5(query.encode()).hexdigest()
+    return hashlib.md5(query.encode(), usedforsecurity=False).hexdigest()
 
 
 async def query_overpass(query: str) -> list[dict]:

@@ -203,16 +203,22 @@ function CityCardStack({
 }
 
 export default function LoginPage() {
-  const { login, loginWithGoogle, selectCity, selectedCity } = useAuth();
+  const { login, signup, loginWithGoogle, selectCity, selectedCity } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setError('Please fill in all fields');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
       return;
     }
     if (!selectedCity) {
@@ -222,9 +228,21 @@ export default function LoginPage() {
     setError('');
     setSubmitting(true);
     try {
-      await login(email, password);
+      if (isSignUp) {
+        const result = await signup(email, password);
+        if (result.error) {
+          setError(result.error);
+        } else {
+          setSignUpSuccess(true);
+        }
+      } else {
+        const result = await login(email, password);
+        if (result.error) {
+          setError(result.error);
+        }
+      }
     } catch {
-      setError('Login failed. Please try again.');
+      setError('Something went wrong. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -312,12 +330,20 @@ export default function LoginPage() {
           <h1
             className="text-[32px] font-medium tracking-tight mb-2 text-white"
           >
-            Welcome back
+            {isSignUp ? 'Create account' : 'Welcome back'}
           </h1>
           <p className="text-sm text-white/50 mb-9 leading-relaxed">
-            Sign in to explore neighborhood scores, commute data, and builder trust ratings
-            {selectedCity ? ` across ${selectedCity}.` : '.'}
+            {isSignUp
+              ? 'Sign up to start exploring neighborhood scores and builder trust ratings.'
+              : `Sign in to explore neighborhood scores, commute data, and builder trust ratings${selectedCity ? ` across ${selectedCity}.` : '.'}`
+            }
           </p>
+
+          {signUpSuccess && (
+            <div className="mb-5 p-3 rounded-xl border border-[#2ad587]/30 bg-[#2ad587]/10">
+              <p className="text-sm text-[#2ad587]">Check your email for a confirmation link, then sign in.</p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
             {/* Email */}
@@ -360,7 +386,10 @@ export default function LoginPage() {
               className="w-full py-3.5 rounded-xl text-[15px] font-semibold text-white tracking-[0.01em] transition-all hover:-translate-y-px hover:shadow-[0_8px_30px_rgba(42,213,135,0.25)] active:translate-y-0 disabled:opacity-60 border-none cursor-pointer"
               style={{ background: 'linear-gradient(135deg, #002c7c, #005075, #007260, #2ad587)' }}
             >
-              {submitting ? 'Signing in\u2026' : 'Sign In'}
+              {submitting
+                ? (isSignUp ? 'Creating account\u2026' : 'Signing in\u2026')
+                : (isSignUp ? 'Create Account' : 'Sign In')
+              }
             </button>
           </form>
 
@@ -386,10 +415,14 @@ export default function LoginPage() {
           </button>
 
           <p className="text-center mt-7 text-[13px] text-white/50">
-            Don't have an account?{' '}
-            <a href="#" className="text-[#2ad587] font-medium hover:underline" onClick={(e) => e.preventDefault()}>
-              Create one
-            </a>
+            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+            <button
+              type="button"
+              className="text-[#2ad587] font-medium hover:underline bg-transparent border-none cursor-pointer"
+              onClick={() => { setIsSignUp(!isSignUp); setError(''); setSignUpSuccess(false); }}
+            >
+              {isSignUp ? 'Sign in' : 'Create one'}
+            </button>
           </p>
         </div>
       </div>

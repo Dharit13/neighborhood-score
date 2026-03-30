@@ -79,6 +79,14 @@ async def split_claims_text(raw_text: str) -> list[str]:
 
     lines = [line.strip() for line in raw_text.strip().split("\n") if line.strip()]
 
+    # Quick validation: reject very short or gibberish input
+    combined = " ".join(lines).strip()
+    if len(combined) < 10:
+        raise ValueError(
+            "Please paste property marketing text containing location or connectivity claims "
+            "(e.g., '5 min from metro', 'near schools')."
+        )
+
     looks_atomic = all(
         len(line.split()) <= 10 and ("," not in line or line.count(",") <= 1) and " and " not in line.lower()
         for line in lines

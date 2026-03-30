@@ -1,11 +1,20 @@
-import { useState } from 'react';
-import { Shield } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Shield, MapPin, Building2, Landmark, FolderKanban } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Section3DHeading from './Section3DHeading';
 import ScrollReveal3D from './ScrollReveal3D';
 import { AnimatedGlowingSearchBar } from '@/components/ui/animated-glowing-search-bar';
+import { Badge } from '@/components/ui/badge';
 import TetrisLoading from '@/components/ui/tetris-loader';
 import PropertyIntelligencePanel from './PropertyIntelligencePanel';
-import type { VerifyClaimsResponse } from '@/types';
+import type { VerifyClaimsResponse, SearchResults } from '@/types';
+
+const CATEGORY_CONFIG = {
+  builders: { icon: Building2, label: 'Builders', color: '#2563eb' },
+  projects: { icon: FolderKanban, label: 'Projects', color: '#8b5cf6' },
+  areas: { icon: MapPin, label: 'Areas', color: '#16a34a' },
+  landmarks: { icon: Landmark, label: 'Landmarks', color: '#f59e0b' },
+} as const;
 
 export default function VerifyClaims() {
   const [address, setAddress] = useState('');
@@ -14,8 +23,80 @@ export default function VerifyClaims() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<VerifyClaimsResponse | null>(null);
 
+  // Autocomplete state
+  const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const fetchResults = useCallback(async (query: string) => {
+    if (query.length < 2) { setSearchResults(null); return; }
+    setSearching(true);
+    try {
+      const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      if (resp.ok) {
+        const data: SearchResults = await resp.json();
+        setSearchResults(data);
+        setShowDropdown(data.total > 0);
+      }
+    } catch {
+      // best-effort
+    } finally {
+      setSearching(false);
+    }
+  }, []);
+
+  // Debounced search on address typing
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (address.trim().length < 2) {
+      setSearchResults(null);
+      setShowDropdown(false);
+      return;
+    }
+    debounceRef.current = setTimeout(() => fetchResults(address.trim()), 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [address, fetchResults]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelectSuggestion = (type: string, item: Record<string, unknown>) => {
+    setShowDropdown(false);
+    if (type === 'builders') {
+      setAddress(String(item.name));
+    } else if (type === 'projects') {
+      setAddress(String(item.location_area || item.project_name));
+    } else {
+      setAddress(String(item.name));
+    }
+  };
+
   const handleVerify = async () => {
+    setShowDropdown(false);
     if (!address.trim() || !claimsText.trim()) return;
+
+    // Validate claims text — must be meaningful
+    const trimmed = claimsText.trim();
+    if (trimmed.length < 10) {
+      setError('Please paste actual property marketing text (e.g., "5 min from metro, near schools"). The text is too short to contain verifiable claims.');
+      return;
+    }
+    // Check if it looks like gibberish (no spaces = single word, or all non-alpha)
+    const words = trimmed.split(/\s+/);
+    if (words.length < 3 && !/\d/.test(trimmed) && !/(near|close|from|to|min|km|metro|school|hospital)/i.test(trimmed)) {
+      setError('That doesn\'t look like property marketing text. Paste claims like "5 min from metro", "near top schools", or a full ad paragraph.');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -53,16 +134,66 @@ export default function VerifyClaims() {
         <ScrollReveal3D rotateX={-5}>
         <div className="rounded-xl bg-white/[0.03] backdrop-blur-sm p-5 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch">
-          <div className="flex flex-col">
+          <div className="flex flex-col" ref={containerRef}>
             <label className="block text-xs font-medium text-foreground mb-1">Property address or area</label>
-            <div className="flex-1 flex flex-col justify-center">
+            <div className="flex-1 flex flex-col justify-center relative">
               <AnimatedGlowingSearchBar
                 compact
                 value={address}
-                onChange={setAddress}
+                onChange={(v) => { setAddress(v); if (v.length >= 2) setShowDropdown(true); }}
                 onSubmit={handleVerify}
-                placeholder="e.g., Sarjapur Road, Bangalore"
+                placeholder="Start typing — e.g., Sarjapur, Whitefield, Electronic City"
+                loading={searching}
               />
+              <AnimatePresence>
+                {showDropdown && searchResults && searchResults.total > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full mt-1 left-0 right-0 z-50 rounded-xl bg-black/95 backdrop-blur-xl border border-white/[0.10] shadow-2xl overflow-hidden max-h-[280px] overflow-y-auto scrollbar-thin"
+                  >
+                    {(Object.entries(searchResults.results) as [keyof typeof CATEGORY_CONFIG, unknown[]][]).map(([category, items]) => {
+                      if (!items || items.length === 0) return null;
+                      const config = CATEGORY_CONFIG[category];
+                      if (!config) return null;
+                      const { icon: Icon, label, color } = config;
+                      return (
+                        <div key={category}>
+                          <div className="px-3 py-1.5 flex items-center gap-2 border-b border-white/[0.04]">
+                            <Icon size={11} style={{ color }} />
+                            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color }}>{label}</span>
+                            <Badge variant="mono" className="text-[8px] ml-auto">{items.length}</Badge>
+                          </div>
+                          {(items as Record<string, unknown>[]).map((item, i) => (
+                            <button
+                              key={i}
+                              onClick={() => handleSelectSuggestion(category, item)}
+                              className="w-full text-left px-3 py-2 hover:bg-white/[0.06] transition-colors flex items-center gap-2"
+                            >
+                              <span className="text-sm text-white/90 flex-1 truncate">
+                                {String(item.name || item.project_name || '')}
+                              </span>
+                              {item.trust_tier != null && (
+                                <Badge
+                                  variant={item.trust_tier === 'trusted' ? 'success' : item.trust_tier === 'emerging' ? 'info' : item.trust_tier === 'cautious' ? 'warning' : 'mono'}
+                                  className="text-[8px]"
+                                >
+                                  {String(item.trust_tier)}
+                                </Badge>
+                              )}
+                              {item.category != null && (
+                                <span className="text-[10px] text-white/30">{String(item.category)}</span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
           <div className="flex flex-col">
