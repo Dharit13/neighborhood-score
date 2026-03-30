@@ -39,6 +39,7 @@ GSD-STYLE.md
 PROJECT_RULES.md
 adapters/
 docs/
+!docs/decisions/
 model_capabilities.yaml
 scripts/
 skills-lock.json
