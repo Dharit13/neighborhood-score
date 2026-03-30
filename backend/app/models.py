@@ -175,6 +175,26 @@ class ClaimVerificationResponse(BaseModel):
     extracted_claims: list[str] = []
 
 
+class RecommendInput(BaseModel):
+    budget_type: str = Field(..., description="'buy' or 'rent'")
+    budget_range: str = Field(..., description="e.g. '60L-1Cr', 'Under 60L', '20-35K'")
+    commute_destination: str | None = Field(None, description="Where the user commutes to")
+    priorities: list[str] = Field(..., description="Top 3 priorities e.g. ['safety','metro_access','schools']")
+    lifestyle: str = Field(..., description="e.g. 'young_professional', 'family_with_kids'")
+
+
+class RecommendItem(BaseModel):
+    neighborhood: str
+    match_score: int = Field(..., ge=0, le=100)
+    reason: str
+    highlights: list[str]
+    scores: dict[str, Any]
+
+
+class RecommendResponse(BaseModel):
+    recommendations: list[RecommendItem]
+
+
 def score_label(score: float) -> str:
     if score >= 75:
         return "Top Notch"

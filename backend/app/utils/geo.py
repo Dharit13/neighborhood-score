@@ -1,6 +1,7 @@
 import logging
 import math
 import os
+import time
 
 import httpx
 
@@ -9,6 +10,11 @@ logger = logging.getLogger(__name__)
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
 CROW_FLY_CORRECTION = 1.4
+
+# Geocode result cache: address -> (result, timestamp)
+_geocode_cache: dict[str, tuple[tuple[float, float] | None, float]] = {}
+_reverse_cache: dict[str, tuple[str, float]] = {}
+_CACHE_TTL = 3600  # 1 hour
 
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -32,98 +38,116 @@ def decay_score(distance_km: float, full_score_km: float = 0.5, zero_score_km: f
     return 1.0 - (distance_km - full_score_km) / (zero_score_km - full_score_km)
 
 
-def _lookup_neighborhood_coords(address: str) -> tuple[float, float] | None:
+async def _lookup_neighborhood_coords(address: str) -> tuple[float, float] | None:
     """Check our neighborhoods DB first — instant, free, and uses our curated coordinates."""
     try:
-        from app.db import get_sync_conn
+        from app.db import get_pool
 
-        conn = get_sync_conn()
-        try:
-            with conn.cursor() as cur:
-                addr_lower = (
-                    address.lower()
-                    .replace(", bangalore", "")
-                    .replace(", bengaluru", "")
-                    .replace(", karnataka, india", "")
-                    .strip()
-                )
-                # Exact name match
-                cur.execute(
-                    """SELECT ST_Y(center_geog::geometry), ST_X(center_geog::geometry)
-                       FROM neighborhoods WHERE LOWER(name) = %s LIMIT 1""",
-                    (addr_lower,),
-                )
-                row = cur.fetchone()
-                if row:
-                    return (row[0], row[1])
-                # Partial match — neighborhood name appears in the address
-                cur.execute(
-                    """SELECT ST_Y(center_geog::geometry), ST_X(center_geog::geometry), name
-                       FROM neighborhoods WHERE %s LIKE '%%' || LOWER(name) || '%%'
-                       ORDER BY LENGTH(name) DESC LIMIT 1""",
-                    (addr_lower,),
-                )
-                row = cur.fetchone()
-                if row:
-                    return (row[0], row[1])
-                # Alias match — check if address appears in any neighborhood's aliases
-                cur.execute(
-                    """SELECT ST_Y(center_geog::geometry), ST_X(center_geog::geometry)
-                       FROM neighborhoods
-                       WHERE EXISTS (SELECT 1 FROM unnest(aliases) a WHERE LOWER(a) = %s)
-                       LIMIT 1""",
-                    (addr_lower,),
-                )
-                row = cur.fetchone()
-                if row:
-                    return (row[0], row[1])
-        finally:
-            conn.close()
+        pool = await get_pool()
+        addr_lower = (
+            address.lower()
+            .replace(", bangalore", "")
+            .replace(", bengaluru", "")
+            .replace(", karnataka, india", "")
+            .strip()
+        )
+        async with pool.acquire() as conn:
+            # Exact name match
+            row = await conn.fetchrow(
+                """SELECT ST_Y(center_geog::geometry), ST_X(center_geog::geometry)
+                   FROM neighborhoods WHERE LOWER(name) = $1 LIMIT 1""",
+                addr_lower,
+            )
+            if row:
+                return (row[0], row[1])
+            # Partial match — neighborhood name appears in the address
+            row = await conn.fetchrow(
+                """SELECT ST_Y(center_geog::geometry), ST_X(center_geog::geometry), name
+                   FROM neighborhoods WHERE $1 LIKE '%' || LOWER(name) || '%'
+                   ORDER BY LENGTH(name) DESC LIMIT 1""",
+                addr_lower,
+            )
+            if row:
+                return (row[0], row[1])
+            # Alias match — check if address appears in any neighborhood's aliases
+            row = await conn.fetchrow(
+                """SELECT ST_Y(center_geog::geometry), ST_X(center_geog::geometry)
+                   FROM neighborhoods
+                   WHERE EXISTS (SELECT 1 FROM unnest(aliases) a WHERE LOWER(a) = $1)
+                   LIMIT 1""",
+                addr_lower,
+            )
+            if row:
+                return (row[0], row[1])
     except Exception as e:
         logger.debug(f"DB neighborhood lookup failed: {e}")
     return None
 
 
-def geocode_address(address: str) -> tuple[float, float] | None:
-    """Look up neighborhood from DB first, fall back to Google Maps Geocoding API."""
-    db_result = _lookup_neighborhood_coords(address)
+async def geocode_address(address: str) -> tuple[float, float] | None:
+    """Look up neighborhood from DB first, fall back to Google Maps Geocoding API.
+    Results are cached for 1 hour to reduce API calls under load."""
+    now = time.monotonic()
+
+    # Check cache
+    cached = _geocode_cache.get(address)
+    if cached and (now - cached[1]) < _CACHE_TTL:
+        return cached[0]
+
+    db_result = await _lookup_neighborhood_coords(address)
     if db_result:
+        _geocode_cache[address] = (db_result, now)
         return db_result
 
+    query_addr = address
     if "bangalore" not in address.lower() and "bengaluru" not in address.lower():
-        address = f"{address}, Bangalore, Karnataka, India"
+        query_addr = f"{address}, Bangalore, Karnataka, India"
 
     try:
-        with httpx.Client(timeout=10.0) as client:
-            resp = client.get(
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(
                 "https://maps.googleapis.com/maps/api/geocode/json",
-                params={"address": address, "key": GOOGLE_MAPS_API_KEY},
+                params={"address": query_addr, "key": GOOGLE_MAPS_API_KEY},
             )
             if resp.status_code == 200:
                 data = resp.json()
                 if data.get("results"):
                     loc = data["results"][0]["geometry"]["location"]
-                    return (loc["lat"], loc["lng"])
+                    result = (loc["lat"], loc["lng"])
+                    _geocode_cache[address] = (result, now)
+                    return result
     except Exception as e:
         logger.warning(f"Google geocode failed: {e}")
+    _geocode_cache[address] = (None, now)
     return None
 
 
-def reverse_geocode(lat: float, lon: float) -> str:
-    """Reverse geocode using Google Maps API."""
+async def reverse_geocode(lat: float, lon: float) -> str:
+    """Reverse geocode using Google Maps API. Results cached for 1 hour."""
+    cache_key = f"{lat:.6f},{lon:.6f}"
+    now = time.monotonic()
+
+    cached = _reverse_cache.get(cache_key)
+    if cached and (now - cached[1]) < _CACHE_TTL:
+        return cached[0]
+
     try:
-        with httpx.Client(timeout=10.0) as client:
-            resp = client.get(
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(
                 "https://maps.googleapis.com/maps/api/geocode/json",
                 params={"latlng": f"{lat},{lon}", "key": GOOGLE_MAPS_API_KEY},
             )
             if resp.status_code == 200:
                 data = resp.json()
                 if data.get("results"):
-                    return data["results"][0]["formatted_address"]
+                    result = data["results"][0]["formatted_address"]
+                    _reverse_cache[cache_key] = (result, now)
+                    return result
     except Exception as e:
         logger.warning(f"Google reverse geocode failed: {e}")
-    return f"{lat:.4f}, {lon:.4f}"
+    fallback = f"{lat:.4f}, {lon:.4f}"
+    _reverse_cache[cache_key] = (fallback, now)
+    return fallback
 
 
 def find_nearest(lat: float, lon: float, points: list[dict], top_n: int = 5) -> list[dict]:
