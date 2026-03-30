@@ -69,12 +69,100 @@ make dev-frontend   # terminal 2 — vite on :5173 (proxies /api to :8000)
   - Good: `Add flood risk scorer with BBMP ward data`
   - Bad: `updated stuff`
 
-## Adding a New Scoring Dimension
+## Ways to Contribute
 
-1. Create a scorer in `backend/app/scorers/`
-2. Add the weight to `SCORE_WEIGHTS` in `backend/app/config.py`
-3. Wire it into the scoring pipeline in `backend/app/routers/scores.py`
-4. Add a frontend card in `frontend/src/components/`
+### 1. Add or Improve Neighborhood Data
+
+We currently score **130+ neighborhoods across 17 dimensions**. The biggest impact comes from better data.
+
+#### Curated Data Files (`backend/app/data/curated/`)
+
+These JSON files are the easiest entry point — no API keys needed, just local knowledge:
+
+| File | What it contains | How to improve |
+|------|-----------------|----------------|
+| `safety_zones.json` | Crime rates, police station coverage | Add missing police stations, update crime stats from NCRB/KSP reports |
+| `water_zones.json` | BWSSB stage classifications, supply hours | Update supply schedules, add borewell/tanker dependency data |
+| `power_zones.json` | BESCOM tier ratings, outage frequency | Add recent outage data, transformer capacity |
+| `property_prices.json` | Avg ₹/sqft, 2BHK prices, rent, YoY growth | Update with latest RERA/ANAROCK/MagicBricks data |
+| `walkability_zones.json` | Footpath quality, street lighting, crossing density | Ground-truth walkability from walking audits |
+| `top_schools.json` | CBSE/ICSE/State board schools with ratings | Add missing schools, update ratings, add fee ranges |
+| `nabh_hospitals.json` | NABH-accredited hospitals, bed counts | Add clinics, specialty hospitals, ambulance response times |
+| `metro_stations.json` | Namma Metro stations with coordinates | Add Phase 2/3 stations as they open |
+| `bus_stops.json` | BMTC bus stop locations | Add missing stops, route frequency data |
+| `aqi_stations.json` | CPCB air quality monitoring stations | Add more station data, seasonal AQI patterns |
+| `police_stations.json` | Station locations and jurisdiction | Add beat-level patrol data |
+| `future_infra.json` | Upcoming infrastructure projects | Add timeline updates, new announced projects (PRR, metro extensions) |
+| `builders.json` | Builder profiles, RERA compliance | Add builder reviews, project delivery track records |
+| `business_opportunity.json` | Coworking spaces, startup density | Add new coworking/tech parks, startup ecosystem data |
+| `landmarks.json` | Key landmarks for geocoding reference | Add missing landmarks, popular local references |
+| `areas.json` | Area boundaries and metadata | Add sub-locality boundaries, pin code mappings |
+
+#### How to submit data improvements
+
+1. Fork the repo, edit the JSON file in `backend/app/data/curated/`
+2. Keep the existing JSON schema — add entries, don't change the structure
+3. Include your data source in the PR description (e.g., "BWSSB 2025 report", "ground survey Dec 2025")
+4. Run `make check` to ensure nothing breaks
+5. Submit a PR targeting `main`
+
+### 2. Add a New Scoring Dimension
+
+We currently have 17 dimensions. Ideas for new ones:
+
+| Dimension | Data Source Ideas | Impact |
+|-----------|------------------|--------|
+| **Pet-friendliness** | Parks with pet areas, vet clinics, pet stores | Growing demand from young buyers |
+| **Internet quality** | ISP coverage (ACT, Airtel Fiber), avg speeds | Remote work is a top priority |
+| **Nightlife/dining** | Restaurant density, bar/pub clusters, Zomato/Swiggy delivery times | Lifestyle scoring |
+| **Senior-friendliness** | Accessibility, pharmacy density, geriatric care, park benches | Retirement/elderly housing |
+| **Green cover** | Tree canopy %, parks per capita, lake proximity | Environmental quality |
+| **Traffic congestion** | Google Maps typical travel times, peak hour data | Commute quality beyond transit access |
+| **Rental ROI** | Rental yield %, vacancy rates, tenant demand | Investor-focused scoring |
+
+**Steps to add a new dimension:**
+
+1. Create a scorer in `backend/app/scorers/your_dimension.py`
+2. Add curated data in `backend/app/data/curated/your_data.json`
+3. Add a seed pipeline in `backend/app/pipelines/seed_your_data.py`
+4. Add the weight to `SCORE_WEIGHTS` in `backend/app/config.py`
+5. Wire it into the scoring pipeline in `backend/app/routers/scores.py`
+6. Add a frontend card in `frontend/src/components/`
+7. Add a migration if new DB tables are needed in `backend/supabase/migrations/`
+
+### 3. Enhance Existing Scorers
+
+Each scorer in `backend/app/scorers/` computes a 0–100 score. Improvements could include:
+
+- **Better algorithms**: The safety scorer uses crime rate + police proximity — could add CCTV density, street lighting
+- **More data sources**: The air quality scorer uses CPCB stations — could integrate SAFAR or purple air sensors
+- **Temporal awareness**: Scores are static — add time-of-day or seasonal variation (e.g., flood risk during monsoon)
+- **Hyperlocal granularity**: Most scorers work at neighborhood level — could go down to ward or pin code level
+
+### 4. Frontend & UX
+
+- Improve mobile responsiveness
+- Add comparison views (side-by-side neighborhoods)
+- Better data visualization (charts, heatmaps)
+- Accessibility improvements (WCAG compliance)
+- Localization (Kannada, Hindi)
+
+### 5. Data Pipelines
+
+Pipelines in `backend/app/pipelines/` fetch and process data. You can:
+
+- Add new fetch pipelines for open data sources (data.opencity.in, data.gov.in, BBMP open data)
+- Improve geocoding accuracy in `geocode_neighborhoods.py`
+- Add data validation and freshness checks
+- Optimize pipeline performance (batch processing, caching)
+
+### 6. Infrastructure & DevOps
+
+- Add monitoring/alerting
+- Improve CI/CD pipeline
+- Add load testing
+- Database query optimization
+- API documentation improvements
 
 ## Reporting Bugs
 
