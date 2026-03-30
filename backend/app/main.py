@@ -61,7 +61,12 @@ def _check_rate_limit(ip: str, path: str) -> bool:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await get_pool()
+    try:
+        await get_pool()
+    except Exception:
+        # DB may be temporarily unavailable — app starts anyway,
+        # pool is created lazily on first request.
+        pass
     yield
     await close_pool()
 
