@@ -10,8 +10,10 @@ import logging
 import os
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+
+from app.auth import require_auth
 
 logger = logging.getLogger(__name__)
 
@@ -176,7 +178,7 @@ class ReportInput(BaseModel):
 
 
 @router.post("/generate-report")
-async def generate_report(input: ReportInput):
+async def generate_report(input: ReportInput, _user: dict = Depends(require_auth)):
     """Generate a comprehensive neighbourhood report using Claude AI."""
     try:
         import anthropic

@@ -14,9 +14,10 @@ import json
 import logging
 import os
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from app.auth import require_auth
 from app.db import get_pool
 
 logger = logging.getLogger(__name__)
@@ -204,6 +205,7 @@ async def list_builders(
     ),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0, description="Number of records to skip for pagination"),
+    _user: dict = Depends(require_auth),
 ):
     """List builders, optionally filtered by area, tier, or segment."""
     pool = await get_pool()
@@ -301,7 +303,7 @@ async def list_builders(
 
 
 @router.get("/builder/{slug}")
-async def get_builder(slug: str):
+async def get_builder(slug: str, _user: dict = Depends(require_auth)):
     """Get full builder profile by slug."""
     pool = await get_pool()
     async with pool.acquire() as conn:
@@ -397,7 +399,7 @@ async def get_builder(slug: str):
 
 
 @router.get("/area/{slug}")
-async def get_area(slug: str):
+async def get_area(slug: str, _user: dict = Depends(require_auth)):
     """Get area profile with builders, infrastructure, and scores."""
     pool = await get_pool()
     async with pool.acquire() as conn:
@@ -484,7 +486,7 @@ async def get_area(slug: str):
 
 
 @router.post("/intelligence-brief")
-async def generate_intelligence_brief(request: IntelligenceBriefRequest):
+async def generate_intelligence_brief(request: IntelligenceBriefRequest, _user: dict = Depends(require_auth)):
     """Generate AI-powered intelligence brief for a property location."""
     if not ANTHROPIC_API_KEY:
         raise HTTPException(status_code=503, detail="AI service unavailable")
@@ -643,6 +645,7 @@ Respond in JSON format:
 async def list_infrastructure(
     area: str | None = Query(None),
     type: str | None = Query(None, description="metro, expressway, suburban_rail"),
+    _user: dict = Depends(require_auth),
 ):
     """List infrastructure projects with optional area/type filters."""
     pool = await get_pool()

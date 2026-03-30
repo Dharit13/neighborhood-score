@@ -8,10 +8,11 @@ import os
 import time
 from typing import cast
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
+from app.auth import require_auth
 from app.db import get_pool
 
 logger = logging.getLogger(__name__)
@@ -187,7 +188,7 @@ def _set_cached_response(key: str, text: str) -> None:
 
 
 @router.post("/ai-chat")
-async def ai_chat(input: AIChatInput):
+async def ai_chat(input: AIChatInput, _user: dict = Depends(require_auth)):
     """AI-powered neighborhood Q&A using Claude."""
     try:
         import anthropic

@@ -17,7 +17,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { generateReport } from './utils/generateReport';
 import { generateComprehensiveReport } from './utils/generateComprehensiveReport';
 import { getFreshnessForDimension, type FreshnessData } from './utils/freshnessMap';
-import { apiUrl } from './lib/api';
+import { apiUrl, apiFetch } from './lib/api';
 import type { NeighborhoodScoreResponse, FeaturedNeighborhood } from './types';
 import defaultScores from './data/defaultScores.json';
 
@@ -524,7 +524,7 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const resp = await fetch(apiUrl('/api/scores'), {
+      const resp = await apiFetch('/api/scores', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(query),

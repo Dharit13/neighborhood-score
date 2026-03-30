@@ -4,8 +4,9 @@ import logging as _logging
 import os as _os
 from math import sqrt as _sqrt
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.auth import require_auth
 from app.config import BANGALORE_BBOX, CURATED_DIR, SCORE_WEIGHTS
 from app.db import get_pool
 from app.models import (
@@ -338,7 +339,7 @@ async def list_neighborhoods():
 
 
 @router.post("/scores", response_model=NeighborhoodScoreResponse)
-async def get_neighborhood_scores(input: LocationInput):
+async def get_neighborhood_scores(input: LocationInput, _user: dict = Depends(require_auth)):
     # Check cache first for instant responses
     if _score_cache:
         cache_lat = input.latitude
@@ -1075,7 +1076,7 @@ async def map_config():
 
 
 @router.post("/commute/refresh")
-async def refresh_commute(input: LocationInput):
+async def refresh_commute(input: LocationInput, _user: dict = Depends(require_auth)):
     """Live Google Maps Distance Matrix call for a specific location."""
     import datetime
     import json
@@ -1184,7 +1185,7 @@ async def refresh_commute(input: LocationInput):
 
 
 @router.post("/transit/walk")
-async def live_transit_walk(input: LocationInput):
+async def live_transit_walk(input: LocationInput, _user: dict = Depends(require_auth)):
     """Live Google Maps Directions walking time to nearest transit stations."""
     import json
     import urllib.parse
@@ -1543,7 +1544,7 @@ async def collect_locality_data(pool, lat: float, lon: float) -> dict:
 
 
 @router.post("/verify-claims", response_model=ClaimVerificationResponse)
-async def verify_claims(input: ClaimInput):
+async def verify_claims(input: ClaimInput, _user: dict = Depends(require_auth)):
     """Verify property ad claims against real data using Claude + landmark registry."""
     from app.lib.claim_parser import generate_claim_narrative, parse_claims, split_claims_text, verify_claims_via_ai
     from app.lib.commute_verifier import compute_verdict, get_commute_data, haversine_meters
@@ -1933,7 +1934,7 @@ def _prefilter_neighborhoods(inp: RecommendInput) -> list[tuple[str, dict, float
 
 
 @router.post("/ai-recommend")
-async def ai_recommend(inp: RecommendInput):
+async def ai_recommend(inp: RecommendInput, _user: dict = Depends(require_auth)):
     """AI-powered neighborhood recommendation based on lifestyle questions."""
     try:
         import anthropic

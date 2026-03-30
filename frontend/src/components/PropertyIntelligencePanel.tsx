@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Building2, MapPin, AlertTriangle, Sparkles, ChevronLeft, ExternalLink, Star, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import BuilderCard from './BuilderCard';
-import { apiUrl } from '@/lib/api';
+import { apiFetch } from '@/lib/api';
 import RedFlagAlert from './RedFlagAlert';
 import MetricCard from './MetricCard';
 import InfraTimeline from './InfraTimeline';
@@ -50,7 +50,7 @@ function BuilderDetailView({ slug, onBack }: { slug: string; onBack: () => void 
 
   useEffect(() => {
     let cancelled = false;
-    fetch(apiUrl(`/api/builder/${slug}`))
+    apiFetch(`/api/builder/${slug}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (!cancelled && d) setProfile(d); })
       .catch(() => {})
@@ -235,19 +235,19 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
 
   useEffect(() => {
     if (activeTab === 'builders' && !buildersData) {
-      fetch(apiUrl(`/api/builders?area=${encodeURIComponent(areaSlug)}`))
+      apiFetch(`/api/builders?area=${encodeURIComponent(areaSlug)}`)
         .then(r => r.ok ? r.json() : null)
         .then(d => { if (d) setBuildersData(d); })
         .catch(() => {})
         .finally(() => setLoadingTab(null));
     } else if (activeTab === 'area' && !areaData) {
-      fetch(apiUrl(`/api/area/${encodeURIComponent(areaSlug)}`))
+      apiFetch(`/api/area/${encodeURIComponent(areaSlug)}`)
         .then(r => r.ok ? r.json() : null)
         .then(d => { if (d) setAreaData(d); })
         .catch(() => {})
         .finally(() => setLoadingTab(null));
     } else if (activeTab === 'brief' && !briefData) {
-      fetch(apiUrl('/api/intelligence-brief'), {
+      apiFetch('/api/intelligence-brief', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address, latitude, longitude }),
