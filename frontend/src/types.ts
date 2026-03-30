@@ -278,3 +278,15 @@ export interface SearchResults {
     landmarks: { name: string; category: string; latitude: number; longitude: number }[];
   };
 }
+
+export interface RecommendItem {
+  neighborhood: string;
+  match_score: number;
+  reason: string;
+  highlights: string[];
+  scores: NeighborhoodScoreResponse;
+}
+
+export interface RecommendResponse {
+  recommendations: RecommendItem[];
+}

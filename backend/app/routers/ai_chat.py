@@ -104,7 +104,9 @@ async def _get_neighborhood_summary(name: str) -> dict | None:
                 name,
             )
         if row:
-            result = {k: (float(v) if isinstance(v, (int, float)) and v is not None else v) for k, v in dict(row).items()}
+            result = {
+                k: (float(v) if isinstance(v, (int, float)) and v is not None else v) for k, v in dict(row).items()
+            }
             if len(_summary_cache) >= _SUMMARY_CACHE_MAX:
                 oldest = min(_summary_cache, key=lambda k: _summary_cache[k][1])
                 del _summary_cache[oldest]

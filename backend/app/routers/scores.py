@@ -57,6 +57,7 @@ def _validate_bangalore_bbox(lat: float, lon: float) -> None:
             ),
         )
 
+
 _score_cache: dict[str, dict] = {}
 _score_cache_coords: list[tuple[str, float, float]] = []
 
@@ -1836,10 +1837,23 @@ _RENT_RANGES: dict[str, tuple[float, float]] = {
 
 # Dimension keys that exist in the precomputed score cache
 _DIM_KEYS = [
-    "safety", "walkability", "transit_access", "flood_risk", "commute",
-    "hospital_access", "water_supply", "air_quality", "school_access",
-    "property_prices", "noise", "power_reliability", "future_infrastructure",
-    "cleanliness", "builder_reputation", "delivery_coverage", "business_opportunity",
+    "safety",
+    "walkability",
+    "transit_access",
+    "flood_risk",
+    "commute",
+    "hospital_access",
+    "water_supply",
+    "air_quality",
+    "school_access",
+    "property_prices",
+    "noise",
+    "power_reliability",
+    "future_infrastructure",
+    "cleanliness",
+    "builder_reputation",
+    "delivery_coverage",
+    "business_opportunity",
 ]
 
 
@@ -1900,10 +1914,7 @@ def _prefilter_neighborhoods(inp: RecommendInput) -> list[tuple[str, dict, float
         # Compute priority-weighted score
         if priority_dims:
             total_w = sum(priority_dims.values())
-            rank_score = sum(
-                priority_dims.get(d, 0) * _extract_dim_score(entry, d)
-                for d in _DIM_KEYS
-            ) / total_w
+            rank_score = sum(priority_dims.get(d, 0) * _extract_dim_score(entry, d) for d in _DIM_KEYS) / total_w
         else:
             # Fallback: composite score
             rank_score = float(entry.get("composite_score", 50))
@@ -1931,10 +1942,7 @@ async def ai_recommend(inp: RecommendInput):
     candidates = _prefilter_neighborhoods(inp)
     if len(candidates) < 3:
         # Fallback: use all cached neighborhoods sorted by composite
-        candidates = [
-            (name, entry, float(entry.get("composite_score", 50)))
-            for name, entry in _score_cache.items()
-        ]
+        candidates = [(name, entry, float(entry.get("composite_score", 50))) for name, entry in _score_cache.items()]
         candidates.sort(key=lambda x: x[2], reverse=True)
         candidates = candidates[:8]
 
@@ -2018,12 +2026,14 @@ Return ONLY valid JSON in this exact format:
             # Use first candidate as fallback
             matched_entry = candidates[0][1] if candidates else {}
 
-        recommendations.append(RecommendItem(
-            neighborhood=pick.get("neighborhood", pick_name),
-            match_score=min(100, max(0, int(pick.get("match_score", 75)))),
-            reason=pick.get("reason", ""),
-            highlights=pick.get("highlights", []),
-            scores=matched_entry,
-        ))
+        recommendations.append(
+            RecommendItem(
+                neighborhood=pick.get("neighborhood", pick_name),
+                match_score=min(100, max(0, int(pick.get("match_score", 75)))),
+                reason=pick.get("reason", ""),
+                highlights=pick.get("highlights", []),
+                scores=matched_entry,
+            )
+        )
 
     return RecommendResponse(recommendations=recommendations)

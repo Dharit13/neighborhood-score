@@ -1,84 +1,100 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-
-interface User {
-  email: string;
-  name?: string;
-}
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import type { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
+  session: Session | null;
   selectedCity: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<{ error?: string }>;
+  signup: (email: string, password: string) => Promise<{ error?: string }>;
   loginWithGoogle: () => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   selectCity: (city: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const STORAGE_KEY = 'ns_auth';
-
-function getStoredSession(): { user: User | null; selectedCity: string | null } {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return {
-        user: parsed.user ?? null,
-        selectedCity: parsed.selectedCity ?? null,
-      };
-    }
-  } catch {
-    localStorage.removeItem(STORAGE_KEY);
-  }
-  return { user: null, selectedCity: null };
-}
+const CITY_KEY = 'ns_selected_city';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const stored = getStoredSession();
-  const [user, setUser] = useState<User | null>(stored.user);
-  const [selectedCity, setSelectedCity] = useState<string | null>(stored.selectedCity);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(
+    () => localStorage.getItem(CITY_KEY),
+  );
+  const [loading, setLoading] = useState(true);
 
-  const persistSession = (u: User | null, city: string | null) => {
-    if (u) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: u, selectedCity: city }));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  };
+  // Listen to Supabase auth state changes (handles initial session + OAuth redirect)
+  useEffect(() => {
+    // Subscribe to auth changes FIRST — this catches the OAuth token exchange
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, s) => {
+        setSession(s);
+        setUser(s?.user ?? null);
+        setLoading(false);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const login = useCallback(async (email: string, _password: string) => {
-    const u = { email, name: email.split('@')[0] };
-    setUser(u);
-    persistSession(u, selectedCity);
-  }, [selectedCity]);
+        // Clean up the URL hash after successful OAuth callback
+        if (event === 'SIGNED_IN' && window.location.hash.includes('access_token')) {
+          window.history.replaceState(null, '', '/');
+        }
+      },
+    );
+
+    // Check for existing session from localStorage
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s);
+      setUser(s?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const login = useCallback(async (email: string, password: string): Promise<{ error?: string }> => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: error.message };
+    return {};
+  }, []);
+
+  const signup = useCallback(async (email: string, password: string): Promise<{ error?: string }> => {
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) return { error: error.message };
+    return {};
+  }, []);
 
   const loginWithGoogle = useCallback(async () => {
-    const u = { email: 'user@gmail.com', name: 'Google User' };
-    setUser(u);
-    persistSession(u, selectedCity);
-  }, [selectedCity]);
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+  }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setSelectedCity(null);
-    persistSession(null, null);
+    localStorage.removeItem(CITY_KEY);
   }, []);
 
   const selectCity = useCallback((city: string) => {
     setSelectedCity(city);
-    if (user) persistSession(user, city);
-  }, [user]);
+    localStorage.setItem(CITY_KEY, city);
+  }, []);
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated: !!user,
+        isAuthenticated: !!session,
         user,
+        session,
         selectedCity,
+        loading,
         login,
+        signup,
         loginWithGoogle,
         logout,
         selectCity,
