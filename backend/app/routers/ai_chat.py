@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import time
+from typing import cast
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -71,7 +72,7 @@ async def _get_neighborhood_summary(name: str) -> dict | None:
     cache_key = f"single:{name.lower().strip()}"
     cached = _summary_cache.get(cache_key)
     if cached and (time.monotonic() - cached[1]) < _SUMMARY_CACHE_TTL:
-        return cached[0]
+        return cast(dict, cached[0])
     try:
         pool = await get_pool()
         async with pool.acquire() as conn:
@@ -122,7 +123,7 @@ async def _get_all_neighborhoods_summary() -> list[dict]:
     cache_key = "all_neighborhoods"
     cached = _summary_cache.get(cache_key)
     if cached and (time.monotonic() - cached[1]) < _SUMMARY_CACHE_TTL:
-        return cached[0]
+        return cast(list[dict], cached[0])
     try:
         pool = await get_pool()
         async with pool.acquire() as conn:
