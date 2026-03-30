@@ -203,37 +203,8 @@ export default function NeighborhoodMap({ data, onMapClick, loading, featuredNei
     if (!mapRef.current || !data) return;
     const map = mapRef.current;
     const target = { lat: data.latitude, lng: data.longitude };
-    const currentZoom = map.getZoom() ?? 13;
-    const currentCenter = map.getCenter();
-
-    if (!currentCenter || (currentCenter.lat() === target.lat && currentCenter.lng() === target.lng)) {
-      map.panTo(target);
-      map.setZoom(13);
-      return;
-    }
-
-    const flyOutZoom = Math.min(currentZoom, 13) - 2;
-    map.setZoom(flyOutZoom);
-
-    const onZoomOut = () => {
-      map.panTo(target);
-      google.maps.event.removeListener(zoomOutListener);
-
-      const onPan = () => {
-        google.maps.event.removeListener(panListener);
-        let z = flyOutZoom;
-        const zoomStep = () => {
-          z += 0.5;
-          if (z >= 13) { map.setZoom(13); return; }
-          map.setZoom(Math.round(z));
-          requestAnimationFrame(zoomStep);
-        };
-        requestAnimationFrame(zoomStep);
-      };
-      const panListener = map.addListener('idle', onPan);
-    };
-    const zoomOutListener = map.addListener('idle', onZoomOut);
-    // Only re-run on coordinate changes, not full data object changes
+    map.panTo(target);
+    map.setZoom(13);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.latitude, data?.longitude]);
 
@@ -278,6 +249,10 @@ export default function NeighborhoodMap({ data, onMapClick, loading, featuredNei
         const safetyPink = data?.safety?.score != null && data.safety.score >= 90;
         const color = safetyPink ? '#ec4899' : sc >= 75 ? '#c0c7d0' : sc >= 68 ? '#3b82f6' : sc >= 60 ? '#2ad587' : sc >= 52 ? '#fbbf24' : '#f87171';
         const textColor = safetyPink ? '#fff' : sc >= 45 ? '#000' : '#fff';
+
+        this.container.setAttribute('role', 'button');
+        this.container.setAttribute('tabindex', '0');
+        this.container.setAttribute('aria-label', `${neighborhoodName}: score ${Math.round(this.score)} out of 100. Click to explore.`);
 
         this.container.innerHTML = `
           <div class="map-marker-wrap" style="display:flex;flex-direction:column;align-items:center;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);transform-origin:bottom center;">
@@ -351,6 +326,13 @@ export default function NeighborhoodMap({ data, onMapClick, loading, featuredNei
             wrap.style.transform = 'scale(1)';
             wrap.style.animation = 'map-marker-float 3s ease-in-out infinite';
           }, 300);
+        });
+
+        this.container.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.container?.click();
+          }
         });
 
         setTimeout(() => {
@@ -549,6 +531,10 @@ export default function NeighborhoodMap({ data, onMapClick, loading, featuredNei
         const subtitleParts = [priceText, growthText].filter(Boolean).join(' · ');
         const pinId = `fp-${Math.random().toString(36).slice(2, 8)}`;
 
+        this.container.setAttribute('role', 'button');
+        this.container.setAttribute('tabindex', '0');
+        this.container.setAttribute('aria-label', `${this.info.name}: score ${Math.round(this.info.score)} out of 100. Click to explore.`);
+
         this.container.innerHTML = `
           <div class="featured-pin-wrap" style="display:flex;flex-direction:column;align-items:center;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);transform-origin:bottom center;">
             <svg width="32" height="42" viewBox="0 0 36 46" style="filter:drop-shadow(0 2px 6px ${dotColor}40);transition:transform 0.25s ease;">
@@ -608,6 +594,13 @@ export default function NeighborhoodMap({ data, onMapClick, loading, featuredNei
         this.container.addEventListener('click', (e) => {
           e.stopPropagation();
           onMapClickRef.current(this.info.latitude, this.info.longitude, `${this.info.name}, Bangalore`);
+        });
+
+        this.container.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.container?.click();
+          }
         });
 
         this.getPanes()?.overlayMouseTarget.appendChild(this.container);

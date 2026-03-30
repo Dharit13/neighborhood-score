@@ -1,10 +1,12 @@
+import asyncio as _asyncio
 import json as _json
 import logging as _logging
+import os as _os
 from math import sqrt as _sqrt
 
 from fastapi import APIRouter, HTTPException
 
-from app.config import CURATED_DIR, SCORE_WEIGHTS
+from app.config import BANGALORE_BBOX, CURATED_DIR, SCORE_WEIGHTS
 from app.db import get_pool
 from app.models import (
     AIVerification,
@@ -14,6 +16,9 @@ from app.models import (
     LocationInput,
     NeighborhoodRank,
     NeighborhoodScoreResponse,
+    RecommendInput,
+    RecommendItem,
+    RecommendResponse,
     RentVsBuyArea,
     WardInfo,
     score_label,
@@ -38,6 +43,19 @@ from app.scorers.water_supply import compute_water_supply_score
 from app.utils.geo import geocode_address, reverse_geocode
 
 router = APIRouter(prefix="/api", tags=["scores"])
+
+
+def _validate_bangalore_bbox(lat: float, lon: float) -> None:
+    """Raise 400 if coordinates fall outside Bangalore metropolitan bounding box."""
+    bbox = BANGALORE_BBOX
+    if not (bbox["south"] <= lat <= bbox["north"] and bbox["west"] <= lon <= bbox["east"]):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Coordinates ({lat:.4f}, {lon:.4f}) are outside Bangalore. "
+                f"Valid range: lat {bbox['south']}-{bbox['north']}, lon {bbox['west']}-{bbox['east']}."
+            ),
+        )
 
 _score_cache: dict[str, dict] = {}
 _score_cache_coords: list[tuple[str, float, float]] = []
@@ -343,42 +361,64 @@ async def get_neighborhood_scores(input: LocationInput):
     user_provided_address = input.address
     if input.latitude is not None and input.longitude is not None:
         lat, lon = input.latitude, input.longitude
+        _validate_bangalore_bbox(lat, lon)
     elif input.address:
         user_provided_address = input.address
-        result = geocode_address(input.address)
+        result = await geocode_address(input.address)
         if result is None:
             raise HTTPException(
                 status_code=400,
                 detail=f"Could not geocode address: '{input.address}'. Try a more specific Bangalore location.",
             )
         lat, lon = result
+        _validate_bangalore_bbox(lat, lon)
     else:
         raise HTTPException(
             status_code=400,
             detail="Provide either latitude/longitude or an address.",
         )
 
-    reverse_addr = reverse_geocode(lat, lon)
+    reverse_addr = await reverse_geocode(lat, lon)
     address = user_provided_address if user_provided_address else reverse_addr
 
-    # All scorers are async — await each
-    walkability = await compute_walkability_score(lat, lon)
-    safety = await compute_safety_score(lat, lon)
-    hospital = await compute_hospital_score(lat, lon)
-    school = await compute_school_score(lat, lon)
-    transit = await compute_transit_score(lat, lon)
-    builder = await compute_builder_score(lat, lon, address, input.builder_name)
-    air_quality = await compute_air_quality_score(lat, lon)
-    water_supply = await compute_water_supply_score(lat, lon)
-    power = await compute_power_score(lat, lon)
-    future_infra = await compute_future_infra_score(lat, lon)
-    property_prices = await compute_property_price_info(lat, lon)
-    flood_risk = await compute_flood_risk_score(lat, lon)
-    commute = await compute_commute_score(lat, lon)
-    delivery = await compute_delivery_coverage_score(lat, lon)
-    noise = await compute_noise_score(lat, lon)
-    business_opp = await compute_business_opportunity_score(lat, lon)
-    cleanliness = await compute_cleanliness_score(lat, lon)
+    # All scorers run concurrently — ~5-10x faster than sequential
+    (
+        walkability,
+        safety,
+        hospital,
+        school,
+        transit,
+        builder,
+        air_quality,
+        water_supply,
+        power,
+        future_infra,
+        property_prices,
+        flood_risk,
+        commute,
+        delivery,
+        noise,
+        business_opp,
+        cleanliness,
+    ) = await _asyncio.gather(
+        compute_walkability_score(lat, lon),
+        compute_safety_score(lat, lon),
+        compute_hospital_score(lat, lon),
+        compute_school_score(lat, lon),
+        compute_transit_score(lat, lon),
+        compute_builder_score(lat, lon, address, input.builder_name),
+        compute_air_quality_score(lat, lon),
+        compute_water_supply_score(lat, lon),
+        compute_power_score(lat, lon),
+        compute_future_infra_score(lat, lon),
+        compute_property_price_info(lat, lon),
+        compute_flood_risk_score(lat, lon),
+        compute_commute_score(lat, lon),
+        compute_delivery_coverage_score(lat, lon),
+        compute_noise_score(lat, lon),
+        compute_business_opportunity_score(lat, lon),
+        compute_cleanliness_score(lat, lon),
+    )
 
     # Composite score using ANAROCK survey-derived weights (17 dimensions)
     composite = (
@@ -1041,7 +1081,7 @@ async def refresh_commute(input: LocationInput):
     if input.latitude is not None and input.longitude is not None:
         lat, lon = input.latitude, input.longitude
     elif input.address:
-        result = geocode_address(input.address)
+        result = await geocode_address(input.address)
         if result:
             lat, lon = result
 
@@ -1149,7 +1189,7 @@ async def live_transit_walk(input: LocationInput):
     if input.latitude is not None and input.longitude is not None:
         lat, lon = input.latitude, input.longitude
     elif input.address:
-        result = geocode_address(input.address)
+        result = await geocode_address(input.address)
         if result:
             lat, lon = result
 
@@ -1506,14 +1546,14 @@ async def verify_claims(input: ClaimInput):
     if input.latitude is not None and input.longitude is not None:
         lat, lon = input.latitude, input.longitude
     elif input.address:
-        result = geocode_address(input.address)
+        result = await geocode_address(input.address)
         if result is None:
             raise HTTPException(status_code=400, detail=f"Could not geocode: '{input.address}'")
         lat, lon = result
     else:
         raise HTTPException(status_code=400, detail="Provide latitude/longitude or address.")
 
-    address = reverse_geocode(lat, lon)
+    address = await reverse_geocode(lat, lon)
     pool = await get_pool()
 
     # Collect locality data for AI enrichment (runs in parallel with claim splitting)
@@ -1760,3 +1800,230 @@ async def data_freshness():
         return result
     except Exception:
         return {}
+
+
+# ---------------------------------------------------------------------------
+# AI Neighborhood Recommender
+# ---------------------------------------------------------------------------
+
+_ANTHROPIC_MODEL = _os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514")
+
+PRIORITY_MAP: dict[str, list[str]] = {
+    "safety": ["safety"],
+    "good_schools": ["school_access"],
+    "metro_access": ["transit_access"],
+    "low_flooding": ["flood_risk"],
+    "clean_air": ["air_quality", "cleanliness"],
+    "nightlife_food": ["walkability", "business_opportunity"],
+    "green_walkable": ["walkability", "air_quality"],
+    "investment_growth": ["property_prices", "future_infrastructure"],
+}
+
+# Budget range → (min_lakh, max_lakh) for buy, (min_rent, max_rent) for rent
+_BUY_RANGES: dict[str, tuple[float, float]] = {
+    "Under 60L": (0, 60),
+    "60L-1Cr": (60, 100),
+    "1Cr-1.5Cr": (100, 150),
+    "1.5Cr-2.5Cr": (150, 250),
+    "2.5Cr+": (250, 9999),
+}
+_RENT_RANGES: dict[str, tuple[float, float]] = {
+    "Under 20K": (0, 20000),
+    "20-35K": (20000, 35000),
+    "35-50K": (35000, 50000),
+    "50K+": (50000, 999999),
+}
+
+# Dimension keys that exist in the precomputed score cache
+_DIM_KEYS = [
+    "safety", "walkability", "transit_access", "flood_risk", "commute",
+    "hospital_access", "water_supply", "air_quality", "school_access",
+    "property_prices", "noise", "power_reliability", "future_infrastructure",
+    "cleanliness", "builder_reputation", "delivery_coverage", "business_opportunity",
+]
+
+
+def _extract_dim_score(entry: dict, dim: str) -> float:
+    """Extract a dimension score from a precomputed cache entry."""
+    val = entry.get(dim)
+    if isinstance(val, dict):
+        return float(val.get("score", 50))
+    return 50.0
+
+
+def _extract_budget_value(entry: dict, budget_type: str) -> float | None:
+    """Extract avg_2bhk_lakh or avg_2bhk_rent from precomputed entry."""
+    pp = entry.get("property_prices")
+    if not isinstance(pp, dict):
+        return None
+    breakdown = pp.get("breakdown", {})
+    if budget_type == "buy":
+        val = breakdown.get("avg_2bhk_lakh")
+    else:
+        val = breakdown.get("avg_2bhk_rent")
+    if val is not None:
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            pass
+    return None
+
+
+def _prefilter_neighborhoods(inp: RecommendInput) -> list[tuple[str, dict, float]]:
+    """Pre-filter and rank neighborhoods from score cache. Returns (name, entry, rank_score)."""
+    if not _score_cache:
+        return []
+
+    # Budget range
+    if inp.budget_type == "rent":
+        budget_min, budget_max = _RENT_RANGES.get(inp.budget_range, (0, 999999))
+    else:
+        budget_min, budget_max = _BUY_RANGES.get(inp.budget_range, (0, 9999))
+
+    # Priority dimension weights
+    priority_dims: dict[str, float] = {}
+    for p in inp.priorities:
+        dims = PRIORITY_MAP.get(p, [])
+        for d in dims:
+            priority_dims[d] = priority_dims.get(d, 0) + 1.0
+
+    candidates: list[tuple[str, dict, float]] = []
+    for name, entry in _score_cache.items():
+        # Budget filter
+        bval = _extract_budget_value(entry, inp.budget_type)
+        if bval is not None:
+            if inp.budget_type == "buy" and not (budget_min <= bval <= budget_max):
+                continue
+            if inp.budget_type == "rent" and not (budget_min <= bval <= budget_max):
+                continue
+
+        # Compute priority-weighted score
+        if priority_dims:
+            total_w = sum(priority_dims.values())
+            rank_score = sum(
+                priority_dims.get(d, 0) * _extract_dim_score(entry, d)
+                for d in _DIM_KEYS
+            ) / total_w
+        else:
+            # Fallback: composite score
+            rank_score = float(entry.get("composite_score", 50))
+
+        candidates.append((name, entry, rank_score))
+
+    # Sort by rank score descending, take top 8
+    candidates.sort(key=lambda x: x[2], reverse=True)
+    return candidates[:8]
+
+
+@router.post("/ai-recommend")
+async def ai_recommend(inp: RecommendInput):
+    """AI-powered neighborhood recommendation based on lifestyle questions."""
+    try:
+        import anthropic
+    except ImportError:
+        raise HTTPException(503, "AI service not available — anthropic package not installed.")
+
+    api_key = _os.getenv("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        raise HTTPException(503, "Set ANTHROPIC_API_KEY in backend .env to enable AI recommendations.")
+
+    # Phase 1: Pre-filter from cache
+    candidates = _prefilter_neighborhoods(inp)
+    if len(candidates) < 3:
+        # Fallback: use all cached neighborhoods sorted by composite
+        candidates = [
+            (name, entry, float(entry.get("composite_score", 50)))
+            for name, entry in _score_cache.items()
+        ]
+        candidates.sort(key=lambda x: x[2], reverse=True)
+        candidates = candidates[:8]
+
+    if not candidates:
+        raise HTTPException(404, "No neighborhood data available. Please try again later.")
+
+    # Build candidate summaries for Claude
+    candidate_summaries = []
+    for name, entry, rank in candidates:
+        summary: dict = {"name": entry.get("address", name), "rank_score": round(rank, 1)}
+        for d in _DIM_KEYS:
+            summary[d] = round(_extract_dim_score(entry, d), 1)
+        summary["composite"] = round(float(entry.get("composite_score", 50)), 1)
+        bval = _extract_budget_value(entry, inp.budget_type)
+        if bval:
+            key = "avg_2bhk_lakh" if inp.budget_type == "buy" else "avg_2bhk_rent"
+            summary[key] = bval
+        candidate_summaries.append(summary)
+
+    # Phase 2: Claude picks top 3 with explanations
+    prompt = f"""You are a Bangalore real estate advisor. A homebuyer has answered these lifestyle questions:
+
+- Budget: {inp.budget_type} in range {inp.budget_range}
+- Commute destination: {inp.commute_destination or "Work from home"}
+- Top priorities: {", ".join(inp.priorities)}
+- Lifestyle: {inp.lifestyle}
+
+Here are {len(candidate_summaries)} pre-filtered neighborhoods with their scores (0-100 for each dimension):
+
+{_json.dumps(candidate_summaries, indent=2)}
+
+Pick the TOP 3 neighborhoods that best match this buyer's needs. For each, provide:
+1. A match_score (0-100) indicating how well it fits their specific criteria
+2. A "reason" (2-3 sentences explaining WHY this neighborhood fits them personally — reference their priorities and lifestyle)
+3. "highlights" (3-4 short bullet points of standout features relevant to their needs)
+
+Return ONLY valid JSON in this exact format:
+{{"picks": [
+  {{"neighborhood": "Exact Name", "match_score": 92, "reason": "...", "highlights": ["...", "...", "..."]}},
+  {{"neighborhood": "Exact Name", "match_score": 87, "reason": "...", "highlights": ["...", "...", "..."]}},
+  {{"neighborhood": "Exact Name", "match_score": 83, "reason": "...", "highlights": ["...", "...", "..."]}}
+]}}"""
+
+    client = anthropic.AsyncAnthropic(api_key=api_key)
+    try:
+        response = await client.messages.create(
+            model=_ANTHROPIC_MODEL,
+            max_tokens=800,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw_text = response.content[0].text.strip()
+        # Extract JSON from potential markdown code blocks
+        if "```" in raw_text:
+            raw_text = raw_text.split("```")[1]
+            if raw_text.startswith("json"):
+                raw_text = raw_text[4:]
+            raw_text = raw_text.strip()
+        picks_data = _json.loads(raw_text)
+    except _json.JSONDecodeError:
+        raise HTTPException(502, "AI returned invalid response. Please try again.")
+    except Exception as e:
+        _logging.getLogger(__name__).error(f"AI recommend failed: {e}")
+        raise HTTPException(502, "AI service error. Please try again.")
+
+    # Phase 3: Attach full scores from cache
+    picks = picks_data.get("picks", [])[:3]
+    recommendations: list[RecommendItem] = []
+
+    for pick in picks:
+        pick_name = pick.get("neighborhood", "")
+        # Find in cache (fuzzy match on name)
+        pick_key = pick_name.split(",")[0].strip().lower()
+        matched_entry = _score_cache.get(pick_key)
+        if not matched_entry:
+            # Try partial match
+            for cname, centry in _score_cache.items():
+                if pick_key in cname or cname in pick_key:
+                    matched_entry = centry
+                    break
+        if not matched_entry:
+            # Use first candidate as fallback
+            matched_entry = candidates[0][1] if candidates else {}
+
+        recommendations.append(RecommendItem(
+            neighborhood=pick.get("neighborhood", pick_name),
+            match_score=min(100, max(0, int(pick.get("match_score", 75)))),
+            reason=pick.get("reason", ""),
+            highlights=pick.get("highlights", []),
+            scores=matched_entry,
+        ))
+
+    return RecommendResponse(recommendations=recommendations)

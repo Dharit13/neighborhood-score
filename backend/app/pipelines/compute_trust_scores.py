@@ -70,7 +70,12 @@ QUALITY_POSITIVE_KEYWORDS = [
 
 
 def compute_delivery_score(builder: dict) -> float:
-    """Score based on on-time delivery percentage."""
+    """Score based on on-time delivery percentage (RERA Karnataka data).
+
+    Brackets:
+        >= 90% → 95    >= 80% → 80    >= 70% → 65
+        >= 60% → 50    >= 50% → 35    < 50%  → 20
+    """
     on_time_pct = builder.get("on_time_delivery_pct", 0) or 0
 
     if on_time_pct >= 90:
@@ -86,11 +91,16 @@ def compute_delivery_score(builder: dict) -> float:
     else:
         return 20
 
-    return max(0, min(100, on_time_pct * 1.1))
-
 
 def compute_legal_score(builder: dict) -> float:
-    """Score based on legal risk — complaints, NCLT, consumer court."""
+    """Score based on legal risk — starts at 100, deducts for issues.
+
+    Deductions:
+        Complaints ratio: >3.0 → -50, >2.0 → -35, >1.5 → -25, >1.0 → -15, >0.5 → -5
+        Complaints count:  >20 → -20, >15 → -10, >10 → -5
+        NCLT proceedings:  score capped at 10
+        Consumer court:    >= 10 → -25, >= 5 → -15
+    """
     score = 100.0
 
     complaints_ratio = builder.get("complaints_ratio", 0) or 0
@@ -126,7 +136,16 @@ def compute_legal_score(builder: dict) -> float:
 
 
 def compute_financial_score(builder: dict) -> float:
-    """Score based on financial health indicators."""
+    """Score based on financial health — company status and risk indicators.
+
+    Base score by company status:
+        Active/unknown → 75    Dormant/striking off → 30    Liquidated → 5
+
+    Adjustments:
+        Directors linked to failed companies → -25
+        Charges > 50 → -15, > 20 → -5
+        Profit trend: growing → +10, declining → -10
+    """
     score = 70.0  # Default for unknown
 
     status = (builder.get("company_status") or "").lower()
@@ -156,7 +175,13 @@ def compute_financial_score(builder: dict) -> float:
 
 
 def compute_satisfaction_score(builder: dict) -> float:
-    """Score based on customer reviews and ratings."""
+    """Score based on customer review ratings (1-5 scale → 0-100).
+
+    Brackets:
+        >= 4.5 → 95    >= 4.0 → 80    >= 3.5 → 65
+        >= 3.0 → 50    >= 2.5 → 35    < 2.5  → 20
+        No reviews → 60 (neutral default)
+    """
     rating = builder.get("avg_rating")
     if not rating:
         return 60.0  # Default for no reviews
@@ -177,7 +202,12 @@ def compute_satisfaction_score(builder: dict) -> float:
 
 
 def compute_quality_score(builder: dict) -> float:
-    """Score based on keyword analysis of complaints and praise."""
+    """Score based on keyword analysis of complaints and praise text.
+
+    Base score: 65. Each negative keyword match → -5, each positive → +5.
+    Certifications: IGBC/LEED → +10, ISO → +5.
+    See QUALITY_NEGATIVE_KEYWORDS and QUALITY_POSITIVE_KEYWORDS for full lists.
+    """
     score = 65.0  # Default
 
     complaints_text = " ".join(builder.get("common_complaints", []) or []).lower()
@@ -203,9 +233,16 @@ def compute_quality_score(builder: dict) -> float:
 
 
 def compute_trust_score(builder: dict) -> dict:
-    """
-    Compute composite trust score with breakdown.
-    Returns dict with score, tier, and per-dimension breakdown.
+    """Compute composite trust score with breakdown and overrides.
+
+    Formula: delivery×0.30 + legal×0.25 + financial×0.20 + satisfaction×0.15 + quality×0.10
+
+    Hard overrides (applied after composite calculation):
+        1. NCLT proceedings → tier forced to "avoid", score capped at 35
+        2. Inactive company (struck off, liquidated, dormant) → same as NCLT
+        3. Directors linked to failed + score < 60 → tier forced to "cautious"
+
+    Returns dict with trust_score (0-100), trust_tier, breakdown, overrides_applied.
     """
     delivery = compute_delivery_score(builder)
     legal = compute_legal_score(builder)

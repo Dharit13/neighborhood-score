@@ -1,9 +1,11 @@
 """AI Chat endpoint — wraps Claude with neighborhood data context for Q&A."""
 
 import asyncio
+import hashlib
 import json
 import logging
 import os
+import time
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -16,6 +18,16 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["ai"])
 
 ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514")
+
+# Simple response cache for non-streaming AI responses (keyed on message + neighborhood)
+_ai_cache: dict[str, tuple[str, float]] = {}
+_AI_CACHE_TTL = 300  # 5 minutes
+_AI_CACHE_MAX = 200  # max entries
+
+# Cache for neighbourhood summaries (avoids repeated 10-JOIN queries)
+_summary_cache: dict[str, tuple[dict | list, float]] = {}
+_SUMMARY_CACHE_TTL = 600  # 10 minutes
+_SUMMARY_CACHE_MAX = 100
 
 SYSTEM_PROMPT = """You are a helpful Bangalore real estate advisor. You have access to scored data
 for 74 neighborhoods across 17 dimensions (safety, transit, commute, schools,
@@ -56,6 +68,10 @@ class AIChatInput(BaseModel):
 
 async def _get_neighborhood_summary(name: str) -> dict | None:
     """Fetch full score data for a specific neighborhood."""
+    cache_key = f"single:{name.lower().strip()}"
+    cached = _summary_cache.get(cache_key)
+    if cached and (time.monotonic() - cached[1]) < _SUMMARY_CACHE_TTL:
+        return cached[0]
     try:
         pool = await get_pool()
         async with pool.acquire() as conn:
@@ -88,7 +104,12 @@ async def _get_neighborhood_summary(name: str) -> dict | None:
                 name,
             )
         if row:
-            return {k: (float(v) if isinstance(v, (int, float)) and v is not None else v) for k, v in dict(row).items()}
+            result = {k: (float(v) if isinstance(v, (int, float)) and v is not None else v) for k, v in dict(row).items()}
+            if len(_summary_cache) >= _SUMMARY_CACHE_MAX:
+                oldest = min(_summary_cache, key=lambda k: _summary_cache[k][1])
+                del _summary_cache[oldest]
+            _summary_cache[cache_key] = (result, time.monotonic())
+            return result
     except Exception as e:
         logger.warning(f"Neighborhood summary fetch failed: {e}")
     return None
@@ -96,6 +117,10 @@ async def _get_neighborhood_summary(name: str) -> dict | None:
 
 async def _get_all_neighborhoods_summary() -> list[dict]:
     """Fetch condensed summary of all neighborhoods for recommendation queries."""
+    cache_key = "all_neighborhoods"
+    cached = _summary_cache.get(cache_key)
+    if cached and (time.monotonic() - cached[1]) < _SUMMARY_CACHE_TTL:
+        return cached[0]
     try:
         pool = await get_pool()
         async with pool.acquire() as conn:
@@ -121,13 +146,41 @@ async def _get_all_neighborhoods_summary() -> list[dict]:
                 LEFT JOIN delivery_coverage dc ON dc.neighborhood_id = n.id
                 ORDER BY n.name
             """)
-        return [
+        result = [
             {k: (float(v) if isinstance(v, (int, float)) and v is not None else v) for k, v in dict(r).items()}
             for r in rows
         ]
+        if result:
+            if len(_summary_cache) >= _SUMMARY_CACHE_MAX:
+                oldest = min(_summary_cache, key=lambda k: _summary_cache[k][1])
+                del _summary_cache[oldest]
+            _summary_cache[cache_key] = (result, time.monotonic())
+        return result
     except Exception as e:
         logger.warning(f"All neighborhoods summary failed: {e}")
     return []
+
+
+def _cache_key(message: str, neighborhood: str | None) -> str:
+    raw = f"{(neighborhood or '').lower().strip()}:{message.lower().strip()}"
+    return hashlib.sha256(raw.encode()).hexdigest()[:32]
+
+
+def _get_cached_response(key: str) -> str | None:
+    cached = _ai_cache.get(key)
+    if cached and (time.monotonic() - cached[1]) < _AI_CACHE_TTL:
+        return cached[0]
+    if cached:
+        del _ai_cache[key]
+    return None
+
+
+def _set_cached_response(key: str, text: str) -> None:
+    # Evict oldest if full
+    if len(_ai_cache) >= _AI_CACHE_MAX:
+        oldest_key = min(_ai_cache, key=lambda k: _ai_cache[k][1])
+        del _ai_cache[oldest_key]
+    _ai_cache[key] = (text, time.monotonic())
 
 
 @router.post("/ai-chat")
@@ -154,6 +207,21 @@ async def ai_chat(input: AIChatInput):
             },
         )
 
+    # Check response cache — serves identical queries instantly without an API call
+    cache_k = _cache_key(input.message, input.neighborhood)
+    cached_text = _get_cached_response(cache_k)
+    if cached_text:
+
+        async def replay_cached():
+            yield f"data: {json.dumps({'text': cached_text})}\n\n"
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(
+            replay_cached(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+        )
+
     # Build context
     context_parts = []
     if input.neighborhood:
@@ -177,6 +245,7 @@ async def ai_chat(input: AIChatInput):
     client = anthropic.AsyncAnthropic(api_key=api_key)
 
     async def stream_response():
+        full_response: list[str] = []
         try:
             async with client.messages.stream(
                 model=ANTHROPIC_MODEL,
@@ -185,8 +254,11 @@ async def ai_chat(input: AIChatInput):
                 messages=[{"role": "user", "content": input.message}],
             ) as stream:
                 async for text in stream.text_stream:
+                    full_response.append(text)
                     yield f"data: {json.dumps({'text': text})}\n\n"
                     await asyncio.sleep(0)
+            # Cache the full response for future identical queries
+            _set_cached_response(cache_k, "".join(full_response))
             yield "data: [DONE]\n\n"
         except anthropic.APIConnectionError:
             yield f"data: {json.dumps({'error': 'AI service is temporarily unavailable. Please try again.'})}\n\n"

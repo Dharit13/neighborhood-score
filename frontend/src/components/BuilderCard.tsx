@@ -44,11 +44,22 @@ export default function BuilderCard({ builder, onClick, index = 0, aiBrief }: Pr
   return (
     <motion.div
       ref={ref}
+      role="button"
+      tabIndex={0}
+      aria-expanded={expanded}
+      aria-label={`${builder.name} — trust score ${score}, ${builder.trust_tier || 'unscored'} tier`}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0, rotateX: tilt.x, rotateY: tilt.y }}
       transition={{ type: 'spring', stiffness: 300, damping: 20, delay: index * 0.06 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setTilt({ x: 0, y: 0 })}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (onClick) onClick();
+          else setExpanded(!expanded);
+        }
+      }}
       style={{ transformStyle: 'preserve-3d', perspective: '800px' }}
       className="relative overflow-hidden rounded-xl bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.10] hover:border-brand-9/20 transition-colors cursor-pointer"
       onClick={() => {

@@ -92,7 +92,7 @@ export default function SearchAutocomplete({ onSearch, loading, address, classNa
   };
 
   return (
-    <div ref={containerRef} className={`relative ${className || ''}`}>
+    <div ref={containerRef} className={`relative ${className || ''}`} role="combobox" aria-expanded={showDropdown} aria-haspopup="listbox">
       <AnimatedGlowingSearchBar
         compact
         value={value}
@@ -109,6 +109,8 @@ export default function SearchAutocomplete({ onSearch, loading, address, classNa
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.15 }}
+            role="listbox"
+            aria-label="Search results"
             className="absolute top-full mt-1 left-0 right-0 z-50 rounded-xl bg-black/95 backdrop-blur-xl border border-white/[0.10] shadow-2xl overflow-hidden max-h-[320px] overflow-y-auto scrollbar-thin"
           >
             {(Object.entries(results.results) as [keyof typeof CATEGORY_CONFIG, unknown[]][]).map(([category, items]) => {
@@ -127,6 +129,8 @@ export default function SearchAutocomplete({ onSearch, loading, address, classNa
                   {(items as Record<string, unknown>[]).map((item, i) => (
                     <button
                       key={i}
+                      role="option"
+                      aria-label={String(item.name || item.project_name || '')}
                       onClick={() => handleSelect(category, item)}
                       className="w-full text-left px-3 py-2 hover:bg-white/[0.06] transition-colors flex items-center gap-2"
                     >

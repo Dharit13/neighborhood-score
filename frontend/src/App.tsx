@@ -13,13 +13,14 @@ import ScoreCard from './components/ScoreCard';
 import SearchAutocomplete from './components/SearchAutocomplete';
 import LoginPage from './components/LoginPage';
 import Perspective3DContainer from './components/Perspective3DContainer';
+import ErrorBoundary from './components/ErrorBoundary';
 import { generateReport } from './utils/generateReport';
 import { generateComprehensiveReport } from './utils/generateComprehensiveReport';
 import { getFreshnessForDimension, type FreshnessData } from './utils/freshnessMap';
 import type { NeighborhoodScoreResponse, FeaturedNeighborhood } from './types';
 import defaultScores from './data/defaultScores.json';
 
-import { AnimatedShaderBackground } from '@/components/ui/animated-shader-background';
+import { BeamsBackground } from '@/components/ui/beams-background';
 import { MorphPanel } from '@/components/ui/ai-input';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -294,7 +295,7 @@ function LandingHero() {
 
 function SidebarSkeleton() {
   return (
-    <div className="h-full bg-black/40 overflow-y-auto px-4 pt-4 space-y-4 animate-pulse">
+    <div className="h-full overflow-y-auto px-4 pt-4 space-y-4 animate-pulse">
       <div className="flex items-center gap-3">
         <div className="w-16 h-16 rounded-full bg-white/[0.06]" />
         <div className="flex-1 space-y-2">
@@ -432,7 +433,7 @@ function App() {
   const [featuredNeighborhoods, setFeaturedNeighborhoods] = useState<FeaturedNeighborhood[]>([]);
 
   const isScrollingRef = useRef(false);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, loading: authLoading, logout } = useAuth();
 
   // Scroll-driven header glass effect
   const { scrollY } = useScroll();
@@ -616,26 +617,56 @@ function App() {
     setTimeout(() => setLinkCopied(false), 2000);
   };
 
-  // Unauthenticated: show hero + login page
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen w-screen relative">
-        <div className="fixed inset-0 z-0">
-          <AnimatedShaderBackground className="absolute inset-0 w-full h-full" />
-        </div>
-        <LandingHero />
-        <LoginPage />
-      </div>
-    );
-  }
-
-  // Authenticated: show header + main app
+  // Single persistent shell — background never unmounts, no white flash
   return (
+    <ErrorBoundary>
     <div className="min-h-screen w-screen relative">
-      {/* Global shader background */}
+      {/* Global beams background — always mounted */}
       <div className="fixed inset-0 z-0">
-        <AnimatedShaderBackground className="absolute inset-0 w-full h-full" />
+        <BeamsBackground className="absolute inset-0 w-full h-full" intensity="medium" />
       </div>
+
+      {/* Auth loading spinner */}
+      <AnimatePresence mode="wait">
+        {authLoading && (
+          <motion.div
+            key="auth-loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.2 } }}
+            className="fixed inset-0 z-50 flex items-center justify-center"
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-8 h-8 border-2 border-white/20 border-t-[#2ad587] rounded-full animate-spin" />
+              <span className="text-white/40 text-sm">Loading...</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Unauthenticated: hero + login */}
+      <AnimatePresence mode="wait">
+        {!authLoading && !isAuthenticated && (
+          <motion.div
+            key="unauth"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.3 } }}
+          >
+            <LandingHero />
+            <LoginPage />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Authenticated: main app — fades in */}
+      <AnimatePresence mode="wait">
+        {!authLoading && isAuthenticated && (
+          <motion.div
+            key="auth"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.4, delay: 0.1 } }}
+          >
 
       {/* Header */}
       <motion.header
@@ -737,26 +768,35 @@ function App() {
       </section>
 
       {/* Compare */}
-      <section id="compare-section" className="min-h-[calc(100vh-48px)] relative z-10 bg-black/40">
+      <section id="compare-section" className="min-h-[calc(100vh-48px)] relative z-10">
         <Perspective3DContainer maxRotation={2} className="max-w-7xl mx-auto px-6 py-8">
           <CompareMode />
         </Perspective3DContainer>
       </section>
 
       {/* Verify */}
-      <section id="verify-section" className="min-h-[calc(100vh-48px)] relative z-10 bg-black/40">
+      <section id="verify-section" className="min-h-[calc(100vh-48px)] relative z-10">
         <Perspective3DContainer maxRotation={2} className="max-w-7xl mx-auto px-6 py-8">
           <VerifyClaims />
         </Perspective3DContainer>
       </section>
 
       {/* Sources */}
-      <section id="sources-section" className="min-h-[calc(100vh-48px)] relative z-10 bg-black/40">
+      <section id="sources-section" className="min-h-[calc(100vh-48px)] relative z-10">
         <Perspective3DContainer maxRotation={3} className="max-w-7xl mx-auto px-6 py-8">
           <DataSources />
         </Perspective3DContainer>
       </section>
+
+      {/* Footer */}
+      <footer className="relative z-10 py-6 text-center">
+        <p className="text-xs text-white/30">© {new Date().getFullYear()} @DhPhahS</p>
+      </footer>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
+    </ErrorBoundary>
   );
 }
 
