@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import ScrollReveal3D from './ScrollReveal3D';
 import { ChevronDown, TrendingUp, Droplets, LayoutDashboard, Heart, Route, MapPin, Users, Sparkles, UtensilsCrossed, Wine, Baby, Trophy, ShieldCheck, Trees, ShoppingBag, Palette, Dumbbell } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -220,13 +219,8 @@ export default function MapSidebar({ data }: Props) {
 
       {/* Sticky header */}
       <div className="flex-shrink-0 border-b border-white/[0.08] relative z-10">
-        <ScrollReveal3D rotateX={-6} delay={0.05}>
         <div id="sidebar-overview" className="px-4 pt-3 pb-2 flex items-center gap-4">
-          <motion.div className="float-animation" whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-          >
-            <ScoreRing score={data.composite_score} size={64} strokeWidth={5} />
-          </motion.div>
+          <ScoreRing score={data.composite_score} size={64} strokeWidth={5} />
           <div className="flex-1 min-w-0">
             <h2 className="text-base font-semibold text-white truncate leading-tight">
               {readableAddress(data.address).split(',')[0]}
@@ -236,7 +230,6 @@ export default function MapSidebar({ data }: Props) {
             </Badge>
           </div>
         </div>
-        </ScrollReveal3D>
 
         {/* Gradient menu nav */}
         <div className="flex gap-1 px-4 pb-2">
@@ -328,19 +321,19 @@ export default function MapSidebar({ data }: Props) {
 
         <div className="divider" />
 
-        <Section title="Livability & Safety" defaultOpen={true} id="sidebar-livability">
+        <Section title="Livability & Safety" id="sidebar-livability">
           <ScoreCard title="Walkability" icon="walk" result={data.walkability} compact />
           <ScoreCard title="Safety" icon="shield" result={data.safety} compact ringColor={data.safety.score >= 90 ? '#ec4899' : undefined} />
           {data.noise && <ScoreCard title="Noise Level" icon="volume" result={data.noise} compact />}
           {data.cleanliness && <ScoreCard title="Cleanliness" icon="sparkles" result={data.cleanliness} compact />}
         </Section>
 
-        <Section title="Health & Education" defaultOpen={true}>
+        <Section title="Health & Education">
           <ScoreCard title="Hospital Access" icon="hospital" result={data.hospital_access} compact />
           <ScoreCard title="School Access" icon="school" result={data.school_access} compact />
         </Section>
 
-        <Section title="Connectivity & Commute" defaultOpen={true} id="sidebar-connectivity">
+        <Section title="Connectivity & Commute" id="sidebar-connectivity">
           <ScoreCard title="Transit Access" icon="train" result={data.transit_access} compact />
           {data.commute && <ScoreCard title="Commute" icon="car" result={data.commute} compact />}
           {data.delivery_coverage && <ScoreCard title="Delivery" icon="package" result={data.delivery_coverage} compact />}

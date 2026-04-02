@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, type PanInfo } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
-import ScrambledText from '@/components/ui/scrambled-text';
 
 interface CityData {
   name: string;
@@ -331,7 +330,7 @@ export default function LoginPage() {
           <h1
             className="text-[32px] font-medium tracking-tight mb-2 text-white"
           >
-            <ScrambledText text={isSignUp ? 'Create account' : 'Sign in'} triggerOnView={false} />
+            {isSignUp ? 'Create account' : 'Sign in'}
           </h1>
           <p className="text-sm text-white/50 mb-9 leading-relaxed">
             {isSignUp

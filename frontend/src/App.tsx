@@ -161,6 +161,7 @@ function LandingHero() {
       onMouseLeave={handleMouseLeave}
       style={{ perspective: '800px' }}
     >
+      <RainingLetters className="absolute inset-0 w-full h-full overflow-hidden z-0" opacity={0.8} charCount={300} />
       {/* Marketing text — behind the 3D scene (z-[1]), with text shadow for visibility */}
       <div
         className="absolute inset-0 z-[1] flex items-start justify-center p-4 pt-[5vh]"
@@ -599,9 +600,6 @@ function App() {
       {/* Global background layers — always mounted */}
       <div className="fixed inset-0 z-0">
         <BeamsBackground className="absolute inset-0 w-full h-full" intensity="medium" />
-        {!isAuthenticated && (
-          <RainingLetters className="absolute inset-0 w-full h-full overflow-hidden" opacity={0.8} charCount={300} />
-        )}
       </div>
 
       {/* Auth loading spinner */}
@@ -731,7 +729,7 @@ function App() {
           <div className="w-[65%] relative rounded-2xl overflow-hidden border border-white/[0.08]">
             <NeighborhoodMap data={data} onMapClick={handleMapClick} loading={loading} featuredNeighborhoods={featuredNeighborhoods} />
           </div>
-          <div className={cn("w-[35%] h-full overflow-hidden flex-shrink-0 rounded-2xl border border-white/[0.08] transition-opacity duration-300", loading && data && "opacity-80 pointer-events-none")}>
+          <div className={cn("w-[35%] h-full overflow-y-auto flex-shrink-0 rounded-2xl border border-white/[0.08] transition-opacity duration-300", loading && data && "opacity-80 pointer-events-none")}>
             {data ? (
               <MapSidebar data={data} freshness={freshness} />
             ) : (
