@@ -164,7 +164,7 @@ function LandingHero() {
     >
       {/* Marketing text — behind the 3D scene (z-[1]), with text shadow for visibility */}
       <div
-        className="absolute inset-0 z-[1] flex items-start justify-center p-4 pt-[9vh]"
+        className="absolute inset-0 z-[1] flex items-start justify-center p-4 pt-[5vh]"
         style={{ transformStyle: 'preserve-3d' }}
       >
         {/* Main 3D card — tilts with mouse via springs */}
