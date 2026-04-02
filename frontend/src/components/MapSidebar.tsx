@@ -352,17 +352,6 @@ export default function MapSidebar({ data }: Props) {
           {data.business_opportunity && <ScoreCard title="Business" icon="briefcase" result={data.business_opportunity} compact />}
         </Section>
 
-        <div className="divider my-2" />
-
-        <div className="pt-4 pb-2 space-y-2">
-          <p className="text-xs text-white/90 leading-relaxed">
-            Data sourced from 8+ government agencies.
-            Some datasets may not reflect real-time conditions. Last updated March 2025.
-          </p>
-          <p className="text-[11px] text-white/75">
-            Scores are indicative and should not be the sole basis for investment decisions.
-          </p>
-        </div>
       </div>
     </aside>
   );
