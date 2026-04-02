@@ -63,18 +63,21 @@ async def get_weather(city: str = Query(..., min_length=1), _user: dict = Depend
             lat = results[0]["latitude"]
             lon = results[0]["longitude"]
 
-            # Step 2: Fetch current weather + 5-day forecast
-            forecast_resp = await client.get(
-                FORECAST_URL,
-                params={
-                    "latitude": lat,
-                    "longitude": lon,
-                    "current": "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,apparent_temperature",
-                    "daily": "weather_code,temperature_2m_max,temperature_2m_min",
-                    "timezone": "auto",
-                    "forecast_days": 5,
-                },
-            )
+            # Step 2: Fetch current weather + 5-day forecast (retry once on 429)
+            forecast_params = {
+                "latitude": lat,
+                "longitude": lon,
+                "current": "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,apparent_temperature",
+                "daily": "weather_code,temperature_2m_max,temperature_2m_min",
+                "timezone": "auto",
+                "forecast_days": 5,
+            }
+            forecast_resp = await client.get(FORECAST_URL, params=forecast_params)
+            if forecast_resp.status_code == 429:
+                import asyncio
+
+                await asyncio.sleep(2)
+                forecast_resp = await client.get(FORECAST_URL, params=forecast_params)
             forecast_resp.raise_for_status()
             forecast = forecast_resp.json()
     except HTTPException:
