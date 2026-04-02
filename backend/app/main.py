@@ -14,6 +14,7 @@ from app.db import close_pool, get_pool  # noqa: E402
 from app.routers.ai_chat import router as ai_chat_router  # noqa: E402
 from app.routers.property_intelligence import router as property_intelligence_router  # noqa: E402
 from app.routers.report import router as report_router  # noqa: E402
+from app.routers.city_feed import router as city_feed_router  # noqa: E402
 from app.routers.scores import router as scores_router  # noqa: E402
 
 # ---------------------------------------------------------------------------
@@ -110,6 +111,7 @@ app.include_router(scores_router)
 app.include_router(ai_chat_router)
 app.include_router(report_router)
 app.include_router(property_intelligence_router)
+app.include_router(city_feed_router)
 
 
 @app.get("/")
