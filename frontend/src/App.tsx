@@ -21,6 +21,8 @@ import type { NeighborhoodScoreResponse, FeaturedNeighborhood } from './types';
 import defaultScores from './data/defaultScores.json';
 
 import { BeamsBackground } from '@/components/ui/beams-background';
+import RainingLetters from '@/components/ui/raining-letters';
+import ScrambledText from '@/components/ui/scrambled-text';
 import { MorphPanel } from '@/components/ui/ai-input';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -166,7 +168,7 @@ function LandingHero() {
       >
         {/* Main 3D card — tilts with mouse via springs */}
         <motion.div
-          className="max-w-4xl w-full text-center relative"
+          className="max-w-4xl w-full text-center relative ml-12"
           style={{
             rotateX,
             rotateY,
@@ -191,41 +193,31 @@ function LandingHero() {
               }}
             >
               {/* Line 1: Know Your Neighborhood */}
-              <span className="block whitespace-nowrap">
-                {['Know', 'Your', 'Neighborhood'].map((word, i) => (
-                  <motion.span
-                    key={word}
-                    initial={{ y: 40, opacity: 0, filter: 'blur(8px)' }}
-                    animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                    transition={{ delay: 0.1 + i * 0.08, type: 'spring', duration: 0.6, bounce: 0.1 }}
-                    className={`inline-block mr-[0.3em] text-white ${
-                      word === 'Neighborhood'
-                        ? 'text-5xl sm:text-7xl font-bold tracking-[-0.02em]'
-                        : 'text-3xl sm:text-5xl font-medium tracking-[0.04em]'
-                    }`}
-                  >
-                    {word}
-                  </motion.span>
-                ))}
-              </span>
+              <motion.span
+                className="block whitespace-nowrap text-white"
+                initial={{ y: 40, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.1, type: 'spring', duration: 0.6, bounce: 0.1 }}
+              >
+                <span className="text-3xl sm:text-5xl font-medium tracking-[0.04em] mr-[0.3em]">Know</span>
+                <span className="text-3xl sm:text-5xl font-medium tracking-[0.04em] mr-[0.3em]">Your</span>
+                <span className="text-5xl sm:text-7xl font-bold tracking-[-0.02em]">
+                  <ScrambledText text="Neighborhood" triggerOnView={false} />
+                </span>
+              </motion.span>
               {/* Line 2: Before You Invest */}
-              <span className="block whitespace-nowrap">
-                {['Before', 'You', 'Invest'].map((word, i) => (
-                  <motion.span
-                    key={word}
-                    initial={{ y: 40, opacity: 0, filter: 'blur(8px)' }}
-                    animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                    transition={{ delay: 0.34 + i * 0.08, type: 'spring', duration: 0.6, bounce: 0.1 }}
-                    className={`inline-block mr-[0.3em] ${
-                      word === 'Invest'
-                        ? 'text-5xl sm:text-7xl font-bold tracking-[-0.02em] gradient-text sparkle-text'
-                        : 'text-3xl sm:text-5xl font-medium tracking-[0.04em] text-white/50'
-                    }`}
-                  >
-                    {word}
-                  </motion.span>
-                ))}
-              </span>
+              <motion.span
+                className="block whitespace-nowrap"
+                initial={{ y: 40, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.34, type: 'spring', duration: 0.6, bounce: 0.1 }}
+              >
+                <span className="text-3xl sm:text-5xl font-medium tracking-[0.04em] text-white/50 mr-[0.3em]">Before</span>
+                <span className="text-3xl sm:text-5xl font-medium tracking-[0.04em] text-white/50 mr-[0.3em]">You</span>
+                <span className="text-5xl sm:text-7xl font-bold tracking-[-0.02em]">
+                  <ScrambledText text="Invest" triggerOnView={false} resolvedClassName="gradient-text sparkle-text" />
+                </span>
+              </motion.span>
             </h1>
             {/* Bottom rule */}
             <motion.div
@@ -604,9 +596,10 @@ function App() {
   return (
     <ErrorBoundary>
     <div className="min-h-screen w-screen relative">
-      {/* Global beams background — always mounted */}
+      {/* Global background layers — always mounted */}
       <div className="fixed inset-0 z-0">
         <BeamsBackground className="absolute inset-0 w-full h-full" intensity="medium" />
+        <RainingLetters className="absolute inset-0 w-full h-full overflow-hidden" opacity={0.8} charCount={300} />
       </div>
 
       {/* Auth loading spinner */}
@@ -725,7 +718,7 @@ function App() {
               transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
               className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
             >
-              EXPLORE
+              <ScrambledText text="EXPLORE" />
             </motion.h1>
             <motion.p
               initial={{ y: 10, opacity: 0 }}
@@ -779,7 +772,7 @@ function App() {
             transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
             className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
           >
-            COMPARE
+            <ScrambledText text="COMPARE" />
           </motion.h1>
           <motion.p
             initial={{ y: 10, opacity: 0 }}
@@ -806,7 +799,7 @@ function App() {
             transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
             className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
           >
-            VERIFY
+            <ScrambledText text="VERIFY" />
           </motion.h1>
           <motion.p
             initial={{ y: 10, opacity: 0 }}
@@ -833,7 +826,7 @@ function App() {
             transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
             className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
           >
-            SOURCES
+            <ScrambledText text="SOURCES" />
           </motion.h1>
           <motion.p
             initial={{ y: 10, opacity: 0 }}
