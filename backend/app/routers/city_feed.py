@@ -117,20 +117,24 @@ async def get_weather(city: str = Query(..., min_length=1), _user: dict = Depend
 # News (RSS feeds — free, no API key)
 # ---------------------------------------------------------------------------
 
-RSS_FEEDS: dict[str, list[str]] = {
-    "bengaluru": [
-        "https://news.google.com/rss/search?q=Bengaluru&hl=en-IN&gl=IN&ceid=IN:en",
-        "https://timesofindia.indiatimes.com/rssfeeds/-2128833038.cms",
-        "https://www.deccanherald.com/bengaluru/rss",
-    ],
-}
+NEWS_CATEGORIES = [
+    ("Real Estate", "real estate property housing"),
+    ("Infrastructure", "infrastructure metro road development"),
+    ("Crime", "crime police safety"),
+    ("Traffic", "traffic transport commute"),
+    ("Entertainment", "entertainment movies events"),
+    ("Sports", "sports cricket football"),
+]
 
 
-# Fallback: Google News RSS for any city
-def _get_feeds(city: str) -> list[str]:
-    feeds = RSS_FEEDS.get(city.lower(), [])
-    if not feeds:
-        feeds = [f"https://news.google.com/rss/search?q={city}&hl=en-IN&gl=IN&ceid=IN:en"]
+def _get_feeds(city: str) -> list[tuple[str, str]]:
+    """Return (feed_url, category) pairs for all categories."""
+    feeds: list[tuple[str, str]] = [
+        (f"https://news.google.com/rss/search?q={city}&hl=en-IN&gl=IN&ceid=IN:en", "General"),
+    ]
+    for category, keywords in NEWS_CATEGORIES:
+        url = f"https://news.google.com/rss/search?q={city}+{keywords}&hl=en-IN&gl=IN&ceid=IN:en"
+        feeds.append((url, category))
     return feeds
 
 
@@ -160,7 +164,7 @@ async def get_news(city: str = Query(..., min_length=1), _user: dict = Depends(r
     all_articles: list[dict] = []
 
     async with httpx.AsyncClient(timeout=10) as client:
-        for feed_url in feeds:
+        for feed_url, category in feeds:
             try:
                 resp = await client.get(feed_url, follow_redirects=True)
                 resp.raise_for_status()
@@ -186,15 +190,16 @@ async def get_news(city: str = Query(..., min_length=1), _user: dict = Depends(r
                             "published": entry.get("published", ""),
                             "link": entry.get("link", ""),
                             "thumbnail": thumbnail,
+                            "category": category,
                         }
                     )
             except Exception:
                 logger.warning("Failed to fetch RSS feed: %s", feed_url, exc_info=True)
                 continue
 
-    # Sort by published date (newest first), deduplicate, take top 8
+    # Sort by published date (newest first), deduplicate, take top 40
     all_articles.sort(key=lambda a: a["published"], reverse=True)
-    articles = _deduplicate(all_articles)[:8]
+    articles = _deduplicate(all_articles)[:40]
 
     response = {"city": city, "articles": articles}
     _cache_set(_news_cache, cache_key, response)

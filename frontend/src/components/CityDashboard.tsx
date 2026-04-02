@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Droplets, Wind, Thermometer, ExternalLink } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -76,6 +76,7 @@ interface NewsArticle {
   published: string;
   link: string;
   thumbnail: string;
+  category: string;
 }
 
 interface NewsData {
@@ -118,8 +119,32 @@ export default function CityDashboard() {
   const [news, setNews] = useState<NewsData | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [newsLoading, setNewsLoading] = useState(true);
+  const [batchIndex, setBatchIndex] = useState(0);
+  const [fading, setFading] = useState(false);
 
   const city = selectedCity ?? 'Bengaluru';
+  const BATCH_SIZE = 8;
+  const ROTATE_INTERVAL = 15000;
+
+  const totalBatches = news ? Math.ceil(news.articles.length / BATCH_SIZE) : 0;
+  const currentBatch = news
+    ? news.articles.slice(batchIndex * BATCH_SIZE, (batchIndex + 1) * BATCH_SIZE)
+    : [];
+
+  const rotateBatch = useCallback(() => {
+    if (totalBatches <= 1) return;
+    setFading(true);
+    setTimeout(() => {
+      setBatchIndex((prev) => (prev + 1) % totalBatches);
+      setFading(false);
+    }, 400);
+  }, [totalBatches]);
+
+  useEffect(() => {
+    if (totalBatches <= 1) return;
+    const timer = setInterval(rotateBatch, ROTATE_INTERVAL);
+    return () => clearInterval(timer);
+  }, [rotateBatch, totalBatches]);
 
   useEffect(() => {
     let cancelled = false;
@@ -230,42 +255,67 @@ export default function CityDashboard() {
         {newsLoading ? (
           <NewsSkeleton />
         ) : news && news.articles.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {news.articles.map((article, i) => (
-              <a
-                key={i}
-                href={article.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/[0.08] p-4 hover:bg-white/[0.06] transition-colors"
-              >
-                <div className="flex gap-3">
-                  {article.thumbnail && (
-                    <img
-                      src={article.thumbnail}
-                      alt=""
-                      className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+          <div>
+            {totalBatches > 1 && (
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex gap-1.5">
+                  {Array.from({ length: totalBatches }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setFading(true); setTimeout(() => { setBatchIndex(i); setFading(false); }, 400); }}
+                      className={`w-1.5 h-1.5 rounded-full transition-colors ${i === batchIndex ? 'bg-brand-9' : 'bg-white/20 hover:bg-white/40'}`}
                     />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm text-white font-medium line-clamp-2 group-hover:text-brand-9 transition-colors">
-                      {article.title}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-2">
-                      {article.source && (
-                        <span className="text-xs bg-white/[0.08] text-white/60 px-2 py-0.5 rounded-full">
-                          {article.source}
-                        </span>
-                      )}
-                      <span className="text-xs text-white/40">
-                        {timeAgo(article.published)}
-                      </span>
-                    </div>
-                  </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-white/20 group-hover:text-white/50 flex-shrink-0 mt-1 transition-colors" />
+                  ))}
                 </div>
-              </a>
-            ))}
+                <span className="text-xs text-white/30 font-mono">
+                  {batchIndex + 1}/{totalBatches}
+                </span>
+              </div>
+            )}
+            <div
+              className={`grid grid-cols-1 md:grid-cols-2 gap-3 transition-opacity duration-400 ${fading ? 'opacity-0' : 'opacity-100'}`}
+            >
+              {currentBatch.map((article, i) => (
+                <a
+                  key={`${batchIndex}-${i}`}
+                  href={article.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group bg-white/[0.03] backdrop-blur-sm rounded-xl border border-white/[0.08] p-4 hover:bg-white/[0.06] transition-colors"
+                >
+                  <div className="flex gap-3">
+                    {article.thumbnail && (
+                      <img
+                        src={article.thumbnail}
+                        alt=""
+                        className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm text-white font-medium line-clamp-2 group-hover:text-brand-9 transition-colors">
+                        {article.title}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                        {article.category && article.category !== 'General' && (
+                          <span className="text-[10px] bg-brand-9/20 text-brand-9 px-1.5 py-0.5 rounded-full font-medium">
+                            {article.category}
+                          </span>
+                        )}
+                        {article.source && (
+                          <span className="text-xs bg-white/[0.08] text-white/60 px-2 py-0.5 rounded-full">
+                            {article.source}
+                          </span>
+                        )}
+                        <span className="text-xs text-white/40">
+                          {timeAgo(article.published)}
+                        </span>
+                      </div>
+                    </div>
+                    <ExternalLink className="w-3.5 h-3.5 text-white/20 group-hover:text-white/50 flex-shrink-0 mt-1 transition-colors" />
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
         ) : (
           <p className="text-white/40 text-sm">No news articles available</p>
