@@ -12,7 +12,6 @@ import ScoreCard from './components/ScoreCard';
 import SearchAutocomplete from './components/SearchAutocomplete';
 import LoginPage from './components/LoginPage';
 import CityDashboard from './components/CityDashboard';
-import Perspective3DContainer from './components/Perspective3DContainer';
 import ErrorBoundary from './components/ErrorBoundary';
 import { generateReport } from './utils/generateReport';
 import { generateComprehensiveReport } from './utils/generateComprehensiveReport';
@@ -715,22 +714,12 @@ function App() {
         {/* Big page header (Framer University style) */}
         <div className="px-8 lg:px-12 pt-10 pb-4 flex flex-col lg:flex-row lg:items-end justify-between gap-4">
           <div>
-            <motion.h1
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
-              className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
-            >
-              <ScrambledText text="EXPLORE" />
-            </motion.h1>
-            <motion.p
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-brand-9 text-sm mt-2 font-mono"
-            >
+            <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight">
+              EXPLORE
+            </h1>
+            <p className="text-brand-9 text-sm mt-2 font-mono">
               17 dimensions · 126 neighborhoods · real government data
-            </motion.p>
+            </p>
           </div>
           <div className="flex-shrink-0 w-full max-w-md pb-1">
             <CompactSearch onSearch={handleSearch} loading={loading} address={data?.address || ''} />
@@ -768,111 +757,61 @@ function App() {
       {/* City Pulse */}
       <section id="city-pulse-section" className="min-h-screen relative z-10">
         <div className="px-8 lg:px-12 pt-10 pb-4">
-          <motion.h1
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
-            className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
-          >
-            <ScrambledText text="CITY PULSE" />
-          </motion.h1>
-          <motion.p
-            initial={{ y: 10, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-brand-9 text-sm mt-2 font-mono"
-          >
-            Live weather & local news
-          </motion.p>
+          <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight">
+            CITY PULSE
+          </h1>
+          <p className="text-brand-9 text-sm mt-2 font-mono">
+            Live weather &amp; local news
+          </p>
         </div>
         <div className="px-8 lg:px-12 pb-20">
-          <Perspective3DContainer>
-            <CityDashboard />
-          </Perspective3DContainer>
+          <CityDashboard />
         </div>
       </section>
 
       {/* Compare */}
       <section id="compare-section" className="min-h-screen relative z-10">
         <div className="px-8 lg:px-12 pt-10 pb-4">
-          <motion.h1
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
-            className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
-          >
-            <ScrambledText text="COMPARE" />
-          </motion.h1>
-          <motion.p
-            initial={{ y: 10, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-brand-9 text-sm mt-2 font-mono"
-          >
+          <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight">
+            COMPARE
+          </h1>
+          <p className="text-brand-9 text-sm mt-2 font-mono">
             Side-by-side neighborhood analysis
-          </motion.p>
+          </p>
         </div>
-        <Perspective3DContainer maxRotation={2} className="max-w-7xl mx-auto px-6 pb-8">
+        <div className="max-w-7xl mx-auto px-6 pb-8">
           <CompareMode />
-        </Perspective3DContainer>
+        </div>
       </section>
 
       {/* Verify */}
       <section id="verify-section" className="min-h-screen relative z-10">
         <div className="px-8 lg:px-12 pt-10 pb-4">
-          <motion.h1
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
-            className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
-          >
-            <ScrambledText text="VERIFY" />
-          </motion.h1>
-          <motion.p
-            initial={{ y: 10, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-brand-9 text-sm mt-2 font-mono"
-          >
+          <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight">
+            VERIFY
+          </h1>
+          <p className="text-brand-9 text-sm mt-2 font-mono">
             AI-powered property claim verification
-          </motion.p>
+          </p>
         </div>
-        <Perspective3DContainer maxRotation={2} className="max-w-7xl mx-auto px-6 pb-8">
+        <div className="max-w-7xl mx-auto px-6 pb-8">
           <VerifyClaims />
-        </Perspective3DContainer>
+        </div>
       </section>
 
       {/* Sources */}
       <section id="sources-section" className="min-h-screen relative z-10">
         <div className="px-8 lg:px-12 pt-10 pb-4">
-          <motion.h1
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
-            className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
-          >
-            <ScrambledText text="SOURCES" />
-          </motion.h1>
-          <motion.p
-            initial={{ y: 10, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-brand-9 text-sm mt-2 font-mono"
-          >
+          <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight">
+            SOURCES
+          </h1>
+          <p className="text-brand-9 text-sm mt-2 font-mono">
             Government data &amp; methodology
-          </motion.p>
+          </p>
         </div>
-        <Perspective3DContainer maxRotation={3} className="max-w-7xl mx-auto px-6 pb-8">
+        <div className="max-w-7xl mx-auto px-6 pb-8">
           <DataSources />
-        </Perspective3DContainer>
+        </div>
       </section>
 
       {/* Footer */}
