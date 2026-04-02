@@ -85,116 +85,110 @@ function AiBriefCard({ ai }: { ai: NonNullable<NeighborhoodScoreResponse['ai_ver
   const [expanded, setExpanded] = useState(false);
   const [expandedTag, setExpandedTag] = useState<string | null>(null);
   const color = '#2ad587';
-  const hasDetails = !!(ai.best_for || ai.avoid_if || (ai.pros?.length ?? 0) > 0 || (ai.cons?.length ?? 0) > 0);
 
   return (
     <Collapsible open={expanded} onOpenChange={setExpanded}>
       <div className="rounded-xl bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.10] hover:border-brand-9/20 transition-colors duration-300 overflow-hidden relative">
-        <div className="px-4 py-4 space-y-3">
-          <div className="flex items-center gap-3">
+        <CollapsibleTrigger asChild>
+          <button className="w-full px-4 py-4 flex items-center gap-3 cursor-pointer">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
               style={{ backgroundColor: color + '20' }}
             >
               <Sparkles size={15} style={{ color }} />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-left">
               <h4 className="text-sm font-semibold text-white">Should you buy here?</h4>
               <Badge variant="info" className="text-[10px] mt-0.5">
                 {ai.confidence}% coverage
               </Badge>
             </div>
-            {hasDetails && (
-              <CollapsibleTrigger asChild>
-                <button className="flex items-center gap-1 text-brand-9 cursor-pointer">
-                  <span className="text-[11px]">{expanded ? '' : 'Details'}</span>
-                  <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown size={13} />
-                  </motion.div>
-                </button>
-              </CollapsibleTrigger>
+            <div className="flex items-center gap-1 text-brand-9">
+              <span className="text-[11px]">{expanded ? '' : 'Expand'}</span>
+              <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                <ChevronDown size={13} />
+              </motion.div>
+            </div>
+          </button>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <div className="px-4 pb-4 border-t border-white/[0.08] pt-3 space-y-3">
+            <p className="text-sm text-white/90 leading-relaxed">
+              {ai.verdict || ai.narrative}
+            </p>
+
+            {(ai.lifestyle_tags?.length ?? 0) > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {ai.lifestyle_tags!.map((tag) => {
+                  const config = LIFESTYLE_TAG_CONFIG[tag.category] || { icon: Sparkles, color: '#2ad587' };
+                  const TagIcon = config.icon;
+                  const isExpanded = expandedTag === tag.label;
+                  return (
+                    <button
+                      key={tag.label}
+                      onClick={() => setExpandedTag(isExpanded ? null : tag.label)}
+                      className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all hover:scale-105"
+                      style={{
+                        backgroundColor: config.color + '20',
+                        color: config.color,
+                        border: `1px solid ${config.color}40`,
+                      }}
+                    >
+                      <TagIcon size={11} />
+                      {tag.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {expandedTag && ai.lifestyle_tags?.find(t => t.label === expandedTag) && (
+              <div
+                className="rounded-lg px-3 py-2 text-xs text-white/90 leading-relaxed"
+                style={{
+                  backgroundColor: (LIFESTYLE_TAG_CONFIG[ai.lifestyle_tags!.find(t => t.label === expandedTag)!.category]?.color || '#2ad587') + '10',
+                  borderLeft: `2px solid ${LIFESTYLE_TAG_CONFIG[ai.lifestyle_tags!.find(t => t.label === expandedTag)!.category]?.color || '#2ad587'}`,
+                }}
+              >
+                {ai.lifestyle_tags!.find(t => t.label === expandedTag)!.detail}
+              </div>
+            )}
+
+            {ai.best_for && (
+              <div className="rounded-lg bg-brand-9/5 border border-brand-9/15 px-3 py-2.5">
+                <span className="text-brand-9 font-bold text-[10px] uppercase tracking-widest">Best for</span>
+                <p className="text-sm text-white/90 mt-1 leading-relaxed">{ai.best_for}</p>
+              </div>
+            )}
+            {ai.avoid_if && (
+              <div className="rounded-lg bg-red-400/5 border border-red-400/15 px-3 py-2.5">
+                <span className="text-red-400 font-bold text-[10px] uppercase tracking-widest">Avoid if</span>
+                <p className="text-sm text-white/90 mt-1 leading-relaxed">{ai.avoid_if}</p>
+              </div>
+            )}
+            {((ai.pros?.length ?? 0) > 0 || (ai.cons?.length ?? 0) > 0) && (
+              <div className="space-y-2.5">
+                {(ai.pros?.length ?? 0) > 0 && (
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-brand-9 uppercase tracking-widest">Pros</span>
+                    {ai.pros.map((p: string, i: number) => (
+                      <p key={i} className="text-sm text-white/95 leading-relaxed pl-3 border-l border-brand-9/30">{p}</p>
+                    ))}
+                  </div>
+                )}
+                {(ai.cons?.length ?? 0) > 0 && (
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Cons</span>
+                    {ai.cons.map((c: string, i: number) => (
+                      <p key={i} className="text-sm text-white/95 leading-relaxed pl-3 border-l border-red-400/30">{c}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
-          <p className="text-sm text-white/90 leading-relaxed">
-            {ai.verdict || ai.narrative}
-          </p>
-
-          {(ai.lifestyle_tags?.length ?? 0) > 0 && (
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {ai.lifestyle_tags!.map((tag) => {
-                const config = LIFESTYLE_TAG_CONFIG[tag.category] || { icon: Sparkles, color: '#2ad587' };
-                const TagIcon = config.icon;
-                const isExpanded = expandedTag === tag.label;
-                return (
-                  <button
-                    key={tag.label}
-                    onClick={() => setExpandedTag(isExpanded ? null : tag.label)}
-                    className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all hover:scale-105"
-                    style={{
-                      backgroundColor: config.color + '20',
-                      color: config.color,
-                      border: `1px solid ${config.color}40`,
-                    }}
-                  >
-                    <TagIcon size={11} />
-                    {tag.label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {expandedTag && ai.lifestyle_tags?.find(t => t.label === expandedTag) && (
-            <div
-              className="rounded-lg px-3 py-2 text-xs text-white/90 leading-relaxed"
-              style={{
-                backgroundColor: (LIFESTYLE_TAG_CONFIG[ai.lifestyle_tags!.find(t => t.label === expandedTag)!.category]?.color || '#2ad587') + '10',
-                borderLeft: `2px solid ${LIFESTYLE_TAG_CONFIG[ai.lifestyle_tags!.find(t => t.label === expandedTag)!.category]?.color || '#2ad587'}`,
-              }}
-            >
-              {ai.lifestyle_tags!.find(t => t.label === expandedTag)!.detail}
-            </div>
-          )}
-        </div>
-
-        {hasDetails && (
-          <CollapsibleContent>
-            <div className="px-4 pb-4 border-t border-white/[0.08] pt-3 space-y-3">
-              {ai.best_for && (
-                <div className="rounded-lg bg-brand-9/5 border border-brand-9/15 px-3 py-2.5">
-                  <span className="text-brand-9 font-bold text-[10px] uppercase tracking-widest">Best for</span>
-                  <p className="text-sm text-white/90 mt-1 leading-relaxed">{ai.best_for}</p>
-                </div>
-              )}
-              {ai.avoid_if && (
-                <div className="rounded-lg bg-red-400/5 border border-red-400/15 px-3 py-2.5">
-                  <span className="text-red-400 font-bold text-[10px] uppercase tracking-widest">Avoid if</span>
-                  <p className="text-sm text-white/90 mt-1 leading-relaxed">{ai.avoid_if}</p>
-                </div>
-              )}
-              {((ai.pros?.length ?? 0) > 0 || (ai.cons?.length ?? 0) > 0) && (
-                <div className="space-y-2.5">
-                  {(ai.pros?.length ?? 0) > 0 && (
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-brand-9 uppercase tracking-widest">Pros</span>
-                      {ai.pros.map((p: string, i: number) => (
-                        <p key={i} className="text-sm text-white/95 leading-relaxed pl-3 border-l border-brand-9/30">{p}</p>
-                      ))}
-                    </div>
-                  )}
-                  {(ai.cons?.length ?? 0) > 0 && (
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Cons</span>
-                      {ai.cons.map((c: string, i: number) => (
-                        <p key={i} className="text-sm text-white/95 leading-relaxed pl-3 border-l border-red-400/30">{c}</p>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </CollapsibleContent>
-        )}
+        </CollapsibleContent>
       </div>
     </Collapsible>
   );
