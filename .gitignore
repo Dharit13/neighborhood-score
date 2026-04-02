@@ -40,6 +40,7 @@ PROJECT_RULES.md
 adapters/
 docs/
 !docs/decisions/
+!docs/development.md
 model_capabilities.yaml
 scripts/
 skills-lock.json

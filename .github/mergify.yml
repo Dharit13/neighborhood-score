@@ -1,0 +1,111 @@
+pull_request_rules:
+  # --- Auto-labeling by file type ---
+  - name: label-backend
+    conditions:
+      - or:
+          - files~=^backend/
+    actions:
+      label:
+        add:
+          - backend
+
+  - name: label-frontend
+    conditions:
+      - or:
+          - files~=^frontend/
+    actions:
+      label:
+        add:
+          - frontend
+
+  - name: label-cicd
+    conditions:
+      - or:
+          - files=.github/mergify.yml
+          - files~=^\.github/workflows/
+          - files=.markdownlint-cli2.yaml
+          - files=.pylintrc
+          - files=tox.ini
+    actions:
+      label:
+        add:
+          - ci/cd
+
+  - name: label-documentation
+    conditions:
+      - or:
+          - files~=.*\.md
+          - files~=^docs/
+    actions:
+      label:
+        add:
+          - documentation
+
+  - name: label-testing
+    conditions:
+      - or:
+          - files~=tests/
+          - files=tox.ini
+    actions:
+      label:
+        add:
+          - testing
+
+  - name: label-data
+    conditions:
+      - or:
+          - files~=^backend/app/data/
+          - files~=^backend/app/pipelines/
+          - files~=^backend/supabase/migrations/
+    actions:
+      label:
+        add:
+          - data
+
+  - name: label-scorers
+    conditions:
+      - or:
+          - files~=^backend/app/scorers/
+    actions:
+      label:
+        add:
+          - scoring
+
+  # --- Conflict management ---
+  - name: ping author on conflicts and add 'needs-rebase' label
+    conditions:
+      - conflict
+      - -closed
+    actions:
+      comment:
+        message: |
+          @{{author}} — this PR has merge conflicts. Please rebase on `master`.
+      label:
+        add:
+          - needs-rebase
+
+  - name: remove 'needs-rebase' label when conflict is resolved
+    conditions:
+      - -closed
+      - -conflict
+    actions:
+      label:
+        remove:
+          - needs-rebase
+
+  # --- CI status labels ---
+  - name: Apply ci-failure label if any CI checks have failed
+    conditions:
+      - "#check-failure>0"
+    actions:
+      label:
+        add:
+          - ci-failure
+
+  - name: Remove ci-failure label if no failures are present
+    conditions:
+      - "#check-failure=0"
+    actions:
+      label:
+        remove:
+          - ci-failure

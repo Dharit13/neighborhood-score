@@ -1,25 +1,45 @@
-# Contributing
+# Contributing to Neighborhood Score
 
-Thanks for your interest in contributing! Here's how to get started.
+Welcome to Neighborhood Score development! This guide covers everything you need to know about contributing data, scorers, pipelines, and other improvements.
 
-## Setup
+For detailed documentation including scorer examples, architecture diagrams, and advanced patterns, see our comprehensive [Development Guide](docs/development.md).
 
-1. Fork and clone the repo
-2. Install [uv](https://docs.astral.sh/uv/) and copy environment files:
-   ```bash
-   curl -LsSf https://astral.sh/uv/install.sh | sh
-   cp backend/.env.example backend/.env
-   cp frontend/.env.example frontend/.env
-   # Edit both .env files with your own API keys
-   ```
-3. Install dependencies:
-   ```bash
-   make install-dev
-   ```
+## Quick Start
 
-## Database Setup
+### Development Setup
 
-You need a Supabase project (or any PostgreSQL with PostGIS). Run the migrations in order:
+1. **Clone the Repository**
+
+```bash
+git clone https://github.com/Dharit13/neighborhood-score.git
+cd neighborhood-score
+```
+
+2. **Install uv** (if not already installed)
+
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or with Homebrew
+brew install uv
+```
+
+3. **Install Dependencies**
+
+```bash
+# Install all dependencies (backend + frontend)
+make install-dev
+
+# Configure environment
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+# Edit both .env files with your own API keys
+```
+
+### Database Setup
+
+You need a Supabase project (or any PostgreSQL with PostGIS — see [DATABASE.md](DATABASE.md)). Run the migrations in order:
 
 ```bash
 # In Supabase SQL Editor (or psql), run each file in order:
@@ -48,26 +68,77 @@ make dev-backend
 cd backend && uv run python -m app.pipelines.precompute_scores
 ```
 
-## Running
+### Running
 
 ```bash
 make dev-backend    # terminal 1 — uvicorn on :8000
 make dev-frontend   # terminal 2 — vite on :5173 (proxies /api to :8000)
 ```
 
-## Pull Request Rules
+## Development Tools
 
-- **Branch from `master`**, target `master`
-- Keep PRs focused on a single change
-- Run `make check` before submitting (lint + typecheck + tests)
-- Fill out the PR template — explain what, why, and how
-- At least **1 maintainer approval** required before merge
-- CI must pass (backend + frontend jobs)
-- **Squash merge** preferred — keeps history clean
-- No direct pushes to `master`
-- Commit messages: imperative mood, concise subject line (<72 chars)
-  - Good: `Add flood risk scorer with BBMP ward data`
-  - Bad: `updated stuff`
+### Linting and Code Quality
+
+We use [ruff](https://docs.astral.sh/ruff/) for Python and [ESLint](https://eslint.org/) for TypeScript:
+
+```bash
+# Lint everything
+make lint
+
+# Auto-format backend code
+make format
+
+# Type check everything
+make typecheck
+
+# Run individually
+cd backend && uv run ruff check .           # Python lint
+cd backend && uv run ruff format .          # Python format
+cd backend && uv run ruff check --fix .     # Python lint with auto-fix
+cd backend && uv run ty check               # Python type check
+cd frontend && npm run lint                 # TypeScript lint
+cd frontend && npx tsc -b --noEmit          # TypeScript type check
+```
+
+### Testing
+
+```bash
+# Run all tests (backend + frontend)
+make test
+
+# Backend only
+cd backend && uv run pytest tests/ -v
+
+# Specific test file
+cd backend && uv run pytest tests/test_api.py -v
+
+# Tests matching pattern
+cd backend && uv run pytest -k "test_pattern"
+
+# Frontend only
+cd frontend && npx vitest run
+```
+
+### Security Checks
+
+```bash
+# Run all security checks
+make security
+
+# Individual checks
+cd backend && uv audit                                  # Python dependency audit
+cd backend && uv run bandit -r app/ -c pyproject.toml   # Python SAST
+cd frontend && npm audit --audit-level=high             # Node dependency audit
+```
+
+### All Checks (CI equivalent)
+
+```bash
+# Run everything — lint + typecheck + test + security
+make check
+```
+
+**Always run `make check` before submitting a PR.**
 
 ## Ways to Contribute
 
@@ -84,7 +155,7 @@ These JSON files are the easiest entry point — no API keys needed, just local 
 | `safety_zones.json` | Crime rates, police station coverage | Add missing police stations, update crime stats from NCRB/KSP reports |
 | `water_zones.json` | BWSSB stage classifications, supply hours | Update supply schedules, add borewell/tanker dependency data |
 | `power_zones.json` | BESCOM tier ratings, outage frequency | Add recent outage data, transformer capacity |
-| `property_prices.json` | Avg ₹/sqft, 2BHK prices, rent, YoY growth | Update with latest RERA/ANAROCK/MagicBricks data |
+| `property_prices.json` | Avg price/sqft, 2BHK prices, rent, YoY growth | Update with latest RERA/ANAROCK/MagicBricks data |
 | `walkability_zones.json` | Footpath quality, street lighting, crossing density | Ground-truth walkability from walking audits |
 | `top_schools.json` | CBSE/ICSE/State board schools with ratings | Add missing schools, update ratings, add fee ranges |
 | `nabh_hospitals.json` | NABH-accredited hospitals, bed counts | Add clinics, specialty hospitals, ambulance response times |
@@ -98,7 +169,7 @@ These JSON files are the easiest entry point — no API keys needed, just local 
 | `landmarks.json` | Key landmarks for geocoding reference | Add missing landmarks, popular local references |
 | `areas.json` | Area boundaries and metadata | Add sub-locality boundaries, pin code mappings |
 
-#### How to submit data improvements
+#### How to Submit Data Improvements
 
 1. Fork the repo, edit the JSON file in `backend/app/data/curated/`
 2. Keep the existing JSON schema — add entries, don't change the structure
@@ -122,17 +193,17 @@ We currently have 17 dimensions. Ideas for new ones:
 
 **Steps to add a new dimension:**
 
-1. Create a scorer in `backend/app/scorers/your_dimension.py`
+1. Create a scorer in `backend/app/scorers/your_dimension.py` (must return 0-100)
 2. Add curated data in `backend/app/data/curated/your_data.json`
 3. Add a seed pipeline in `backend/app/pipelines/seed_your_data.py`
-4. Add the weight to `SCORE_WEIGHTS` in `backend/app/config.py`
+4. Add the weight to `SCORE_WEIGHTS` in `backend/app/config.py` (all weights must sum to 1.0)
 5. Wire it into the scoring pipeline in `backend/app/routers/scores.py`
 6. Add a frontend card in `frontend/src/components/`
 7. Add a migration if new DB tables are needed in `backend/supabase/migrations/`
 
 ### 3. Enhance Existing Scorers
 
-Each scorer in `backend/app/scorers/` computes a 0–100 score. Improvements could include:
+Each scorer in `backend/app/scorers/` computes a 0-100 score. Improvements could include:
 
 - **Better algorithms**: The safety scorer uses crime rate + police proximity — could add CCTV density, street lighting
 - **More data sources**: The air quality scorer uses CPCB stations — could integrate SAFAR or purple air sensors
@@ -164,27 +235,87 @@ Pipelines in `backend/app/pipelines/` fetch and process data. You can:
 - Database query optimization
 - API documentation improvements
 
-## Reporting Bugs
+## Development Workflow
 
-Open a GitHub issue with:
-- Steps to reproduce
-- Expected vs actual behavior
-- Browser/OS if frontend-related
+### Git Workflow
 
-## Code Style
+**Branch from `master`**, target `master`.
 
-- **Python**: Follow ruff defaults
-- **TypeScript**: Follow the existing ESLint config
+**Branch Naming:**
 
-## Branch Protection (Maintainers)
+- `feature/scorer-name` — New scoring dimensions
+- `feature/description` — New features
+- `data/source-description` — Data improvements
+- `fix/issue-description` — Bug fixes
+- `docs/section-updates` — Documentation updates
 
-If you're setting up the repo on GitHub, enable these on `master`:
+**Commit Messages:**
 
-- Require pull request reviews (1 approval)
-- Require status checks to pass: `backend`, `frontend`
-- Require branches to be up-to-date before merging
-- Block force pushes
-- Block branch deletion
+Imperative mood, concise subject line (<72 chars):
+
+- Good: `Add flood risk scorer with BBMP ward data`
+- Good: `Fix transit score calculation for multi-modal bonus`
+- Good: `Update metro stations with Phase 2A data`
+- Bad: `updated stuff`
+- Bad: `fixed the bug`
+
+### Pull Request Process
+
+1. Create feature branch from `master`
+2. Implement changes with tests
+3. Run `make check` locally (lint + typecheck + test + security)
+4. Create PR with clear description — explain what, why, and how
+5. Fill out the PR template
+6. Address review feedback
+7. At least **1 maintainer approval** required before merge
+8. CI must pass (backend + frontend jobs)
+9. **Squash merge** preferred — keeps history clean
+
+### Contribution Checklist
+
+#### For New Scorers
+
+- [ ] Scorer placed in `backend/app/scorers/`
+- [ ] Returns a score in 0-100 range
+- [ ] Weight added to `SCORE_WEIGHTS` in `config.py` (all weights sum to 1.0)
+- [ ] Wired into `backend/app/routers/scores.py`
+- [ ] Curated data file added to `backend/app/data/curated/`
+- [ ] Seed pipeline added to `backend/app/pipelines/`
+- [ ] Frontend card added to `frontend/src/components/`
+- [ ] Uses parameterized SQL queries (no f-strings)
+- [ ] Tests written
+- [ ] `make check` passes
+
+#### For Data Improvements
+
+- [ ] JSON schema matches existing entries
+- [ ] Data source cited in PR description
+- [ ] No breaking changes to existing structure
+- [ ] `make check` passes
+
+#### For Frontend Changes
+
+- [ ] TypeScript types correct (`npx tsc -b --noEmit`)
+- [ ] ESLint passes (`npm run lint`)
+- [ ] Uses Tailwind CSS utility classes
+- [ ] API calls use `/api/` prefix
+- [ ] Mobile responsive
+
+## CI Requirements
+
+All PRs must pass these checks before merging:
+
+| Check | Command | CI Job |
+|-------|---------|--------|
+| Ruff linting | `ruff check .` | `backend` |
+| Ruff formatting | `ruff format --check .` | `backend` |
+| Type checking (ty) | `ty check` | `backend` |
+| Backend tests | `pytest tests/ -v` | `backend` |
+| ESLint | `npm run lint` | `frontend` |
+| TypeScript + build | `npm run build` | `frontend` |
+| Dependency audit | `uv audit` | `security` |
+| Python SAST | `bandit -r app/` | `security` |
+| Node audit | `npm audit` | `security` |
 
 ## Running Pipelines Locally
 
@@ -193,7 +324,7 @@ Individual data pipelines can be run from the `backend/` directory:
 ```bash
 cd backend
 
-# Seed all curated data into the database
+# Seed all curated data into the database (+ run migrations)
 uv run python -m app.pipelines.seed_all
 
 # Precompute neighborhood scores (requires backend running on :8000)
@@ -207,6 +338,27 @@ uv run python -m app.pipelines.seed_curated_pois
 ```
 
 Pipelines are idempotent — safe to re-run. They use `INSERT ... ON CONFLICT` to upsert.
+
+## Testing Individual Scorers
+
+Each scorer can be tested in isolation:
+
+```python
+# In a Python shell (from backend/ directory)
+from dotenv import load_dotenv; load_dotenv()
+
+import asyncio
+from app.db import get_pool
+from app.scorers.safety import compute as safety_score
+
+async def test():
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        result = await safety_score(12.9716, 77.5946, conn)  # Bangalore center
+        print(result)
+
+asyncio.run(test())
+```
 
 ## Local Supabase (Optional)
 
@@ -234,6 +386,8 @@ psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -f supabase/migrati
 supabase stop
 ```
 
+For non-Supabase PostgreSQL setup, see [DATABASE.md](DATABASE.md).
+
 ## Debugging Guide
 
 ### Backend
@@ -256,23 +410,43 @@ supabase stop
 | Scores show as 0 | Precomputed scores not generated | Run `precompute_scores` pipeline with backend running |
 | Build fails with type errors | TypeScript strict mode | Run `npx tsc -b --noEmit` to see all errors, fix before committing |
 
-## Testing Individual Scorers
+## Branch Protection (Maintainers)
 
-Each scorer can be tested in isolation:
+If you're setting up the repo on GitHub, enable these on `master`:
 
-```python
-# In a Python shell (from backend/ directory)
-from dotenv import load_dotenv; load_dotenv()
+- Require pull request reviews (1 approval)
+- Require status checks to pass: `backend`, `frontend`
+- Require branches to be up-to-date before merging
+- Block force pushes
+- Block branch deletion
 
-import asyncio
-from app.db import get_pool
-from app.scorers.safety import compute as safety_score
+## Code Style
 
-async def test():
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        result = await safety_score(12.9716, 77.5946, conn)  # Bangalore center
-        print(result)
+- **Python**: Follow ruff defaults (line-length 120, rules: E, F, I, UP)
+- **TypeScript**: Follow the existing ESLint config
+- **SQL**: Use parameterized queries (`$1`/`%s`) — never string interpolation
 
-asyncio.run(test())
-```
+## Security
+
+- Never commit `.env` files or credentials
+- Never add LiteLLM or similar API key aggregation libraries
+- All new dependencies must pass `uv audit` / `npm audit`
+- API keys are server-side only — never expose to frontend except via `/api/config/map`
+
+## Reporting Bugs
+
+Open a GitHub issue with:
+
+- Steps to reproduce
+- Expected vs actual behavior
+- Browser/OS if frontend-related
+
+## Getting Help
+
+- **GitHub Issues** — Report bugs, request features
+- **README.md** — Project overview and quick start
+- **METHODOLOGY.md** — How scoring works (weights, algorithms, data sources)
+- **DATABASE.md** — Database setup for non-Supabase environments
+- **ARCHITECTURE.md** — System architecture and design decisions
+
+Thank you for contributing to Neighborhood Score!

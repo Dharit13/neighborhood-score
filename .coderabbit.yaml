@@ -1,0 +1,35 @@
+language: en-US
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_instructions:
+    - path: "backend/app/scorers/**"
+      instructions: |
+        Each scorer computes a 0-100 score for a neighborhood dimension.
+        Check that scores stay within 0-100 bounds and that parameterized
+        SQL queries are used (no f-strings in queries).
+    - path: "backend/app/routers/**"
+      instructions: |
+        FastAPI route handlers. All handlers should be async. Check for
+        proper error handling and input validation.
+    - path: "backend/app/data/curated/**"
+      instructions: |
+        Curated JSON data files. Verify the JSON schema matches existing
+        entries. Data sources should be cited in the PR description.
+    - path: "frontend/src/**"
+      instructions: |
+        React 19 + TypeScript + Tailwind CSS 4. No external state management
+        libraries. API calls use fetch with /api/ prefix.
+    - path: "backend/supabase/migrations/**"
+      instructions: |
+        SQL migrations run in numbered order. New migrations must not break
+        existing tables. Use IF NOT EXISTS where appropriate.
+chat:
+  auto_reply: true
