@@ -49,17 +49,17 @@ function Section({ title, children, defaultOpen = false, id }: { title: string; 
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div id={id} className="border-b border-white/[0.08] pb-3">
+      <div id={id} className="border-b border-white/[0.08] pb-4">
         <CollapsibleTrigger asChild>
-          <button className="w-full flex items-center justify-between py-2 group">
-            <h3 className="text-xs font-semibold gradient-text uppercase tracking-widest group-hover:opacity-80 transition-opacity">{title}</h3>
+          <button className="w-full flex items-center justify-between py-2.5 group">
+            <h3 className="text-sm font-semibold gradient-text uppercase tracking-widest group-hover:opacity-80 transition-opacity">{title}</h3>
             <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
               <ChevronDown size={12} className="text-brand-9" />
             </motion.div>
           </button>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="space-y-1.5 mt-1">
+          <div className="space-y-3 mt-2">
             {children}
           </div>
         </CollapsibleContent>
@@ -90,7 +90,7 @@ function AiBriefCard({ ai }: { ai: NonNullable<NeighborhoodScoreResponse['ai_ver
   return (
     <Collapsible open={expanded} onOpenChange={setExpanded}>
       <div className="rounded-xl bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.10] hover:border-brand-9/20 transition-colors duration-300 overflow-hidden relative">
-        <div className="px-4 py-3.5 space-y-2.5">
+        <div className="px-4 py-4 space-y-3">
           <div className="flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -219,7 +219,7 @@ export default function MapSidebar({ data }: Props) {
 
       {/* Sticky header */}
       <div className="flex-shrink-0 border-b border-white/[0.08] relative z-10">
-        <div id="sidebar-overview" className="px-4 pt-3 pb-2 flex items-center gap-4">
+        <div id="sidebar-overview" className="px-5 pt-4 pb-3 flex items-center gap-4">
           <ScoreRing score={data.composite_score} size={64} strokeWidth={5} />
           <div className="flex-1 min-w-0">
             <h2 className="text-base font-semibold text-white truncate leading-tight">
@@ -232,7 +232,7 @@ export default function MapSidebar({ data }: Props) {
         </div>
 
         {/* Gradient menu nav */}
-        <div className="flex gap-1 px-4 pb-2">
+        <div className="flex gap-1 px-5 pb-3">
           {SECTION_NAV.map((s) => {
             const isActive = activeNav === s.id;
             const Icon = s.icon;
@@ -263,20 +263,20 @@ export default function MapSidebar({ data }: Props) {
 
       {/* Pinned AI Brief */}
       {data.ai_verification && (data.ai_verification.verdict || data.ai_verification.narrative) && (
-        <div className="flex-shrink-0 px-4 pt-3 pb-2 border-b border-white/[0.08] relative z-10">
+        <div className="flex-shrink-0 px-5 pt-4 pb-3 border-b border-white/[0.08] relative z-10">
           <AiBriefCard ai={data.ai_verification} />
         </div>
       )}
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin px-4 pb-8 space-y-5 pt-4 relative z-10">
+      <div className="flex-1 overflow-y-auto scrollbar-thin px-5 pb-10 space-y-6 pt-5 relative z-10">
 
         {/* Ward Information */}
         {(data.wards_covered?.length ?? 0) > 0 && (
           <LiquidGlassCard glassSize="sm" className="rounded-xl border-white/[0.08] dark:border-white/[0.08] dark:from-white/[0.02] dark:to-transparent">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-3">
                 <MapPin size={13} className="text-brand-9" />
-                <span className="text-xs font-bold gradient-text uppercase tracking-widest">Wards Covered</span>
+                <span className="text-sm font-bold gradient-text uppercase tracking-widest">Wards Covered</span>
                 {data.wards_total_population && (
                   <Badge variant="mono" className="ml-auto text-[10px]">
                     <Users size={10} />
@@ -319,7 +319,7 @@ export default function MapSidebar({ data }: Props) {
           </motion.div>
         )}
 
-        <div className="divider" />
+        <div className="divider my-2" />
 
         <Section title="Livability & Safety" id="sidebar-livability">
           <ScoreCard title="Walkability" icon="walk" result={data.walkability} compact />
@@ -352,14 +352,14 @@ export default function MapSidebar({ data }: Props) {
           {data.business_opportunity && <ScoreCard title="Business" icon="briefcase" result={data.business_opportunity} compact />}
         </Section>
 
-        <div className="divider" />
+        <div className="divider my-2" />
 
-        <div className="pt-2 pb-2 space-y-2">
-          <p className="text-[11px] text-white/90 leading-relaxed">
+        <div className="pt-4 pb-2 space-y-2">
+          <p className="text-xs text-white/90 leading-relaxed">
             Data sourced from 8+ government agencies.
             Some datasets may not reflect real-time conditions. Last updated March 2025.
           </p>
-          <p className="text-[10px] text-white/75">
+          <p className="text-[11px] text-white/75">
             Scores are indicative and should not be the sole basis for investment decisions.
           </p>
         </div>

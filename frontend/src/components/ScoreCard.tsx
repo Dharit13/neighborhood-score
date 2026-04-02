@@ -144,7 +144,7 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
           />
 
           <CollapsibleTrigger asChild>
-            <div className="px-4 py-3.5 flex items-center gap-3 cursor-pointer relative" onClick={handleClick}>
+            <div className="px-4 py-4 flex items-center gap-3.5 cursor-pointer relative" onClick={handleClick}>
               <motion.div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
                 style={{ backgroundColor: color + '20', transform: 'translateZ(20px)' }}
@@ -231,7 +231,7 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.2 }}
-              className="px-4 pb-4 border-t border-white/[0.08] pt-3 space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin"
+              className="px-4 pb-5 border-t border-white/[0.08] pt-4 space-y-4 max-h-[400px] overflow-y-auto scrollbar-thin"
             >
               <div className="space-y-1.5">
                 {Object.entries(result.breakdown).map(([key, val]) => {
