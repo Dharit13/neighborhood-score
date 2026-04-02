@@ -49,33 +49,39 @@ async def get_weather(city: str = Query(..., min_length=1), _user: dict = Depend
     if cached:
         return cached
 
-    async with httpx.AsyncClient(timeout=10) as client:
-        # Step 1: Geocode city name to lat/lon
-        geo_resp = await client.get(GEOCODE_URL, params={"name": city, "count": 1})
-        geo_resp.raise_for_status()
-        geo_data = geo_resp.json()
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            # Step 1: Geocode city name to lat/lon
+            geo_resp = await client.get(GEOCODE_URL, params={"name": city, "count": 1})
+            geo_resp.raise_for_status()
+            geo_data = geo_resp.json()
 
-        results = geo_data.get("results")
-        if not results:
-            raise HTTPException(status_code=404, detail=f"City not found: {city}")
+            results = geo_data.get("results")
+            if not results:
+                raise HTTPException(status_code=404, detail=f"City not found: {city}")
 
-        lat = results[0]["latitude"]
-        lon = results[0]["longitude"]
+            lat = results[0]["latitude"]
+            lon = results[0]["longitude"]
 
-        # Step 2: Fetch current weather + 5-day forecast
-        forecast_resp = await client.get(
-            FORECAST_URL,
-            params={
-                "latitude": lat,
-                "longitude": lon,
-                "current": "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,apparent_temperature",
-                "daily": "weather_code,temperature_2m_max,temperature_2m_min",
-                "timezone": "auto",
-                "forecast_days": 5,
-            },
-        )
-        forecast_resp.raise_for_status()
-        forecast = forecast_resp.json()
+            # Step 2: Fetch current weather + 5-day forecast
+            forecast_resp = await client.get(
+                FORECAST_URL,
+                params={
+                    "latitude": lat,
+                    "longitude": lon,
+                    "current": "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,apparent_temperature",
+                    "daily": "weather_code,temperature_2m_max,temperature_2m_min",
+                    "timezone": "auto",
+                    "forecast_days": 5,
+                },
+            )
+            forecast_resp.raise_for_status()
+            forecast = forecast_resp.json()
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Failed to fetch weather for %s", city)
+        raise HTTPException(status_code=502, detail="Weather service temporarily unavailable")
 
     current = forecast["current"]
     daily = forecast["daily"]
