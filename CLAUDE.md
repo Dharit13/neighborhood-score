@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-Data-driven neighborhood scoring platform for Bangalore home buyers. Scores 130+ neighborhoods across 17 livability dimensions using curated data, PostGIS spatial analysis, and Claude AI verification.
+Data-driven neighborhood scoring platform for Bangalore home buyers. Scores 126 neighborhoods across 17 livability dimensions using curated data, PostGIS spatial analysis, and Claude AI verification.
 
 ## Architecture
 
@@ -69,7 +69,7 @@ frontend/
 3. **Parameterized SQL everywhere** — No f-strings or `.format()` in queries
 4. **Run `make check` before submitting PRs** — Must pass lint, typecheck, tests, and security
 5. **Commit messages**: Imperative mood, <72 chars (e.g., "Add flood risk scorer with BBMP ward data")
-6. **PRs target `main`**, squash merge preferred
+6. **PRs target `master`**, squash merge preferred
 
 ## Security Rules
 

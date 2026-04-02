@@ -57,14 +57,14 @@ make dev-frontend   # terminal 2 — vite on :5173 (proxies /api to :8000)
 
 ## Pull Request Rules
 
-- **Branch from `main`**, target `main`
+- **Branch from `master`**, target `master`
 - Keep PRs focused on a single change
 - Run `make check` before submitting (lint + typecheck + tests)
 - Fill out the PR template — explain what, why, and how
 - At least **1 maintainer approval** required before merge
 - CI must pass (backend + frontend jobs)
 - **Squash merge** preferred — keeps history clean
-- No direct pushes to `main`
+- No direct pushes to `master`
 - Commit messages: imperative mood, concise subject line (<72 chars)
   - Good: `Add flood risk scorer with BBMP ward data`
   - Bad: `updated stuff`
@@ -73,7 +73,7 @@ make dev-frontend   # terminal 2 — vite on :5173 (proxies /api to :8000)
 
 ### 1. Add or Improve Neighborhood Data
 
-We currently score **130+ neighborhoods across 17 dimensions**. The biggest impact comes from better data.
+We currently score **126 neighborhoods across 17 dimensions**. The biggest impact comes from better data.
 
 #### Curated Data Files (`backend/app/data/curated/`)
 
@@ -104,7 +104,7 @@ These JSON files are the easiest entry point — no API keys needed, just local 
 2. Keep the existing JSON schema — add entries, don't change the structure
 3. Include your data source in the PR description (e.g., "BWSSB 2025 report", "ground survey Dec 2025")
 4. Run `make check` to ensure nothing breaks
-5. Submit a PR targeting `main`
+5. Submit a PR targeting `master`
 
 ### 2. Add a New Scoring Dimension
 
@@ -178,7 +178,7 @@ Open a GitHub issue with:
 
 ## Branch Protection (Maintainers)
 
-If you're setting up the repo on GitHub, enable these on `main`:
+If you're setting up the repo on GitHub, enable these on `master`:
 
 - Require pull request reviews (1 approval)
 - Require status checks to pass: `backend`, `frontend`

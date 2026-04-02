@@ -1,6 +1,6 @@
 # Neighborhood Score — Bangalore
 
-Data-driven neighborhood scoring platform for Bangalore home buyers. Scores 130+ neighborhoods across 17 livability dimensions using curated data, PostGIS spatial analysis, and Claude AI verification.
+Data-driven neighborhood scoring platform for Bangalore home buyers. Scores 126 neighborhoods across 17 livability dimensions using curated data, PostGIS spatial analysis, and Claude AI verification.
 
 ## What It Does
 

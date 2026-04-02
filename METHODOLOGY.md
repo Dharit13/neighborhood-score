@@ -1,6 +1,6 @@
 # Scoring Methodology
 
-How Neighborhood Score computes livability scores for 130+ Bangalore neighborhoods across 17 dimensions.
+How Neighborhood Score computes livability scores for 126 Bangalore neighborhoods across 17 dimensions.
 
 ## Weight Selection Process
 

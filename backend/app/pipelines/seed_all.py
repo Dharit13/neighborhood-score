@@ -31,6 +31,7 @@ def run():
     run_sql_file(os.path.join(migrations_dir, "002_create_indexes.sql"))
     run_sql_file(os.path.join(migrations_dir, "003_add_cleanliness.sql"))
     run_sql_file(os.path.join(migrations_dir, "004_add_ward_mapping.sql"))
+    run_sql_file(os.path.join(migrations_dir, "005_google_places.sql"))
     run_sql_file(os.path.join(migrations_dir, "006_property_intelligence.sql"))
 
     print("\n=== Phase 2: Seed data (curated JSON) ===")

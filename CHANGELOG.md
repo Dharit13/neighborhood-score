@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- AI-powered neighbourhood report with 17 scoring dimensions (safety, transit, schools, healthcare, green cover, air quality, noise, water quality, walkability, nightlife, grocery access, gym/fitness access, pet friendliness, family friendliness, investor ROI, rental yield, appreciation potential)
+- AI-powered neighbourhood report with 17 scoring dimensions (safety, affordability, transit access, flood risk, commute, walkability, hospital access, water supply, air quality, school access, noise, power reliability, future infrastructure, cleanliness, builder reputation, delivery coverage, business opportunity)
 - Data-enriched claim verification pipeline that cross-references builder marketing claims against permit records, satellite imagery, and public data sources
 - Property intelligence platform with builder profiles, project timelines, and slug-based routing (`/api/builders`, `/api/builder/{slug}`, `/api/search`)
 - Builder trust score computation using a 7-factor weighted formula (delivery track record, RERA compliance, legal disputes, financial health, customer reviews, project quality, transparency)
