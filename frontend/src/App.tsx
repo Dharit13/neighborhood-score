@@ -11,6 +11,7 @@ import ScoreRing from './components/ScoreRing';
 import ScoreCard from './components/ScoreCard';
 import SearchAutocomplete from './components/SearchAutocomplete';
 import LoginPage from './components/LoginPage';
+import CityDashboard from './components/CityDashboard';
 import Perspective3DContainer from './components/Perspective3DContainer';
 import ErrorBoundary from './components/ErrorBoundary';
 import { generateReport } from './utils/generateReport';
@@ -599,7 +600,9 @@ function App() {
       {/* Global background layers — always mounted */}
       <div className="fixed inset-0 z-0">
         <BeamsBackground className="absolute inset-0 w-full h-full" intensity="medium" />
-        <RainingLetters className="absolute inset-0 w-full h-full overflow-hidden" opacity={0.8} charCount={300} />
+        {!isAuthenticated && (
+          <RainingLetters className="absolute inset-0 w-full h-full overflow-hidden" opacity={0.8} charCount={300} />
+        )}
       </div>
 
       {/* Auth loading spinner */}
@@ -760,6 +763,35 @@ function App() {
             freshness={freshness}
           />
         )}
+      </section>
+
+      {/* City Pulse */}
+      <section id="city-pulse-section" className="min-h-screen relative z-10">
+        <div className="px-8 lg:px-12 pt-10 pb-4">
+          <motion.h1
+            initial={{ y: 30, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
+            className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
+          >
+            <ScrambledText text="CITY PULSE" />
+          </motion.h1>
+          <motion.p
+            initial={{ y: 10, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-brand-9 text-sm mt-2 font-mono"
+          >
+            Live weather & local news
+          </motion.p>
+        </div>
+        <div className="px-8 lg:px-12 pb-20">
+          <Perspective3DContainer>
+            <CityDashboard />
+          </Perspective3DContainer>
+        </div>
       </section>
 
       {/* Compare */}
