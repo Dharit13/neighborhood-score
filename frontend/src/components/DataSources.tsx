@@ -1,6 +1,6 @@
 import { Footprints, Shield, Volume2, Hospital, GraduationCap, Train, Car, Package, Wind, Droplets, Zap, Waves, Building2, Construction, TrendingUp, Briefcase, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Section3DHeading from './Section3DHeading';
+
 import ScrollReveal3D from './ScrollReveal3D';
 import { use3DMouseTrack } from '@/hooks/use3DMouseTrack';
 
@@ -56,12 +56,6 @@ function DimensionCard({ dim, index }: { dim: typeof DIMENSIONS[number]; index: 
 export default function DataSources() {
   return (
     <div className="h-full flex flex-col items-center justify-center px-6">
-      <Section3DHeading
-        title="Data Sources"
-        subtitle="17 dimensions scored from 8+ government agencies"
-        className="mb-5"
-      />
-
       <div className="w-full max-w-6xl grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" style={{ perspective: '1000px' }}>
         {DIMENSIONS.map((dim, index) => (
           <DimensionCard key={dim.name} dim={dim} index={index} />

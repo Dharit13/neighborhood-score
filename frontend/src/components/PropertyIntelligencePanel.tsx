@@ -86,7 +86,7 @@ function BuilderDetailView({ slug, onBack }: { slug: string; onBack: () => void 
       <div className="flex items-center gap-4">
         <TrustScoreCircle score={profile.trust_score ?? 0} size={80} strokeWidth={5} />
         <div className="flex-1 min-w-0">
-          <h3 className="text-xl font-semibold text-white" style={{ fontFamily: 'var(--font-display)' }}>
+          <h3 className="text-xl font-semibold text-white">
             {profile.name}
           </h3>
           <div className="flex items-center gap-2 mt-1">

@@ -245,7 +245,7 @@ export function MorphPanel({ neighborhoodName, className }: MorphPanelProps) {
       <motion.div
         ref={wrapperRef}
         data-panel
-        className="absolute right-0 top-0 z-50 flex flex-col items-center overflow-hidden border border-brand-9/20"
+        className="absolute right-0 bottom-0 z-50 flex flex-col items-center overflow-hidden border border-brand-9/20"
         style={{ background: "#080c12", boxShadow: "0 8px 40px rgba(0,0,0,0.85), 0 0 30px rgba(0,44,124,0.2)" }}
         initial={false}
         animate={{

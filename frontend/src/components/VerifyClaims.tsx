@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Shield, MapPin, Building2, Landmark, FolderKanban } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Section3DHeading from './Section3DHeading';
+
 import { apiUrl, apiFetch } from '@/lib/api';
 import ScrollReveal3D from './ScrollReveal3D';
 import { AnimatedGlowingSearchBar } from '@/components/ui/animated-glowing-search-bar';
@@ -124,13 +124,7 @@ export default function VerifyClaims() {
 
   return (
     <div>
-      <div className="sticky top-12 z-20 bg-black/50 backdrop-blur-md pb-4 pt-2">
-        <Section3DHeading
-          title="Verify Property Claims"
-          subtitle="Paste marketing text from a property listing — AI will extract each claim and verify it against real data."
-          className="mb-4"
-        />
-
+      <div className="sticky top-12 z-20 bg-black pb-4 pt-2">
         {/* Input card */}
         <ScrollReveal3D rotateX={-5}>
         <div className="rounded-xl bg-white/[0.03] backdrop-blur-sm p-5 space-y-4">

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence, useSpring, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, useSpring } from 'framer-motion';
 import { Share2, Download, MapPin, Shield, Compass, Database, LogOut } from 'lucide-react';
 import NeighborhoodMap from './components/Map';
 import MapSidebar from './components/MapSidebar';
@@ -7,7 +7,6 @@ import CategoryChips from './components/CategoryChips';
 import VerifyClaims from './components/VerifyClaims';
 import CompareMode from './components/CompareMode';
 import DataSources from './components/DataSources';
-import Section3DHeading from './components/Section3DHeading';
 import ScoreRing from './components/ScoreRing';
 import ScoreCard from './components/ScoreCard';
 import SearchAutocomplete from './components/SearchAutocomplete';
@@ -196,7 +195,7 @@ function LandingHero() {
             <h1
               className="text-center uppercase"
               style={{
-                fontFamily: 'var(--font-display)',
+                fontFamily: 'var(--font-sans)',
                 textShadow: '0 0 40px rgba(0,0,0,0.8), 0 0 80px rgba(0,0,0,0.5)',
                 lineHeight: 1.1,
               }}
@@ -436,13 +435,6 @@ function App() {
   const isScrollingRef = useRef(false);
   const { isAuthenticated, loading: authLoading, logout } = useAuth();
 
-  // Scroll-driven header glass effect
-  const { scrollY } = useScroll();
-  const headerBlur = useTransform(scrollY, [0, 200], [12, 24]);
-  const headerBorderOpacity = useTransform(scrollY, [0, 200], [0.06, 0.15]);
-  const headerBackdropFilter = useTransform(headerBlur, (v) => `blur(${v}px)`);
-  const headerBorderBottom = useTransform(headerBorderOpacity, (v) => `1px solid rgba(255,255,255,${v})`);
-
   useEffect(() => {
     document.documentElement.classList.add('dark');
   }, []);
@@ -467,10 +459,10 @@ function App() {
           entries[entry.target.id] = entry.isIntersecting;
         });
         if (isScrollingRef.current) return;
-        const active = order.find((mode) => entries[SECTION_IDS[mode]]);
+        const active = order.findLast((mode) => entries[SECTION_IDS[mode]]);
         if (active) setAppMode(active);
       },
-      { threshold: 0.3 }
+      { threshold: 0.1 }
     );
 
     // Small delay to ensure sections are rendered
@@ -669,54 +661,49 @@ function App() {
             animate={{ opacity: 1, transition: { duration: 0.4, delay: 0.1 } }}
           >
 
-      {/* Header */}
-      <motion.header
-        className="sticky top-0 z-40 bg-black/70"
-        style={{
-          backdropFilter: headerBackdropFilter,
-          borderBottom: headerBorderBottom,
-        }}
+      {/* AI chat panel — fixed above bottom nav */}
+      <div className="fixed bottom-20 right-6 z-50">
+        <MorphPanel neighborhoodName={data ? readableAddress(data.address).split(',')[0] : undefined} />
+      </div>
+
+      {/* Bottom floating nav (Framer University style) */}
+      <motion.nav
+        className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200, delay: 0.3 }}
       >
-        <div className="flex items-center gap-3 px-4 py-2">
-          <Logo />
+        <div className="flex items-center gap-1 rounded-full bg-black/90 backdrop-blur-xl border border-white/10 px-2 py-2 shadow-2xl">
+          <ModeTabs mode={appMode} onChange={setAppMode} onNavigate={() => {
+            isScrollingRef.current = true;
+            setTimeout(() => { isScrollingRef.current = false; }, 1000);
+          }} />
 
-          <div className="flex-1 max-w-md mx-auto">
-            <CompactSearch onSearch={handleSearch} loading={loading} address={data?.address || ''} />
-          </div>
+          {data && (
+            <>
+              <button onClick={handleShareUrl} className="flex items-center justify-center w-9 h-9 rounded-full text-white/40 hover:text-white/70 transition-colors" title="Copy URL">
+                {linkCopied ? <span className="text-[9px] font-mono text-brand-9">OK</span> : <Share2 size={14} />}
+              </button>
+              <button
+                onClick={handleDownloadPdf}
+                disabled={downloadingPdf}
+                className="flex items-center justify-center w-9 h-9 rounded-full text-white/40 hover:text-white/70 transition-colors disabled:opacity-30"
+                title={downloadingPdf ? 'Generating AI report...' : 'Download Report'}
+              >
+                <Download size={14} />
+              </button>
+            </>
+          )}
 
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <MorphPanel neighborhoodName={data ? readableAddress(data.address).split(',')[0] : undefined} />
-            <ModeTabs mode={appMode} onChange={setAppMode} onNavigate={() => {
-              isScrollingRef.current = true;
-              setTimeout(() => { isScrollingRef.current = false; }, 1000);
-            }} />
-
-            {data && (
-              <>
-                <button onClick={handleShareUrl} className="p-2 rounded-lg border border-brand-9/30 hover:bg-brand-9/10 transition" title="Copy URL">
-                  {linkCopied ? <span className="text-xs text-brand-9 px-1">Copied!</span> : <Share2 size={14} className="text-brand-9" />}
-                </button>
-                <button
-                  onClick={handleDownloadPdf}
-                  disabled={downloadingPdf}
-                  className="p-2 rounded-lg border border-brand-9/30 hover:bg-brand-9/10 transition disabled:opacity-50"
-                  title={downloadingPdf ? 'Generating AI report...' : 'Download Comprehensive Report'}
-                >
-                  <Download size={14} className="text-brand-9" />
-                </button>
-              </>
-            )}
-
-            <button
-              onClick={logout}
-              className="p-2 rounded-lg border border-white/10 hover:bg-white/[0.06] transition"
-              title="Log Out"
-            >
-              <LogOut size={14} className="text-brand-9" />
-            </button>
-          </div>
+          <button
+            onClick={logout}
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-brand-9 text-white hover:bg-brand-8 transition-colors"
+            title="Log Out"
+          >
+            <LogOut size={14} />
+          </button>
         </div>
-      </motion.header>
+      </motion.nav>
 
       {/* Error toast */}
       <AnimatePresence>
@@ -734,18 +721,42 @@ function App() {
       </AnimatePresence>
 
       {/* Explore */}
-      <section id="explore-section" className="h-[calc(100vh-48px)] relative z-10 flex flex-col">
+      <section id="explore-section" className="h-screen relative z-10 flex flex-col">
         <AnimatePresence>
           {loading && <LoadingProgressBar />}
         </AnimatePresence>
 
-        <Section3DHeading title="Explore Neighborhoods" className="pt-5 pb-4" />
+        {/* Big page header (Framer University style) */}
+        <div className="px-8 lg:px-12 pt-10 pb-4 flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+          <div>
+            <motion.h1
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
+              className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
+            >
+              EXPLORE
+            </motion.h1>
+            <motion.p
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="text-brand-9 text-sm mt-2 font-mono"
+            >
+              17 dimensions · 126 neighborhoods · real government data
+            </motion.p>
+          </div>
+          <div className="flex-shrink-0 w-full max-w-md pb-1">
+            <CompactSearch onSearch={handleSearch} loading={loading} address={data?.address || ''} />
+          </div>
+        </div>
 
-        <div className="flex-1 flex overflow-hidden max-lg:hidden">
-          <div className="w-[55%] relative">
+        {/* Map + sidebar: 65/35 split */}
+        <div className="flex-1 flex overflow-hidden max-lg:hidden px-8 lg:px-12 pb-20 gap-4">
+          <div className="w-[65%] relative rounded-2xl overflow-hidden border border-white/[0.08]">
             <NeighborhoodMap data={data} onMapClick={handleMapClick} loading={loading} featuredNeighborhoods={featuredNeighborhoods} />
           </div>
-          <div className={cn("w-[45%] h-full overflow-hidden flex-shrink-0 transition-opacity duration-300", loading && data && "opacity-80 pointer-events-none")}>
+          <div className={cn("w-[35%] h-full overflow-hidden flex-shrink-0 rounded-2xl border border-white/[0.08] transition-opacity duration-300", loading && data && "opacity-80 pointer-events-none")}>
             {data ? (
               <MapSidebar data={data} freshness={freshness} />
             ) : (
@@ -769,22 +780,82 @@ function App() {
       </section>
 
       {/* Compare */}
-      <section id="compare-section" className="min-h-[calc(100vh-48px)] relative z-10">
-        <Perspective3DContainer maxRotation={2} className="max-w-7xl mx-auto px-6 py-8">
+      <section id="compare-section" className="min-h-screen relative z-10">
+        <div className="px-8 lg:px-12 pt-10 pb-4">
+          <motion.h1
+            initial={{ y: 30, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
+            className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
+          >
+            COMPARE
+          </motion.h1>
+          <motion.p
+            initial={{ y: 10, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-brand-9 text-sm mt-2 font-mono"
+          >
+            Side-by-side neighborhood analysis
+          </motion.p>
+        </div>
+        <Perspective3DContainer maxRotation={2} className="max-w-7xl mx-auto px-6 pb-8">
           <CompareMode />
         </Perspective3DContainer>
       </section>
 
       {/* Verify */}
-      <section id="verify-section" className="min-h-[calc(100vh-48px)] relative z-10">
-        <Perspective3DContainer maxRotation={2} className="max-w-7xl mx-auto px-6 py-8">
+      <section id="verify-section" className="min-h-screen relative z-10">
+        <div className="px-8 lg:px-12 pt-10 pb-4">
+          <motion.h1
+            initial={{ y: 30, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
+            className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
+          >
+            VERIFY
+          </motion.h1>
+          <motion.p
+            initial={{ y: 10, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-brand-9 text-sm mt-2 font-mono"
+          >
+            AI-powered property claim verification
+          </motion.p>
+        </div>
+        <Perspective3DContainer maxRotation={2} className="max-w-7xl mx-auto px-6 pb-8">
           <VerifyClaims />
         </Perspective3DContainer>
       </section>
 
       {/* Sources */}
-      <section id="sources-section" className="min-h-[calc(100vh-48px)] relative z-10">
-        <Perspective3DContainer maxRotation={3} className="max-w-7xl mx-auto px-6 py-8">
+      <section id="sources-section" className="min-h-screen relative z-10">
+        <div className="px-8 lg:px-12 pt-10 pb-4">
+          <motion.h1
+            initial={{ y: 30, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring', duration: 0.8, bounce: 0.1 }}
+            className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight"
+          >
+            SOURCES
+          </motion.h1>
+          <motion.p
+            initial={{ y: 10, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-brand-9 text-sm mt-2 font-mono"
+          >
+            Government data &amp; methodology
+          </motion.p>
+        </div>
+        <Perspective3DContainer maxRotation={3} className="max-w-7xl mx-auto px-6 pb-8">
           <DataSources />
         </Perspective3DContainer>
       </section>

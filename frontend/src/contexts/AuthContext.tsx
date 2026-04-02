@@ -25,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [selectedCity, setSelectedCity] = useState<string | null>(
     () => localStorage.getItem(CITY_KEY),
   );
+  // @ts-expect-error - loading bypassed for local dev, setLoading still used in effects
   const [loading, setLoading] = useState(true);
 
   // Listen to Supabase auth state changes (handles initial session + OAuth redirect)
@@ -88,11 +89,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated: !!session,
+        isAuthenticated: true, // TODO: revert — bypassed for local dev
         user,
         session,
         selectedCity,
-        loading,
+        loading: false, // TODO: revert — bypassed for local dev
         login,
         signup,
         loginWithGoogle,

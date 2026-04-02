@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Section3DHeading from './Section3DHeading';
+
 import ScrollReveal3D from './ScrollReveal3D';
 import { Sparkles, ChevronLeft, RotateCcw, Wallet, MapPin, Heart, User } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
@@ -184,12 +184,6 @@ export default function CompareMode() {
 
   return (
     <div className="space-y-6">
-      <Section3DHeading
-        title="Find Your Neighborhood"
-        subtitle="Answer a few questions — AI recommends 3 neighborhoods tailored to you"
-        className="mb-4"
-      />
-
       {/* Progress dots */}
       {step < 4 && (
         <div className="flex items-center justify-center gap-2 mb-6">
