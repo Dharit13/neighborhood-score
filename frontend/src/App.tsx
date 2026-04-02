@@ -27,16 +27,6 @@ import { useAuth } from '@/contexts/AuthContext';
 
 type AppMode = 'score' | 'verify' | 'compare' | 'sources';
 
-function Logo({ className }: { className?: string }) {
-  return (
-    <div className={cn("flex items-center flex-shrink-0", className)}>
-      <span className="text-base font-bold tracking-tight">
-        <span className="text-foreground">Neighborhood</span>{' '}
-        <span className="text-brand-9">Score</span>
-      </span>
-    </div>
-  );
-}
 
 const MODE_TAB_GRADIENTS: Record<string, { from: string; to: string }> = {
   score: { from: '#002c7c', to: '#007260' },
