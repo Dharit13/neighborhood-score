@@ -3,6 +3,7 @@ builder = "nixpacks"
 
 [build.nixpacks]
 aptPkgs = ["libgdal-dev", "gdal-bin"]
+installCmd = "pip install -r requirements.txt"
 
 [deploy]
 startCommand = "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
