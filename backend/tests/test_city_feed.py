@@ -1,7 +1,6 @@
 """Tests for city feed endpoints (weather + news)."""
 
-import time
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -110,4 +109,80 @@ def test_weather_cache_hit(mock_client_cls, client):
     client.get("/api/weather?city=Bengaluru")
 
     # AsyncClient should only be instantiated once (first call fetches, second uses cache)
+    assert mock_client_cls.call_count == 1
+
+
+# --- News tests ---
+
+MOCK_RSS_XML = """<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Test Feed</title>
+    <item>
+      <title>Bengaluru metro expansion approved</title>
+      <link>https://example.com/article1</link>
+      <pubDate>Wed, 02 Apr 2026 10:30:00 GMT</pubDate>
+      <source url="https://example.com">Times of India</source>
+    </item>
+    <item>
+      <title>Traffic disruption in Bengaluru CBD</title>
+      <link>https://example.com/article2</link>
+      <pubDate>Wed, 02 Apr 2026 08:00:00 GMT</pubDate>
+      <source url="https://example.com">Deccan Herald</source>
+    </item>
+  </channel>
+</rss>"""
+
+
+def _mock_httpx_get_rss(_url, **kwargs):
+    """Return mock RSS response."""
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.text = MOCK_RSS_XML
+    mock_resp.raise_for_status = MagicMock()
+    return mock_resp
+
+
+@patch("app.routers.city_feed.httpx.AsyncClient")
+def test_news_success(mock_client_cls, client):
+    mock_instance = AsyncMock()
+    mock_instance.get = AsyncMock(side_effect=_mock_httpx_get_rss)
+    mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
+    mock_instance.__aexit__ = AsyncMock(return_value=False)
+    mock_client_cls.return_value = mock_instance
+
+    from app.routers.city_feed import _news_cache
+    _news_cache.clear()
+
+    resp = client.get("/api/news?city=Bengaluru")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["city"] == "Bengaluru"
+    assert len(data["articles"]) > 0
+    article = data["articles"][0]
+    assert "title" in article
+    assert "link" in article
+    assert "source" in article
+    assert "published" in article
+
+
+def test_news_missing_city(client):
+    resp = client.get("/api/news")
+    assert resp.status_code == 422
+
+
+@patch("app.routers.city_feed.httpx.AsyncClient")
+def test_news_cache_hit(mock_client_cls, client):
+    mock_instance = AsyncMock()
+    mock_instance.get = AsyncMock(side_effect=_mock_httpx_get_rss)
+    mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
+    mock_instance.__aexit__ = AsyncMock(return_value=False)
+    mock_client_cls.return_value = mock_instance
+
+    from app.routers.city_feed import _news_cache
+    _news_cache.clear()
+
+    client.get("/api/news?city=Bengaluru")
+    client.get("/api/news?city=Bengaluru")
+
     assert mock_client_cls.call_count == 1
