@@ -170,13 +170,15 @@ async def get_news(city: str = Query(..., min_length=1), _user: dict = Depends(r
                     elif hasattr(entry, "media_content") and entry.media_content:
                         thumbnail = entry.media_content[0].get("url", "")
 
-                    all_articles.append({
-                        "title": entry.get("title", ""),
-                        "source": source,
-                        "published": entry.get("published", ""),
-                        "link": entry.get("link", ""),
-                        "thumbnail": thumbnail,
-                    })
+                    all_articles.append(
+                        {
+                            "title": entry.get("title", ""),
+                            "source": source,
+                            "published": entry.get("published", ""),
+                            "link": entry.get("link", ""),
+                            "thumbnail": thumbnail,
+                        }
+                    )
             except Exception:
                 logger.warning("Failed to fetch RSS feed: %s", feed_url, exc_info=True)
                 continue

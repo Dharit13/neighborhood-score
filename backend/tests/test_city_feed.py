@@ -26,11 +26,7 @@ def client():
 
 # --- Weather tests ---
 
-MOCK_GEOCODE_RESPONSE = {
-    "results": [
-        {"name": "Bengaluru", "latitude": 12.9716, "longitude": 77.5946}
-    ]
-}
+MOCK_GEOCODE_RESPONSE = {"results": [{"name": "Bengaluru", "latitude": 12.9716, "longitude": 77.5946}]}
 
 MOCK_FORECAST_RESPONSE = {
     "current": {
@@ -71,6 +67,7 @@ def test_weather_success(mock_client_cls, client):
 
     # Clear cache before test
     from app.routers.city_feed import _weather_cache
+
     _weather_cache.clear()
 
     resp = client.get("/api/weather?city=Bengaluru")
@@ -103,6 +100,7 @@ def test_weather_cache_hit(mock_client_cls, client):
     mock_client_cls.return_value = mock_instance
 
     from app.routers.city_feed import _weather_cache
+
     _weather_cache.clear()
 
     client.get("/api/weather?city=Bengaluru")
@@ -152,6 +150,7 @@ def test_news_success(mock_client_cls, client):
     mock_client_cls.return_value = mock_instance
 
     from app.routers.city_feed import _news_cache
+
     _news_cache.clear()
 
     resp = client.get("/api/news?city=Bengaluru")
@@ -180,6 +179,7 @@ def test_news_cache_hit(mock_client_cls, client):
     mock_client_cls.return_value = mock_instance
 
     from app.routers.city_feed import _news_cache
+
     _news_cache.clear()
 
     client.get("/api/news?city=Bengaluru")
