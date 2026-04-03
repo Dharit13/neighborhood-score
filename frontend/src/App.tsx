@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Share2, Download, MapPin, Shield, Compass, Database, LogOut } from 'lucide-react';
+import { Share2, Download, MapPin, Shield, Compass, Database, LogOut, Newspaper } from 'lucide-react';
 import NeighborhoodMap from './components/Map';
 import MapSidebar from './components/MapSidebar';
 import CategoryChips from './components/CategoryChips';
@@ -26,11 +26,12 @@ import { MorphPanel } from '@/components/ui/ai-input';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
-type AppMode = 'score' | 'verify' | 'compare' | 'sources';
+type AppMode = 'score' | 'update' | 'verify' | 'compare' | 'sources';
 
 
 const MODE_TAB_GRADIENTS: Record<string, { from: string; to: string }> = {
   score: { from: '#002c7c', to: '#007260' },
+  update: { from: '#8a7a6a', to: '#b91c1c' },
   verify: { from: '#005075', to: '#00943d' },
   compare: { from: '#007260', to: '#2ad587' },
   sources: { from: '#005075', to: '#002c7c' },
@@ -38,6 +39,7 @@ const MODE_TAB_GRADIENTS: Record<string, { from: string; to: string }> = {
 
 const SECTION_IDS: Record<AppMode, string> = {
   score: 'explore-section',
+  update: 'city-pulse-section',
   verify: 'verify-section',
   compare: 'compare-section',
   sources: 'sources-section',
@@ -46,6 +48,7 @@ const SECTION_IDS: Record<AppMode, string> = {
 function ModeTabs({ mode, onChange, onNavigate }: { mode: AppMode; onChange: (m: AppMode) => void; onNavigate?: () => void }) {
   const tabs = [
     { id: 'score' as const, label: 'Dad', icon: Compass },
+    { id: 'update' as const, label: 'Boss', icon: Newspaper },
     { id: 'compare' as const, label: 'Mom', icon: MapPin },
     { id: 'verify' as const, label: 'Kids', icon: Shield },
     { id: 'sources' as const, label: 'Seniors', icon: Database },
@@ -356,7 +359,7 @@ function App() {
     if (!isAuthenticated) return;
 
     const entries: Record<string, boolean> = {};
-    const order: AppMode[] = ['score', 'compare', 'verify', 'sources'];
+    const order: AppMode[] = ['score', 'update', 'compare', 'verify', 'sources'];
 
     const observer = new IntersectionObserver(
       (observed) => {
