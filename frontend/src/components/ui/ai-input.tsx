@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import AnthropicDark from "@/components/kokonutui/anthropic-dark"
 import { apiFetch } from "@/lib/api"
+import { useTextMeasure } from "@/hooks/useTextMeasure"
 
 interface OrbProps {
   dimension?: string
@@ -162,6 +163,27 @@ export function MorphPanel({ neighborhoodName, className }: MorphPanelProps) {
   const [loading, setLoading] = React.useState(false)
   const responseRef = React.useRef<HTMLDivElement>(null)
 
+  // Pretext: predict response content height without DOM reflow
+  const MAX_RESPONSE_H = 300
+  const RESPONSE_CONTENT_W = FORM_WIDTH - 24 - 28 // p-3 each side + icon column
+  const { height: predictedHeight, ready: pretextReady } = useTextMeasure({
+    text: response,
+    font: '13px Plus Jakarta Sans',
+    maxWidth: RESPONSE_CONTENT_W,
+    lineHeight: 22, // text-[13px] leading-[1.7] ≈ 22px
+  })
+
+  // Auto-scroll response container using Pretext-predicted height (avoids scrollHeight reflow)
+  React.useEffect(() => {
+    if (!response || !responseRef.current) return;
+    if (pretextReady && predictedHeight > MAX_RESPONSE_H) {
+      responseRef.current.scrollTo({ top: predictedHeight - MAX_RESPONSE_H, behavior: 'smooth' });
+    } else if (!pretextReady) {
+      // Fallback: DOM measurement when fonts haven't loaded yet
+      responseRef.current.scrollTop = responseRef.current.scrollHeight;
+    }
+  }, [response, predictedHeight, pretextReady])
+
   const triggerClose = React.useCallback(() => {
     setShowForm(false)
     setResponse("")
@@ -210,7 +232,6 @@ export function MorphPanel({ neighborhoodName, className }: MorphPanelProps) {
                 if (parsed.text) {
                   accumulated += parsed.text
                   setResponse(accumulated)
-                  if (responseRef.current) responseRef.current.scrollTop = responseRef.current.scrollHeight
                 }
                 if (parsed.error) setResponse(accumulated ? accumulated + "\n\n⚠ " + parsed.error : parsed.error)
               } catch { /* skip */ }

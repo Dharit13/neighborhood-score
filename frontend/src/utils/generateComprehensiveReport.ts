@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import type { NeighborhoodScoreResponse } from '../types';
 import { apiFetch } from '../lib/api';
+import { measureText } from '../lib/pretext';
 
 // ── Types ──
 
@@ -308,7 +309,15 @@ class VisualReport {
   private drawSectionCard(sec: ReportSection, accent: RGB) {
     const m = this.m;
     const bulletCount = sec.highlights?.length || 0;
-    const estH = 16 + bulletCount * 7.5;
+    // Use Pretext for accurate bullet height estimation (9pt Helvetica ≈ 12px, 1mm ≈ 3.78px)
+    const bulletWidthPx = (this.cW - 28) * 3.78;
+    const bulletLineHeightPx = 16; // ~5mm line spacing in PDF
+    let bulletTotalH = 0;
+    for (const h of (sec.highlights || [])) {
+      const { lineCount } = measureText(clean(h), '12px Helvetica', bulletWidthPx, bulletLineHeightPx);
+      bulletTotalH += Math.max(lineCount, 1) * 5 + 1; // 5mm per line + 1mm gap
+    }
+    const estH = 16 + Math.max(bulletTotalH, bulletCount * 7.5);
     this.check(Math.min(estH, 55));
 
     this.y += 3;
