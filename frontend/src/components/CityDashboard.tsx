@@ -74,9 +74,9 @@ const CITY_DATA: Record<string, CityData> = {
     ],
     landmarks: 45, parks: 800, techParks: 67,
     photos: {
-      hero: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=800&h=600&fit=crop&q=80',
-      street: 'https://images.unsplash.com/photo-1580581096469-8afb39cd0655?w=600&h=400&fit=crop&q=80',
-      landmark: 'https://images.unsplash.com/photo-1600689182327-cb0e3e0f1ab3?w=600&h=400&fit=crop&q=80',
+      hero: 'https://upload.wikimedia.org/wikipedia/commons/7/78/Lalbagh_Glasshouse_night_panorama.jpg',
+      street: 'https://upload.wikimedia.org/wikipedia/commons/8/8f/Chinnaswamy_Stadium_MI_vs_RCB.jpg',
+      landmark: 'https://upload.wikimedia.org/wikipedia/commons/3/34/UB_City_Bangalore.JPG',
       skyline: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=1200&h=400&fit=crop&q=80',
     },
   },
@@ -212,8 +212,9 @@ export default function CityDashboard() {
   const BATCH_SIZE = 15;
   const ROTATE_INTERVAL = 15000;
   const FACT_ROTATE_INTERVAL = 10000;
-  const totalBatches = news ? Math.ceil(news.articles.length / BATCH_SIZE) : 0;
-  const currentBatch = news ? news.articles.slice(batchIndex * BATCH_SIZE, (batchIndex + 1) * BATCH_SIZE) : [];
+  const sortedArticles = news ? [...news.articles].sort((a, b) => new Date(b.published).getTime() - new Date(a.published).getTime()) : [];
+  const totalBatches = news ? Math.ceil(sortedArticles.length / BATCH_SIZE) : 0;
+  const currentBatch = sortedArticles.slice(batchIndex * BATCH_SIZE, (batchIndex + 1) * BATCH_SIZE);
 
   const rotateBatch = useCallback(() => {
     if (totalBatches <= 1) return;
@@ -423,6 +424,16 @@ export default function CityDashboard() {
             </div>
           </div>
 
+          {/* Additional city photos */}
+          <div className="grid grid-cols-2 gap-2 mb-5">
+            <div className="relative overflow-hidden h-[120px]">
+              <img src={d.photos.street} alt="" className="w-full h-full object-cover" />
+            </div>
+            <div className="relative overflow-hidden h-[120px]">
+              <img src={d.photos.landmark} alt="" className="w-full h-full object-cover" />
+            </div>
+          </div>
+
           {/* City stats box */}
           <div className="border p-4 mb-5" style={{ borderColor: RULE_DARK }}>
             <h4 className="text-[10px] uppercase tracking-[0.25em] font-bold text-center mb-3" style={{ color: INK_FAINT }}>City At A Glance</h4>
@@ -469,7 +480,7 @@ export default function CityDashboard() {
           <ScrambleText
             key={`${city}-${factIndex}`}
             text={d.facts[factIndex]}
-            className="text-[14px] leading-[1.85] font-mono"
+            className="text-[14px] leading-[1.85]"
             style={{ color: INK_LIGHT }}
           />
 
@@ -485,7 +496,7 @@ export default function CityDashboard() {
                     <div className="flex gap-3">
                       <span className="text-[28px] font-bold leading-none flex-shrink-0 mt-0.5"
                             style={{ color: 'rgba(0,0,0,0.06)' }}>
-                        {String(i + 4).padStart(2, '0')}
+                        {String(3 + leftColumnArticles.length + i + 1).padStart(2, '0')}
                       </span>
                       <div className="flex-1 min-w-0">
                         <h5 className="text-[13px] font-semibold leading-snug transition-colors line-clamp-2"

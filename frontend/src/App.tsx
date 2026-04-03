@@ -646,13 +646,11 @@ function App() {
               17 dimensions · 126 neighborhoods · real government data
             </p>
           </div>
-          <div className="flex items-center gap-3 pb-1">
-            <div className="w-72 lg:w-80">
+          <div className="flex items-center gap-3 pb-1 w-full max-w-xl">
+            <div className="flex-1 min-w-0">
               <CompactSearch onSearch={handleSearch} loading={loading} address={data?.address || ''} />
             </div>
-            <div className="flex-shrink-0">
-              <MorphPanel neighborhoodName={data ? readableAddress(data.address).split(',')[0] : undefined} />
-            </div>
+            <MorphPanel neighborhoodName={data ? readableAddress(data.address).split(',')[0] : undefined} />
           </div>
         </div>
 
