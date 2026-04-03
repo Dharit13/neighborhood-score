@@ -195,7 +195,7 @@ export default function CityDashboard() {
   const columnArticles = currentBatch.slice(3);
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl">
 
       {/* DATE BAR */}
       <DoubleRule />
@@ -249,7 +249,7 @@ export default function CityDashboard() {
           {newsLoading ? <NewsSkeleton /> : leadArticle ? (
             <a href={leadArticle.link} target="_blank" rel="noopener noreferrer" className="group block">
               <h3 className="text-[28px] sm:text-[34px] lg:text-[40px] font-bold leading-[1.08] tracking-tight transition-colors"
-                  style={{ fontFamily: 'var(--font-display)', color: INK }}>
+                  style={{ color: INK }}>
                 {leadArticle.title}
               </h3>
               <Rule className="my-4" />
@@ -281,7 +281,7 @@ export default function CityDashboard() {
                       <img src={article.thumbnail} alt="" className="w-full h-44 object-cover mb-3 transition-all duration-700" />
                     )}
                     <h4 className="text-[15px] font-bold leading-snug transition-colors"
-                        style={{ fontFamily: 'var(--font-display)', color: INK }}>
+                        style={{ color: INK }}>
                       {article.title}
                     </h4>
                     <div className="flex items-center gap-2 mt-2 text-[9px] uppercase tracking-wider" style={{ color: INK_FAINT }}>

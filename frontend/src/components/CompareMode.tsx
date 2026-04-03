@@ -7,7 +7,6 @@ import { apiFetch } from '@/lib/api';
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, Tooltip, Legend,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell,
 } from 'recharts';
 import { ShuffleNumber } from '@/components/ui/shuffle-number';
 import TetrisLoading from '@/components/ui/tetris-loader';
@@ -567,82 +566,6 @@ export default function CompareMode() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                {/* Grouped Bar Chart */}
-                <ScrollReveal3D rotateX={-8} translateZ={10}>
-                  <div className="rounded-xl bg-white/[0.03] backdrop-blur-sm p-6 max-w-5xl mx-auto">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-semibold section-heading-compare uppercase tracking-widest">Dimension Breakdown</h3>
-                      <div className="flex items-center gap-3">
-                        {loaded.map((r, i) => (
-                          <div key={i} className="flex items-center gap-1.5">
-                            <div className="w-2.5 h-2.5 rounded-sm" style={{ background: RAW_COLORS[i] }} />
-                            <span className="text-[10px] text-white/50">{readableName(r.address)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <ResponsiveContainer width="100%" height={520}>
-                      <BarChart
-                        data={barData}
-                        layout="vertical"
-                        margin={{ top: 0, right: 20, bottom: 0, left: 80 }}
-                        barGap={2}
-                        barCategoryGap="18%"
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
-                        <XAxis type="number" domain={[0, 100]} tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis
-                          type="category"
-                          dataKey="dimension"
-                          tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11 }}
-                          axisLine={false}
-                          tickLine={false}
-                          width={75}
-                        />
-                        <Tooltip
-                          cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-                          contentStyle={{
-                            backgroundColor: 'rgba(0,0,0,0.95)',
-                            border: '1px solid rgba(129,140,248,0.2)',
-                            borderRadius: '10px',
-                            color: 'white',
-                            fontSize: '12px',
-                            backdropFilter: 'blur(12px)',
-                            padding: '10px 14px',
-                          }}
-                          formatter={(value: unknown, name: unknown) => {
-                            const v = Number(value) || 0;
-                            const n = String(name);
-                            const idx = parseInt(n.replace('score', ''));
-                            const label = loaded[idx] ? readableName(loaded[idx].address) : n;
-                            return [`${Math.round(v * 10) / 10} / 100`, label];
-                          }}
-                          labelStyle={{ color: 'rgba(255,255,255,0.7)', marginBottom: 4, fontWeight: 600 }}
-                        />
-                        {[0, 1, 2].map(i => (
-                          <Bar
-                            key={i}
-                            dataKey={`score${i}`}
-                            radius={[0, 4, 4, 0]}
-                            maxBarSize={12}
-                            animationDuration={800}
-                            animationBegin={i * 150}
-                          >
-                            {barData.map((entry, j) => (
-                              <Cell
-                                key={j}
-                                fill={entry.winner === i ? RAW_COLORS[i] : RAW_COLORS_DIM[i]}
-                                stroke={hoveredDim === entry.dimKey ? RAW_COLORS[i] : 'none'}
-                                strokeWidth={1}
-                              />
-                            ))}
-                          </Bar>
-                        ))}
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </ScrollReveal3D>
-
                 {/* Interactive dimension rows */}
                 <ScrollReveal3D delay={0.05} rotateX={-6}>
                   <div className="max-w-5xl mx-auto space-y-1.5 mt-4">
