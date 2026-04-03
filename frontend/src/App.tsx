@@ -30,11 +30,11 @@ type AppMode = 'score' | 'update' | 'verify' | 'compare' | 'sources';
 
 
 const MODE_TAB_GRADIENTS: Record<string, { from: string; to: string }> = {
-  score: { from: '#002c7c', to: '#007260' },
-  update: { from: '#8a7a6a', to: '#b91c1c' },
-  verify: { from: '#005075', to: '#00943d' },
-  compare: { from: '#007260', to: '#2ad587' },
-  sources: { from: '#005075', to: '#002c7c' },
+  score: { from: '#005075', to: '#2ad587' },
+  update: { from: '#a09888', to: '#1a1a1a' },
+  compare: { from: '#4f46e5', to: '#818cf8' },
+  verify: { from: '#b91c1c', to: '#d0c8b8' },
+  sources: { from: '#1a1a1a', to: '#4a4a4a' },
 };
 
 const SECTION_IDS: Record<AppMode, string> = {
