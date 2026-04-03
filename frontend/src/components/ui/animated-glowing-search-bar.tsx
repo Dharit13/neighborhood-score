@@ -20,7 +20,7 @@ const ORANGE_THEME: SearchBarTheme = {
   glow: 'rgba(251,146,60,0.4)', glowSoft: 'rgba(251,146,60,0.2)',
 };
 
-export const SEARCH_THEMES = { green: GREEN_THEME, orange: ORANGE_THEME } as const;
+const SEARCH_THEMES = { green: GREEN_THEME, orange: ORANGE_THEME } as const;
 
 interface AnimatedGlowingSearchBarProps {
   value: string;
