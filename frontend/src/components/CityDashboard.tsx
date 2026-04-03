@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Droplets, Wind, Thermometer } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,7 +53,8 @@ interface NewsData { city: string; articles: NewsArticle[] }
 
 interface CityData {
   population: string; area: string; density: string; founded: string;
-  nickname: string; tagline: string; history: string;
+  nickname: string; tagline: string;
+  facts: string[];
   landmarks: number; parks: number; techParks: number;
   photos: { hero: string; street: string; landmark: string; skyline: string };
 }
@@ -63,7 +64,14 @@ const CITY_DATA: Record<string, CityData> = {
     population: '1.35 Cr', area: '741', density: '18,200', founded: '1537',
     nickname: 'Silicon Valley of India',
     tagline: 'Where tradition meets innovation',
-    history: 'Founded in 1537 by Kempe Gowda I, Bengaluru evolved from a mud-fort town into India\'s tech capital. The IT revolution of the 1990s brought Infosys, Wipro, and 400+ R&D centres here, transforming the city\'s landscape forever. Today, the city is home to over 67 tech parks, 800+ public parks, and a vibrant cultural scene that blends Dravidian heritage with cosmopolitan ambition.',
+    facts: [
+      'Founded in 1537 by Kempe Gowda I, Bengaluru evolved from a mud-fort town into India\'s tech capital. The IT revolution of the 1990s brought Infosys, Wipro, and 400+ R&D centres here, transforming the city\'s landscape forever.',
+      'Bengaluru sits at an elevation of 920 metres, giving it a year-round pleasant climate that earned it the nickname "Air-Conditioned City." The British made it a cantonment town in 1809 precisely for this reason.',
+      'The city\'s Lalbagh Botanical Garden, established in 1760 by Hyder Ali, spans 240 acres and houses a Glass House modelled on London\'s Crystal Palace. It contains over 1,000 species of plants, including a 200-year-old silk cotton tree.',
+      'Bengaluru consumes more than 1.2 billion cups of filter coffee annually, making it India\'s unofficial coffee capital. The first Indian Coffee House opened here in 1957, and the city is still surrounded by coffee plantations in Coorg and Chikmagalur.',
+      'The Namma Metro, India\'s first operational metro in South India, spans 73 km across two lines and carries over 600,000 passengers daily. Phase 3 will extend the network to 175 km by 2030.',
+      'Bengaluru generates 25% of India\'s total IT exports — roughly $80 billion annually. The city has more engineering colleges (800+) than any other Indian city and produces 150,000 engineering graduates every year.',
+    ],
     landmarks: 45, parks: 800, techParks: 67,
     photos: {
       hero: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=800&h=600&fit=crop&q=80',
@@ -76,7 +84,14 @@ const CITY_DATA: Record<string, CityData> = {
     population: '2.1 Cr', area: '603', density: '34,800', founded: '1507',
     nickname: 'City of Dreams',
     tagline: 'The city that never sleeps',
-    history: 'Originally seven islands, Mumbai was ceded to the British in 1661 and became India\'s financial capital. Home to BSE, RBI, and Bollywood — producing 1,500+ films annually. The city\'s spirit is defined by its legendary resilience, its crowded local trains carrying 8 million commuters daily, and a cultural tapestry woven from every corner of the subcontinent.',
+    facts: [
+      'Originally seven islands, Mumbai was ceded to the British in 1661 and became India\'s financial capital. Home to BSE, RBI, and Bollywood — producing 1,500+ films annually.',
+      'Mumbai\'s local train network, the lifeline of the city, carries 8 million commuters daily across 465 km of track. During peak hours, trains carry three times their designed capacity — roughly 5,000 passengers per 9-car rake.',
+      'The Bandra-Worli Sea Link, completed in 2010, used enough steel cables to wrap around the Earth\'s circumference once. The bridge reduces a 90-minute journey to just 10 minutes.',
+      'Dharavi, often called Asia\'s largest slum, generates an estimated $1 billion in annual revenue through its leather, pottery, textile, and recycling industries — making it one of the most productive square miles on Earth.',
+      'Mumbai\'s dabbawalas deliver 200,000 lunchboxes daily with an error rate of 1 in 16 million — a Six Sigma efficiency that has been studied by Harvard Business School and FedEx.',
+      'The city\'s film industry, Bollywood, produces over 1,500 films annually in 20+ languages, employing roughly 300,000 people and generating $4.5 billion in revenue.',
+    ],
     landmarks: 62, parks: 300, techParks: 45,
     photos: {
       hero: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=800&h=600&fit=crop&q=80',
@@ -89,7 +104,14 @@ const CITY_DATA: Record<string, CityData> = {
     population: '3.2 Cr', area: '1,484', density: '21,500', founded: '~600 BCE',
     nickname: 'Heart of India',
     tagline: 'Capital of seven empires',
-    history: 'Continuously inhabited since the 6th century BCE, Delhi served as capital of several empires. Shah Jahan built Shahjahanabad in 1639. The British moved the capital here in 1911. Today, Delhi is the political nerve centre of the world\'s largest democracy, home to 174 monuments and a metro network spanning over 390 kilometres.',
+    facts: [
+      'Continuously inhabited since the 6th century BCE, Delhi served as capital of several empires. Shah Jahan built Shahjahanabad in 1639. The British moved the capital here in 1911.',
+      'Delhi\'s Qutub Minar, built in 1193, stands at 72.5 metres and is the tallest brick minaret in the world. Near its base stands an iron pillar from the 4th century that has resisted rust for over 1,600 years, baffling metallurgists.',
+      'The Delhi Metro, inaugurated in 2002, now spans 390+ km with 286 stations across 12 lines. It carries 6 million passengers daily and was built largely on time and under budget — a rarity for mega infrastructure projects.',
+      'Chandni Chowk, one of the oldest and busiest markets in India, was designed by Jahanara Begum, Shah Jahan\'s daughter, in 1650. The market still operates today with over 1,500 wholesale shops in its narrow lanes.',
+      'Delhi has been destroyed and rebuilt seven times throughout history. The ruins of all seven cities can still be found within the modern metropolitan area, spanning over 2,600 years of continuous urban settlement.',
+      'The city\'s street food economy is worth an estimated $2.5 billion annually. Paranthe Wali Gali in Old Delhi has been serving stuffed parathas since the 1870s, with some shops now in their sixth generation.',
+    ],
     landmarks: 174, parks: 500, techParks: 38,
     photos: {
       hero: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=800&h=600&fit=crop&q=80',
@@ -136,6 +158,46 @@ function NewsSkeleton() {
   );
 }
 
+// Characters used for the scramble effect
+const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+function ScrambleText({ text, className, style }: { text: string; className?: string; style?: React.CSSProperties }) {
+  const [displayed, setDisplayed] = useState(text);
+  const rafRef = useRef<number>(0);
+  const startRef = useRef(0);
+
+  useEffect(() => {
+    const duration = 1200; // total animation ms
+    const chars = text.length;
+    startRef.current = performance.now();
+
+    function tick(now: number) {
+      const elapsed = now - startRef.current;
+      const progress = Math.min(elapsed / duration, 1);
+      // How many characters are "resolved" — eased with a slight curve
+      const resolved = Math.floor(progress * progress * chars);
+
+      let out = '';
+      for (let i = 0; i < chars; i++) {
+        if (text[i] === ' ' || text[i] === '\n') {
+          out += text[i]; // preserve whitespace
+        } else if (i < resolved) {
+          out += text[i]; // resolved
+        } else {
+          out += SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+        }
+      }
+      setDisplayed(out);
+      if (progress < 1) rafRef.current = requestAnimationFrame(tick);
+    }
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [text]);
+
+  return <p className={className} style={style}>{displayed}</p>;
+}
+
 export default function CityDashboard() {
   const { selectedCity } = useAuth();
   const [weather, setWeather] = useState<WeatherData | null>(null);
@@ -144,10 +206,12 @@ export default function CityDashboard() {
   const [newsLoading, setNewsLoading] = useState(true);
   const [batchIndex, setBatchIndex] = useState(0);
   const [fading, setFading] = useState(false);
+  const [factIndex, setFactIndex] = useState(0);
 
   const city = selectedCity ?? 'Bengaluru';
-  const BATCH_SIZE = 8;
+  const BATCH_SIZE = 15;
   const ROTATE_INTERVAL = 15000;
+  const FACT_ROTATE_INTERVAL = 10000;
   const totalBatches = news ? Math.ceil(news.articles.length / BATCH_SIZE) : 0;
   const currentBatch = news ? news.articles.slice(batchIndex * BATCH_SIZE, (batchIndex + 1) * BATCH_SIZE) : [];
 
@@ -162,6 +226,19 @@ export default function CityDashboard() {
     const timer = setInterval(rotateBatch, ROTATE_INTERVAL);
     return () => clearInterval(timer);
   }, [rotateBatch, totalBatches]);
+
+  // Rotate facts
+  const d = CITY_DATA[city.toLowerCase()] ?? CITY_DATA['bengaluru'];
+  useEffect(() => {
+    if (d.facts.length <= 1) return;
+    const timer = setInterval(() => {
+      setFactIndex(prev => (prev + 1) % d.facts.length);
+    }, FACT_ROTATE_INTERVAL);
+    return () => clearInterval(timer);
+  }, [d.facts.length]);
+
+  // Reset fact index when city changes
+  useEffect(() => { setFactIndex(0); }, [city]);
 
   useEffect(() => {
     let cancelled = false;
@@ -187,8 +264,6 @@ export default function CityDashboard() {
     fetchNews();
     return () => { cancelled = true; };
   }, [city]);
-
-  const d = CITY_DATA[city.toLowerCase()] ?? CITY_DATA['bengaluru'];
 
   const leadArticle = currentBatch[0];
   const secondaryArticles = currentBatch.slice(1, 3);
@@ -379,12 +454,24 @@ export default function CityDashboard() {
             </div>
           </div>
 
-          {/* City History */}
+          {/* City Facts — rotating with scramble animation */}
           <Rule className="mb-4" />
-          <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold mb-3" style={{ color: INK_FAINT }}>From The Archives</h4>
-          <p className="text-[14px] leading-[1.85]" style={{ color: INK_LIGHT }}>
-            {d.history}
-          </p>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold" style={{ color: INK_FAINT }}>From The Archives</h4>
+            <div className="flex gap-1.5">
+              {d.facts.map((_, i) => (
+                <button key={i} onClick={() => setFactIndex(i)}
+                  className="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                  style={{ background: i === factIndex ? INK_LIGHT : RULE }} />
+              ))}
+            </div>
+          </div>
+          <ScrambleText
+            key={`${city}-${factIndex}`}
+            text={d.facts[factIndex]}
+            className="text-[14px] leading-[1.85] font-mono"
+            style={{ color: INK_LIGHT }}
+          />
 
           {/* More headlines */}
           {rightColumnArticles.length > 0 && (

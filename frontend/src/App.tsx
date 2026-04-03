@@ -646,8 +646,8 @@ function App() {
               17 dimensions · 126 neighborhoods · real government data
             </p>
           </div>
-          <div className="flex-shrink-0 flex items-center gap-3 pb-1">
-            <div className="flex-1 min-w-0 max-w-md">
+          <div className="flex items-center gap-3 pb-1">
+            <div className="w-72 lg:w-80">
               <CompactSearch onSearch={handleSearch} loading={loading} address={data?.address || ''} />
             </div>
             <div className="flex-shrink-0">
