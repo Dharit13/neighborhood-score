@@ -21,8 +21,7 @@ import type { NeighborhoodScoreResponse, FeaturedNeighborhood } from './types';
 import defaultScores from './data/defaultScores.json';
 
 import { BeamsBackground } from '@/components/ui/beams-background';
-import RainingLetters from '@/components/ui/raining-letters';
-import ScrambledText from '@/components/ui/scrambled-text';
+import { FloatingPaths } from '@/components/ui/background-paths';
 import { MorphPanel } from '@/components/ui/ai-input';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -161,7 +160,12 @@ function LandingHero() {
       onMouseLeave={handleMouseLeave}
       style={{ perspective: '800px' }}
     >
-      <RainingLetters className="absolute inset-0 w-full h-full overflow-hidden z-0" opacity={0.8} charCount={300} />
+      {/* Animated background paths */}
+      <div className="absolute inset-0 z-0">
+        <FloatingPaths position={1} />
+        <FloatingPaths position={-1} />
+      </div>
+
       {/* Marketing text — behind the 3D scene (z-[1]), with text shadow for visibility */}
       <div
         className="absolute inset-0 z-[1] flex items-start justify-center p-4 pt-[5vh]"
@@ -194,31 +198,17 @@ function LandingHero() {
               }}
             >
               {/* Line 1: Know Your Neighborhood */}
-              <motion.span
-                className="block whitespace-nowrap text-white"
-                initial={{ y: 40, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.1, type: 'spring', duration: 0.6, bounce: 0.1 }}
-              >
+              <span className="block whitespace-nowrap text-white">
                 <span className="text-3xl sm:text-5xl font-medium tracking-[0.04em] mr-[0.3em]">Know</span>
                 <span className="text-3xl sm:text-5xl font-medium tracking-[0.04em] mr-[0.3em]">Your</span>
-                <span className="text-5xl sm:text-7xl font-bold tracking-[-0.02em]">
-                  <ScrambledText text="Neighborhood" triggerOnView={false} />
-                </span>
-              </motion.span>
+                <span className="text-5xl sm:text-7xl font-bold tracking-[-0.02em]">Neighborhood</span>
+              </span>
               {/* Line 2: Before You Invest */}
-              <motion.span
-                className="block whitespace-nowrap"
-                initial={{ y: 40, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.34, type: 'spring', duration: 0.6, bounce: 0.1 }}
-              >
+              <span className="block whitespace-nowrap">
                 <span className="text-3xl sm:text-5xl font-medium tracking-[0.04em] text-white/50 mr-[0.3em]">Before</span>
                 <span className="text-3xl sm:text-5xl font-medium tracking-[0.04em] text-white/50 mr-[0.3em]">You</span>
-                <span className="text-5xl sm:text-7xl font-bold tracking-[-0.02em]">
-                  <ScrambledText text="Invest" triggerOnView={false} resolvedClassName="gradient-text sparkle-text" />
-                </span>
-              </motion.span>
+                <span className="text-5xl sm:text-7xl font-bold tracking-[-0.02em] gradient-text sparkle-text">Invest</span>
+              </span>
             </h1>
             {/* Bottom rule */}
             <motion.div

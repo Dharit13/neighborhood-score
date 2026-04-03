@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { motion, type PanInfo } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { ProgressiveBlurCard } from '@/components/ui/progressive-blur-card';
 
 interface CityData {
   name: string;
@@ -9,204 +10,26 @@ interface CityData {
   img: string;
 }
 
-const CITY_IMAGES: Record<string, string> = {
-  Bengaluru: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=1920&h=1080&fit=crop&q=60',
-  Mumbai: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=1920&h=1080&fit=crop&q=60',
-  Delhi: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=1920&h=1080&fit=crop&q=60',
-};
-
 const CITIES: CityData[] = [
   {
     name: 'Bengaluru',
     tag: "India's Silicon Valley",
     enabled: true,
-    img: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=600&h=900&fit=crop&q=80',
+    img: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=800&h=800&fit=crop&q=80',
   },
   {
     name: 'Mumbai',
     tag: 'Coming Soon',
     enabled: false,
-    img: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=600&h=900&fit=crop&q=80',
+    img: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=800&h=800&fit=crop&q=80',
   },
   {
     name: 'Delhi',
     tag: 'Coming Soon',
     enabled: false,
-    img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&h=900&fit=crop&q=80',
+    img: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=800&h=800&fit=crop&q=80',
   },
 ];
-
-function CityCardStack({
-  selectedCity,
-  onSelect,
-}: {
-  selectedCity: string | null;
-  onSelect: (city: string) => void;
-}) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const lastNavTime = useRef(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const cooldown = 400;
-
-  const navigate = useCallback((direction: number) => {
-    const now = Date.now();
-    if (now - lastNavTime.current < cooldown) return;
-    lastNavTime.current = now;
-
-    setCurrentIndex((prev) => {
-      if (direction > 0) return prev === CITIES.length - 1 ? 0 : prev + 1;
-      return prev === 0 ? CITIES.length - 1 : prev - 1;
-    });
-  }, []);
-
-  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const threshold = 50;
-    if (info.offset.y < -threshold) navigate(1);
-    else if (info.offset.y > threshold) navigate(-1);
-  };
-
-  // Scroll/wheel navigation scoped to the card container
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const handleWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) > 30) {
-        e.preventDefault();
-        navigate(e.deltaY > 0 ? 1 : -1);
-      }
-    };
-    el.addEventListener('wheel', handleWheel, { passive: false });
-    return () => el.removeEventListener('wheel', handleWheel);
-  }, [navigate]);
-
-  // Select city when card changes
-  useEffect(() => {
-    const city = CITIES[currentIndex];
-    if (city.enabled) onSelect(city.name);
-  }, [currentIndex, onSelect]);
-
-  const getCardStyle = (index: number) => {
-    const total = CITIES.length;
-    let diff = index - currentIndex;
-    if (diff > total / 2) diff -= total;
-    if (diff < -total / 2) diff += total;
-
-    if (diff === 0) return { y: 0, scale: 1, opacity: 1, zIndex: 5, rotateX: 0 };
-    if (diff === -1) return { y: -150, scale: 0.85, opacity: 0.6, zIndex: 4, rotateX: 8 };
-    if (diff === -2) return { y: -260, scale: 0.72, opacity: 0.3, zIndex: 3, rotateX: 15 };
-    if (diff === 1) return { y: 150, scale: 0.85, opacity: 0.6, zIndex: 4, rotateX: -8 };
-    if (diff === 2) return { y: 260, scale: 0.72, opacity: 0.3, zIndex: 3, rotateX: -15 };
-    return { y: diff > 0 ? 380 : -380, scale: 0.6, opacity: 0, zIndex: 0, rotateX: diff > 0 ? -20 : 20 };
-  };
-
-  const isVisible = (index: number) => {
-    const total = CITIES.length;
-    let diff = index - currentIndex;
-    if (diff > total / 2) diff -= total;
-    if (diff < -total / 2) diff += total;
-    return Math.abs(diff) <= 2;
-  };
-
-  return (
-    <div className="relative flex items-center" ref={containerRef}>
-      {/* Card stack */}
-      <div
-        className="relative flex items-center justify-center"
-        style={{ width: 280, height: 500, perspective: '1200px' }}
-      >
-        {CITIES.map((city, index) => {
-          if (!isVisible(index)) return null;
-          const style = getCardStyle(index);
-          const isCurrent = index === currentIndex;
-          const isSelected = selectedCity === city.name;
-
-          return (
-            <motion.div
-              key={city.name}
-              className="absolute cursor-grab active:cursor-grabbing"
-              animate={{
-                y: style.y,
-                scale: style.scale,
-                opacity: style.opacity,
-                rotateX: style.rotateX,
-                zIndex: style.zIndex,
-              }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30, mass: 1 }}
-              drag={isCurrent ? 'y' : false}
-              dragConstraints={{ top: 0, bottom: 0 }}
-              dragElastic={0.2}
-              onDragEnd={handleDragEnd}
-              onClick={() => {
-                if (index !== currentIndex) {
-                  setCurrentIndex(index);
-                } else if (city.enabled) {
-                  onSelect(city.name);
-                }
-              }}
-              style={{ transformStyle: 'preserve-3d', zIndex: style.zIndex }}
-            >
-              <div
-                className="relative overflow-hidden rounded-3xl"
-                style={{
-                  width: 280,
-                  height: 420,
-                  border: isSelected
-                    ? '2px solid rgba(42,213,135,0.7)'
-                    : '1px solid rgba(255,255,255,0.1)',
-                  boxShadow: isSelected
-                    ? '0 0 40px rgba(42,213,135,0.3), 0 25px 50px -12px rgba(0,0,0,0.4)'
-                    : isCurrent
-                      ? '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)'
-                      : '0 10px 30px -10px rgba(0,0,0,0.4)',
-                }}
-              >
-                {/* Inner glow */}
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-white/10 via-transparent to-transparent" />
-
-                {/* City image */}
-                <img
-                  src={city.img}
-                  alt={city.name}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  draggable={false}
-                />
-
-                {/* Bottom gradient + city info */}
-                <div
-                  className="absolute inset-0 flex flex-col justify-end p-6"
-                  style={{
-                    background:
-                      'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 40%, transparent 65%)',
-                  }}
-                >
-                  <h3
-                    className="text-[26px] font-medium leading-tight tracking-tight text-white"
-                  >
-                    {city.name}
-                  </h3>
-                  <p className="text-[11px] font-semibold tracking-[0.15em] uppercase mt-1.5" style={{ color: '#2ad587' }}>
-                    {city.tag}
-                  </p>
-                </div>
-
-                {/* Coming soon overlay */}
-                {!city.enabled && (
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center">
-                    <span className="text-white/60 text-xs font-medium tracking-wider uppercase">Coming Soon</span>
-                  </div>
-                )}
-
-                {/* Shimmer */}
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/[0.06] via-transparent to-transparent pointer-events-none" />
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
-    </div>
-  );
-}
 
 export default function LoginPage() {
   const { login, signup, loginWithGoogle, selectCity, selectedCity } = useAuth();
@@ -216,6 +39,7 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [signUpSuccess, setSignUpSuccess] = useState(false);
+  const [activeCity, setActiveCity] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -261,74 +85,68 @@ export default function LoginPage() {
     await loginWithGoogle();
   };
 
-  const bgImage = CITY_IMAGES[selectedCity ?? 'Bengaluru'] ?? CITY_IMAGES['Bengaluru'];
+  const handleCitySelect = (index: number) => {
+    setActiveCity(index);
+    const city = CITIES[index];
+    if (city.enabled) selectCity(city.name);
+  };
 
   return (
     <section
       id="login-section"
       className="h-screen w-full flex select-none relative overflow-hidden"
+      style={{ background: '#f5f0e8' }}
     >
-      {/* City background image — low opacity */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src={bgImage}
-          alt=""
-          className="w-full h-full object-cover transition-opacity duration-700"
-          style={{ opacity: 0.08 }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
-      </div>
+      {/* Left: City Card */}
+      <div className="flex-1 flex items-center justify-center relative z-10">
+        <div className="flex flex-col items-center">
+          {/* City selector dots */}
+          <div className="flex items-center gap-3 mb-6">
+            {CITIES.map((city, i) => (
+              <button
+                key={city.name}
+                onClick={() => handleCitySelect(i)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all cursor-pointer border-none"
+                style={{
+                  background: activeCity === i ? '#1a1a1a' : 'transparent',
+                  color: activeCity === i ? '#f5f0e8' : '#8a8a8a',
+                }}
+              >
+                <span className="text-[11px] font-medium tracking-wide">{city.name}</span>
+              </button>
+            ))}
+          </div>
 
-      {/* Left: Vertical City Card Stack */}
-      <div className="flex-1 flex items-center justify-end pr-24 relative overflow-hidden z-10">
-        {/* Ambient glow */}
-        <div
-          className="absolute top-1/2 left-1/2 w-[600px] h-[600px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(circle, rgba(0,114,96,0.12) 0%, rgba(42,213,135,0.06) 40%, transparent 70%)',
-          }}
-        />
-
-        <div className="flex flex-col items-center gap-4">
-          <CityCardStack selectedCity={selectedCity} onSelect={selectCity} />
-
-          {/* Hint */}
-          <motion.div
-            className="flex flex-col items-center gap-1 text-white/30"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
-          >
+          {/* Progressive blur card */}
+          <AnimatePresence mode="wait">
             <motion.div
-              animate={{ y: [0, -6, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+              key={activeCity}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.3 }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 5v14M5 12l7-7 7 7" />
-              </svg>
+              <ProgressiveBlurCard
+                imageSrc={CITIES[activeCity].img}
+                imageAlt={CITIES[activeCity].name}
+                title={`${CITIES[activeCity].name},`}
+                subtitle={CITIES[activeCity].tag}
+                selected={selectedCity === CITIES[activeCity].name}
+                enabled={CITIES[activeCity].enabled}
+              />
             </motion.div>
-            <span className="text-[10px] font-medium tracking-widest uppercase">Scroll or drag</span>
-            <motion.div
-              animate={{ y: [0, 6, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 5v14M19 12l-7 7-7-7" />
-              </svg>
-            </motion.div>
-          </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
+      {/* Vertical divider */}
+      <div
+        className="absolute left-1/2 top-[10%] bottom-[10%] w-px z-10"
+        style={{ background: 'linear-gradient(to bottom, transparent, #d0c8b8, transparent)' }}
+      />
+
       {/* Right: Sign-In Form */}
       <div className="flex-1 flex items-center justify-start pl-12 relative z-10">
-        {/* Vertical divider */}
-        <div
-          className="absolute left-0 top-[10%] bottom-[10%] w-px"
-          style={{ background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.06), transparent)' }}
-        />
-
         <div className="w-full max-w-[380px]">
           {/* Brand */}
           <div className="flex items-center gap-2.5 mb-12">
@@ -341,17 +159,15 @@ export default function LoginPage() {
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
             </div>
-            <span className="text-lg font-semibold tracking-tight text-white">
-              Neighborhood <span style={{ color: '#2ad587' }}>Score</span>
+            <span className="text-lg font-semibold tracking-tight" style={{ color: '#1a1a1a' }}>
+              Neighborhood <span style={{ color: '#007260' }}>Score</span>
             </span>
           </div>
 
-          <h1
-            className="text-[32px] font-medium tracking-tight mb-2 text-white"
-          >
+          <h1 className="text-[32px] font-medium tracking-tight mb-2" style={{ color: '#1a1a1a' }}>
             {isSignUp ? 'Create account' : 'Sign in'}
           </h1>
-          <p className="text-sm text-white/50 mb-9 leading-relaxed">
+          <p className="text-sm mb-9 leading-relaxed" style={{ color: '#8a8a8a' }}>
             {isSignUp
               ? 'Sign up to start exploring neighborhood scores and builder trust ratings.'
               : `Sign in to explore neighborhood scores, commute data, and builder trust ratings${selectedCity ? ` across ${selectedCity}.` : '.'}`
@@ -359,15 +175,15 @@ export default function LoginPage() {
           </p>
 
           {signUpSuccess && (
-            <div className="mb-5 p-3 rounded-xl border border-[#2ad587]/30 bg-[#2ad587]/10">
-              <p className="text-sm text-[#2ad587]">Check your email for a confirmation link, then sign in.</p>
+            <div className="mb-5 p-3 rounded-xl border border-emerald-200 bg-emerald-50">
+              <p className="text-sm text-emerald-700">Check your email for a confirmation link, then sign in.</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
             {/* Email */}
             <div className="mb-5">
-              <label className="block text-[11px] font-medium tracking-[0.08em] uppercase text-white mb-2">
+              <label className="block text-[11px] font-medium tracking-[0.08em] uppercase mb-2" style={{ color: '#4a4a4a' }}>
                 Email
               </label>
               <input
@@ -375,13 +191,26 @@ export default function LoginPage() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3.5 bg-white/[0.06] border border-white/30 rounded-xl text-white text-[15px] outline-none transition-all placeholder:text-white/25 focus:border-[#2ad587] focus:shadow-[0_0_0_3px_rgba(42,213,135,0.12)]"
+                className="w-full px-4 py-3.5 rounded-xl text-[15px] outline-none transition-all"
+                style={{
+                  background: 'rgba(255,255,255,0.5)',
+                  border: '1px solid #d0c8b8',
+                  color: '#1a1a1a',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#1a1a1a';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(26,26,26,0.06)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = '#d0c8b8';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
             </div>
 
             {/* Password */}
             <div className="mb-5">
-              <label className="block text-[11px] font-medium tracking-[0.08em] uppercase text-white mb-2">
+              <label className="block text-[11px] font-medium tracking-[0.08em] uppercase mb-2" style={{ color: '#4a4a4a' }}>
                 Password
               </label>
               <input
@@ -389,21 +218,34 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3.5 bg-white/[0.06] border border-white/30 rounded-xl text-white text-[15px] outline-none transition-all placeholder:text-white/25 focus:border-[#2ad587] focus:shadow-[0_0_0_3px_rgba(42,213,135,0.12)]"
+                className="w-full px-4 py-3.5 rounded-xl text-[15px] outline-none transition-all"
+                style={{
+                  background: 'rgba(255,255,255,0.5)',
+                  border: '1px solid #d0c8b8',
+                  color: '#1a1a1a',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = '#1a1a1a';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(26,26,26,0.06)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = '#d0c8b8';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
             </div>
 
             {/* Error */}
             {error && (
-              <p className="text-red-400 text-xs mb-3">{error}</p>
+              <p className="text-red-700 text-xs mb-3">{error}</p>
             )}
 
             {/* Sign In */}
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3.5 rounded-xl text-[15px] font-semibold text-white tracking-[0.01em] transition-all hover:-translate-y-px hover:shadow-[0_8px_30px_rgba(42,213,135,0.25)] active:translate-y-0 disabled:opacity-60 border-none cursor-pointer"
-              style={{ background: 'linear-gradient(135deg, #002c7c, #005075, #007260, #2ad587)' }}
+              className="w-full py-3.5 rounded-xl text-[15px] font-semibold tracking-[0.01em] transition-all hover:-translate-y-px active:translate-y-0 disabled:opacity-60 border-none cursor-pointer"
+              style={{ background: '#1a1a1a', color: '#f5f0e8' }}
             >
               {submitting
                 ? (isSignUp ? 'Creating account\u2026' : 'Signing in\u2026')
@@ -414,15 +256,28 @@ export default function LoginPage() {
 
           {/* Divider */}
           <div className="flex items-center gap-4 my-7">
-            <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-xs text-white/50 tracking-wide">or</span>
-            <div className="flex-1 h-px bg-white/[0.06]" />
+            <div className="flex-1 h-px" style={{ background: '#d0c8b8' }} />
+            <span className="text-xs tracking-wide" style={{ color: '#a09888' }}>or</span>
+            <div className="flex-1 h-px" style={{ background: '#d0c8b8' }} />
           </div>
 
           {/* Google */}
           <button
             onClick={handleGoogle}
-            className="w-full py-3.5 bg-transparent border border-white/30 rounded-xl text-white text-sm font-medium flex items-center justify-center gap-2.5 transition-all hover:bg-white/[0.04] hover:border-white/[0.12] cursor-pointer"
+            className="w-full py-3.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2.5 transition-all cursor-pointer"
+            style={{
+              background: 'transparent',
+              border: '1px solid #d0c8b8',
+              color: '#1a1a1a',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.5)';
+              e.currentTarget.style.borderColor = '#a09888';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.borderColor = '#d0c8b8';
+            }}
           >
             <svg width="18" height="18" viewBox="0 0 48 48">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -433,11 +288,12 @@ export default function LoginPage() {
             Continue with Google
           </button>
 
-          <p className="text-center mt-7 text-[13px] text-white/50">
+          <p className="text-center mt-7 text-[13px]" style={{ color: '#8a8a8a' }}>
             {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
             <button
               type="button"
-              className="text-[#2ad587] font-medium hover:underline bg-transparent border-none cursor-pointer"
+              className="font-medium hover:underline bg-transparent border-none cursor-pointer"
+              style={{ color: '#1a1a1a' }}
               onClick={() => { setIsSignUp(!isSignUp); setError(''); setSignUpSuccess(false); }}
             >
               {isSignUp ? 'Sign in' : 'Create one'}
@@ -451,10 +307,10 @@ export default function LoginPage() {
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         className="absolute top-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 bg-transparent border-none cursor-pointer opacity-40 hover:opacity-80 transition-opacity"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="18 15 12 9 6 15" />
         </svg>
-        <span className="text-[10px] text-white tracking-[0.1em] uppercase">Back</span>
+        <span className="text-[10px] tracking-[0.1em] uppercase" style={{ color: '#1a1a1a' }}>Back</span>
       </button>
 
       {/* Responsive */}
@@ -469,6 +325,9 @@ export default function LoginPage() {
           #login-section > div:nth-of-type(2) {
             padding: 48px 24px !important;
           }
+        }
+        #login-section input::placeholder {
+          color: #a09888;
         }
       `}</style>
     </section>
