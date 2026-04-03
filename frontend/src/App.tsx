@@ -150,7 +150,7 @@ function LandingHero() {
           Know Your<br />Neighborhood
         </h1>
         <p className="text-white/50 text-sm mt-2 font-mono">
-          Before You <span className="gradient-text sparkle-text font-bold">Invest</span>
+          <span className="gradient-text sparkle-text font-bold">Before You Invest</span>
         </p>
       </div>
 
