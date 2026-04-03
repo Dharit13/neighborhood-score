@@ -337,8 +337,8 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
               >
                 <div className="flex items-center gap-3">
                   <Shield size={20} className={
-                    claimResults.some(r => r.verdict === 'MISLEADING' || r.verdict === 'SIGNIFICANTLY_MISLEADING') ? 'text-red-700' :
-                    claimResults.some(r => r.verdict === 'SLIGHTLY_MISLEADING') ? 'text-amber-700' : 'text-emerald-700'
+                    claimResults.some(r => r.verdict === 'MISLEADING' || r.verdict === 'SIGNIFICANTLY_MISLEADING') ? 'text-red-600' :
+                    claimResults.some(r => r.verdict === 'SLIGHTLY_MISLEADING') ? 'text-amber-600' : 'text-emerald-600'
                   } />
                   <span className="font-semibold text-sm" style={{ color: '#1a1a1a' }}>{summary}</span>
                 </div>
@@ -372,9 +372,9 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
               >
                 {claimResults.map((c, i) => {
                   const verdictColor =
-                    c.verdict === 'ACCURATE' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
-                    c.verdict === 'SLIGHTLY_MISLEADING' ? 'bg-amber-50 border-amber-200 text-amber-700' :
-                    (c.verdict === 'MISLEADING' || c.verdict === 'SIGNIFICANTLY_MISLEADING') ? 'bg-red-50 border-red-200 text-red-700' :
+                    c.verdict === 'ACCURATE' ? 'bg-emerald-100 border-emerald-400 text-emerald-800 font-semibold' :
+                    c.verdict === 'SLIGHTLY_MISLEADING' ? 'bg-amber-100 border-amber-400 text-amber-800 font-semibold' :
+                    (c.verdict === 'MISLEADING' || c.verdict === 'SIGNIFICANTLY_MISLEADING') ? 'bg-red-100 border-red-400 text-red-800 font-semibold' :
                     'bg-[#e8e0d0] border-[#d0c8b8] text-[#8a8a8a]';
                   const icon = c.verdict === 'ACCURATE' ? '✓' :
                     c.verdict === 'SLIGHTLY_MISLEADING' ? '~' :
@@ -476,7 +476,7 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
                       <MetricCard
                         label="YoY Growth"
                         value={`${Number((areaData.property_prices as Record<string, unknown>).yoy_growth_pct).toFixed(1)}%`}
-                        color={Number((areaData.property_prices as Record<string, unknown>).yoy_growth_pct) > 0 ? 'text-emerald-700' : 'text-red-700'}
+                        color={Number((areaData.property_prices as Record<string, unknown>).yoy_growth_pct) > 0 ? 'text-emerald-600' : 'text-red-600'}
                       />
                     )}
                   </>
@@ -538,21 +538,21 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
                   {/* Strengths & Risks */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {briefData.key_strengths.length > 0 && (
-                      <div className="rounded-xl bg-emerald-50 border border-[#d0c8b8] p-4">
-                        <h5 className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-2">Key Strengths</h5>
+                      <div className="rounded-xl bg-emerald-100/80 border border-emerald-300 p-4">
+                        <h5 className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-2">Key Strengths</h5>
                         <ul className="space-y-1.5">
                           {briefData.key_strengths.map((s, i) => (
-                            <li key={i} className="text-xs leading-relaxed pl-3 border-l-2 border-emerald-300" style={{ color: '#4a4a4a' }}>{s}</li>
+                            <li key={i} className="text-xs leading-relaxed pl-3 border-l-2 border-emerald-400" style={{ color: '#4a4a4a' }}>{s}</li>
                           ))}
                         </ul>
                       </div>
                     )}
                     {briefData.key_risks.length > 0 && (
-                      <div className="rounded-xl bg-red-50 border border-[#d0c8b8] p-4">
-                        <h5 className="text-[10px] font-bold text-red-700 uppercase tracking-widest mb-2">Key Risks</h5>
+                      <div className="rounded-xl bg-red-100/80 border border-red-300 p-4">
+                        <h5 className="text-[10px] font-bold text-red-800 uppercase tracking-widest mb-2">Key Risks</h5>
                         <ul className="space-y-1.5">
                           {briefData.key_risks.map((r, i) => (
-                            <li key={i} className="text-xs leading-relaxed pl-3 border-l-2 border-red-300" style={{ color: '#4a4a4a' }}>{r}</li>
+                            <li key={i} className="text-xs leading-relaxed pl-3 border-l-2 border-red-400" style={{ color: '#4a4a4a' }}>{r}</li>
                           ))}
                         </ul>
                       </div>

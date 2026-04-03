@@ -566,12 +566,6 @@ function App() {
             animate={{ opacity: 1, transition: { duration: 0.4, delay: 0.1 } }}
           >
 
-      {/* AI chat panel — only visible on Explore section */}
-      {appMode === 'score' && (
-        <div className="fixed bottom-20 right-6 z-50">
-          <MorphPanel neighborhoodName={data ? readableAddress(data.address).split(',')[0] : undefined} />
-        </div>
-      )}
 
       {/* Bottom floating nav (Framer University style) */}
       <motion.nav
@@ -649,8 +643,11 @@ function App() {
               17 dimensions · 126 neighborhoods · real government data
             </p>
           </div>
-          <div className="flex-shrink-0 w-full max-w-md pb-1">
-            <CompactSearch onSearch={handleSearch} loading={loading} address={data?.address || ''} />
+          <div className="flex-shrink-0 flex items-center gap-3 pb-1">
+            <div className="w-full max-w-md">
+              <CompactSearch onSearch={handleSearch} loading={loading} address={data?.address || ''} />
+            </div>
+            <MorphPanel neighborhoodName={data ? readableAddress(data.address).split(',')[0] : undefined} />
           </div>
         </div>
 

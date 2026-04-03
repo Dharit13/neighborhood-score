@@ -192,7 +192,10 @@ export default function CityDashboard() {
 
   const leadArticle = currentBatch[0];
   const secondaryArticles = currentBatch.slice(1, 3);
-  const columnArticles = currentBatch.slice(3);
+  const remainingArticles = currentBatch.slice(3);
+  // Split remaining articles between left and right columns for balanced layout
+  const leftColumnArticles = remainingArticles.slice(0, Math.ceil(remainingArticles.length / 2));
+  const rightColumnArticles = remainingArticles.slice(Math.ceil(remainingArticles.length / 2));
 
   return (
     <div className="max-w-7xl">
@@ -297,6 +300,39 @@ export default function CityDashboard() {
               </div>
             </>
           )}
+
+          {/* Left column continued stories */}
+          {leftColumnArticles.length > 0 && (
+            <>
+              <Rule className="my-5" />
+              <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold mb-4" style={{ color: INK_FAINT }}>Also In The News</h4>
+              <div className="space-y-0">
+                {leftColumnArticles.map((article, i) => (
+                  <a key={`left-${batchIndex}-${i}`} href={article.link} target="_blank" rel="noopener noreferrer"
+                    className="group block py-3 border-b last:border-b-0" style={{ borderColor: RULE }}>
+                    <div className="flex gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h5 className="text-[13px] font-semibold leading-snug transition-colors line-clamp-2"
+                            style={{ color: INK }}>
+                          {article.title}
+                        </h5>
+                        <div className="flex items-center gap-2 mt-1.5 text-[9px] uppercase tracking-wider" style={{ color: INK_FAINT }}>
+                          {article.category && article.category !== 'General' && (
+                            <span className="font-bold" style={{ color: INK_LIGHT }}>{article.category}</span>
+                          )}
+                          {article.source && <span>{article.source}</span>}
+                          <span>{timeAgo(article.published)}</span>
+                        </div>
+                      </div>
+                      {article.thumbnail && (
+                        <img src={article.thumbnail} alt="" className="w-20 h-20 object-cover flex-shrink-0 grayscale" />
+                      )}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* RIGHT SIDEBAR */}
@@ -351,12 +387,12 @@ export default function CityDashboard() {
           </p>
 
           {/* More headlines */}
-          {columnArticles.length > 0 && (
+          {rightColumnArticles.length > 0 && (
             <>
               <Rule className="my-5" />
               <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold mb-4" style={{ color: INK_FAINT }}>More Headlines</h4>
               <div className="space-y-0">
-                {columnArticles.map((article, i) => (
+                {rightColumnArticles.map((article, i) => (
                   <a key={`col-${batchIndex}-${i}`} href={article.link} target="_blank" rel="noopener noreferrer"
                     className="group block py-3 border-b last:border-b-0" style={{ borderColor: RULE }}>
                     <div className="flex gap-3">
