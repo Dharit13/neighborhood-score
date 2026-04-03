@@ -97,8 +97,18 @@ export default function LoginPage() {
       className="h-screen w-full flex select-none relative overflow-hidden"
       style={{ background: '#f5f0e8' }}
     >
+      {/* Section heading — top-left corner */}
+      <div className="absolute top-0 left-0 px-8 lg:px-12 pt-10 z-20">
+        <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold leading-[0.92] tracking-tight text-neutral-900">
+          SIGN IN
+        </h1>
+        <p className="text-sm mt-2 font-mono" style={{ color: '#8a8a8a' }}>
+          Neighborhood intelligence for home buyers.
+        </p>
+      </div>
+
       {/* Left: City Card */}
-      <div className="flex-1 flex items-center justify-center relative z-10">
+      <div className="flex-1 flex items-center justify-center relative z-10 pt-16">
         <div className="flex flex-col items-center">
           {/* City selector dots */}
           <div className="flex items-center gap-3 mb-6">
@@ -139,38 +149,13 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Vertical divider */}
-      <div
-        className="absolute left-1/2 top-[10%] bottom-[10%] w-px z-10"
-        style={{ background: 'linear-gradient(to bottom, transparent, #d0c8b8, transparent)' }}
-      />
-
       {/* Right: Sign-In Form */}
       <div className="flex-1 flex items-center justify-start pl-12 relative z-10">
         <div className="w-full max-w-[380px]">
-          {/* Brand */}
-          <div className="flex items-center gap-2.5 mb-12">
-            <div
-              className="w-9 h-9 rounded-[10px] flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #002c7c, #005075, #007260, #2ad587)' }}
-            >
-              <svg viewBox="0 0 24 24" className="w-5 h-5" stroke="#000" fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
-            </div>
-            <span className="text-lg font-semibold tracking-tight" style={{ color: '#1a1a1a' }}>
-              Neighborhood <span style={{ color: '#007260' }}>Score</span>
-            </span>
-          </div>
-
-          <h1 className="text-[32px] font-medium tracking-tight mb-2" style={{ color: '#1a1a1a' }}>
-            {isSignUp ? 'Create account' : 'Sign in'}
-          </h1>
-          <p className="text-sm mb-9 leading-relaxed" style={{ color: '#8a8a8a' }}>
+          <p className="text-base mb-9 leading-relaxed" style={{ color: '#1a1a1a' }}>
             {isSignUp
               ? 'Sign up to start exploring neighborhood scores and builder trust ratings.'
-              : `Sign in to explore neighborhood scores, commute data, and builder trust ratings${selectedCity ? ` across ${selectedCity}.` : '.'}`
+              : 'Explore neighborhood scores, commute data, and builder trust ratings.'
             }
           </p>
 
@@ -183,7 +168,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit}>
             {/* Email */}
             <div className="mb-5">
-              <label className="block text-[11px] font-medium tracking-[0.08em] uppercase mb-2" style={{ color: '#4a4a4a' }}>
+              <label className="block text-[13px] font-medium tracking-[0.08em] uppercase mb-2" style={{ color: '#1a1a1a' }}>
                 Email
               </label>
               <input
@@ -210,7 +195,7 @@ export default function LoginPage() {
 
             {/* Password */}
             <div className="mb-5">
-              <label className="block text-[11px] font-medium tracking-[0.08em] uppercase mb-2" style={{ color: '#4a4a4a' }}>
+              <label className="block text-[13px] font-medium tracking-[0.08em] uppercase mb-2" style={{ color: '#1a1a1a' }}>
                 Password
               </label>
               <input

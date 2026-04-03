@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence, useSpring } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Share2, Download, MapPin, Shield, Compass, Database, LogOut } from 'lucide-react';
 import NeighborhoodMap from './components/Map';
 import MapSidebar from './components/MapSidebar';
@@ -136,90 +136,22 @@ function CompactSearch({ onSearch, loading, address }: {
 
 
 function LandingHero() {
-  // Spring-based mouse tracking (Emil: useSpring for decorative mouse interactions)
-  const rotateX = useSpring(0, { stiffness: 100, damping: 20 });
-  const rotateY = useSpring(0, { stiffness: 100, damping: 20 });
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    rotateY.set(x * 15);
-    rotateX.set(-y * 15);
-  }, [rotateX, rotateY]);
-
-  const handleMouseLeave = useCallback(() => {
-    rotateX.set(0);
-    rotateY.set(0);
-  }, [rotateX, rotateY]);
-
   return (
-    <div
-      className="h-screen relative flex flex-col overflow-hidden"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{ perspective: '800px' }}
-    >
+    <div className="h-screen relative flex flex-col overflow-hidden">
       {/* Animated background paths */}
       <div className="absolute inset-0 z-0">
         <FloatingPaths position={1} />
         <FloatingPaths position={-1} />
       </div>
 
-      {/* Marketing text — behind the 3D scene (z-[1]), with text shadow for visibility */}
-      <div
-        className="absolute inset-0 z-[1] flex items-start justify-center p-4 pt-[5vh]"
-        style={{ transformStyle: 'preserve-3d' }}
-      >
-        {/* Main 3D card — tilts with mouse via springs */}
-        <motion.div
-          className="max-w-4xl w-full text-center relative ml-12"
-          style={{
-            rotateX,
-            rotateY,
-            transformStyle: 'preserve-3d',
-          }}
-        >
-          {/* Heading — newspaper headline style */}
-          <div style={{ transform: 'translateZ(30px)' }}>
-            {/* Top rule */}
-            <motion.div
-              initial={{ scaleX: 0, opacity: 0 }}
-              animate={{ scaleX: 1, opacity: 1 }}
-              transition={{ delay: 0.05, duration: 0.6 }}
-              className="h-px w-48 mx-auto mb-5 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-            />
-            <h1
-              className="text-center uppercase"
-              style={{
-                fontFamily: 'var(--font-sans)',
-                textShadow: '0 0 40px rgba(0,0,0,0.8), 0 0 80px rgba(0,0,0,0.5)',
-                lineHeight: 1.1,
-              }}
-            >
-              {/* Line 1: Know Your Neighborhood */}
-              <span className="block whitespace-nowrap text-white">
-                <span className="text-3xl sm:text-5xl font-medium tracking-[0.04em] mr-[0.3em]">Know</span>
-                <span className="text-3xl sm:text-5xl font-medium tracking-[0.04em] mr-[0.3em]">Your</span>
-                <span className="text-5xl sm:text-7xl font-bold tracking-[-0.02em]">Neighborhood</span>
-              </span>
-              {/* Line 2: Before You Invest */}
-              <span className="block whitespace-nowrap">
-                <span className="text-3xl sm:text-5xl font-medium tracking-[0.04em] text-white/50 mr-[0.3em]">Before</span>
-                <span className="text-3xl sm:text-5xl font-medium tracking-[0.04em] text-white/50 mr-[0.3em]">You</span>
-                <span className="text-5xl sm:text-7xl font-bold tracking-[-0.02em] gradient-text sparkle-text">Invest</span>
-              </span>
-            </h1>
-            {/* Bottom rule */}
-            <motion.div
-              initial={{ scaleX: 0, opacity: 0 }}
-              animate={{ scaleX: 1, opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
-              className="h-px w-48 mx-auto mt-5 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-            />
-          </div>
-
-        </motion.div>
+      {/* Marketing text — top-left, matching section heading style */}
+      <div className="absolute top-0 left-0 z-[1] px-8 lg:px-12 pt-10">
+        <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold leading-[0.92] tracking-tight text-white uppercase">
+          Know Your<br />Neighborhood
+        </h1>
+        <p className="text-white/50 text-sm mt-2 font-mono">
+          Before You <span className="gradient-text sparkle-text font-bold">Invest</span>
+        </p>
       </div>
 
       {/* Spline 3D scene — in front of text (z-[5]), transparent background */}
