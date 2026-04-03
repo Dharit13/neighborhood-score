@@ -140,11 +140,14 @@ async def compute_hospital_score(lat: float, lon: float) -> ScoreResult:
         accred = tags.get("accreditation")
         tier = tags.get("tier", 2)
         tier_label = accred if accred else ("Tier 1" if tier == 1 else "Hospital")
-        beds = tags.get("beds", "N/A")
+        beds = tags.get("beds")
         specs = ", ".join((tags.get("specialties") or [])[:3])
-        label = f"{h['name']} ({tier_label}, {beds} beds)"
+        parts = [tier_label]
+        if beds:
+            parts.append(f"{beds} beds")
+        label = f"{h['name']} ({', '.join(parts)})"
         if specs:
-            label += f" - {specs}"
+            label += f" — {specs}"
         details.append(
             NearbyDetail(
                 name=label,

@@ -164,7 +164,11 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
           <CollapsibleContent>
             <div className="px-4 pb-5 border-t border-white/[0.08] pt-4 space-y-4 max-h-[400px] overflow-y-auto scrollbar-thin">
               <div className="space-y-1.5">
+                {typeof result.breakdown.methodology === 'string' && (
+                  <p className="text-[11px] text-white/60 italic leading-snug">{result.breakdown.methodology}</p>
+                )}
                 {Object.entries(result.breakdown).map(([key, val]) => {
+                  if (key === 'methodology') return null;
                   if (val == null || typeof val === 'object') return null;
                   let display = String(val);
                   const k = key.toLowerCase();
@@ -188,9 +192,9 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
                   }
                   if (typeof val === 'boolean') display = val ? 'Yes' : 'No';
                   return (
-                    <div key={key} className="flex justify-between text-xs">
-                      <span className="text-white/80">{key.replace(/_/g, ' ')}</span>
-                      <span className="text-white font-mono font-medium">{display}</span>
+                    <div key={key} className="flex justify-between gap-3 text-xs">
+                      <span className="text-white/80 min-w-0">{key.replace(/_/g, ' ')}</span>
+                      <span className="text-white font-mono font-medium whitespace-nowrap flex-shrink-0">{display}</span>
                     </div>
                   );
                 })}
@@ -225,10 +229,12 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
               {result.details.length > 0 && !builderResult && (
                 <div className="space-y-1.5">
                   <p className="text-xs text-white/90 uppercase tracking-widest font-semibold">Nearby</p>
-                  {result.details.slice(0, 5).map((d, i) => (
-                    <div key={i} className="rounded-lg bg-white/[0.05] border border-white/[0.08] px-3 py-2 flex justify-between text-xs">
-                      <span className="text-white/90 truncate mr-2">{d.name}</span>
-                      <span className="text-white/90 whitespace-nowrap font-mono">{d.distance_km} km</span>
+                  {result.details.slice(0, 8).map((d, i) => (
+                    <div key={i} className="rounded-lg bg-white/[0.05] border border-white/[0.08] px-3 py-2 text-xs">
+                      <div className="flex justify-between gap-2">
+                        <span className="text-white/90 min-w-0 break-words">{d.name}</span>
+                        <span className="text-white/90 whitespace-nowrap font-mono flex-shrink-0">{d.distance_km} km</span>
+                      </div>
                     </div>
                   ))}
                 </div>
