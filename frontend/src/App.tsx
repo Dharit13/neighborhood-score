@@ -683,7 +683,7 @@ function App() {
       </section>
 
       {/* City Pulse — newspaper: white bg, black ink */}
-      <section id="city-pulse-section" className="min-h-screen relative z-10" style={{ background: '#f5f0e8' }}>
+      <section id="city-pulse-section" className="relative z-10" style={{ background: '#f5f0e8' }}>
         <div className="px-8 lg:px-12 pt-10 relative z-10">
           <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold leading-[0.92] tracking-tight text-neutral-900">
             UPDATE
@@ -698,7 +698,7 @@ function App() {
       </section>
 
       {/* Compare */}
-      <section id="compare-section" className="min-h-screen relative z-10" style={{ background: 'linear-gradient(180deg, #06060e 0%, #080712 50%, #0a0610 100%)' }}>
+      <section id="compare-section" className="relative z-10" style={{ background: 'linear-gradient(180deg, #06060e 0%, #080712 50%, #0a0610 100%)' }}>
         {/* Section ambient — indigo/blue analytical feel */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
           <div className="absolute top-10 left-[15%] w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.05), transparent 65%)' }} />
@@ -720,7 +720,7 @@ function App() {
       </section>
 
       {/* Verify */}
-      <section id="verify-section" className="min-h-screen relative z-10 overflow-hidden" style={{ background: '#f5f0e8' }}>
+      <section id="verify-section" className="relative z-10 overflow-hidden" style={{ background: '#f5f0e8' }}>
         <div className="sticky top-0 z-20 px-8 lg:px-12 pt-10 pb-4" style={{ background: '#f5f0e8' }}>
           <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold leading-[0.92] tracking-tight text-neutral-900">
             VERIFY
@@ -735,7 +735,7 @@ function App() {
       </section>
 
       {/* Sources */}
-      <section id="sources-section" className="min-h-screen relative z-10" style={{ background: 'linear-gradient(180deg, #050a0a 0%, #04090c 50%, #060a0b 100%)' }}>
+      <section id="sources-section" className="relative z-10" style={{ background: 'linear-gradient(180deg, #050a0a 0%, #04090c 50%, #060a0b 100%)' }}>
         {/* Section ambient — calm teal/cyan scholarly feel */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
           <div className="absolute top-10 left-[10%] w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(20,184,166,0.045), transparent 65%)' }} />
@@ -757,7 +757,7 @@ function App() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 py-8 text-center">
+      <footer className="relative z-10 py-8 text-center" style={{ background: '#060a0b' }}>
         <div className="mx-auto w-48 h-px mb-6" style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent)' }} />
         <p className="text-xs text-white/30">© {new Date().getFullYear()} @DhPhahS</p>
       </footer>
