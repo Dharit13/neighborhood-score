@@ -1,6 +1,4 @@
-import { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { use3DMouseTrack } from '@/hooks/use3DMouseTrack';
+import { useState } from 'react';
 import { ChevronDown, Footprints, Shield, Volume2, Sparkles, Hospital, GraduationCap, Train, Car, Package, Wind, Droplets, Zap, Waves, Building2, Construction, TrendingUp, Briefcase } from 'lucide-react';
 import ScoreRing from './ScoreRing';
 import { Badge } from '@/components/ui/badge';
@@ -54,14 +52,14 @@ function TransitRow({ detail, icon }: { detail: TransitDetail; icon: string }) {
     <div className="rounded-lg bg-white/[0.05] border border-white/[0.08] px-3 py-2 text-xs space-y-1.5">
       <div className="flex justify-between items-center">
         <span className="text-white/90 font-medium">{icon} {detail.name}</span>
-        <Badge variant={detail.recommended_mode === 'walk' ? 'success' : 'info'} className="text-[9px]">
+        <Badge variant={detail.recommended_mode === 'walk' ? 'success' : 'info'} className="text-[11px]">
           {detail.recommended_mode === 'walk' ? 'Walkable' : 'Drive/Ride'}
         </Badge>
       </div>
       {isDrive && detail.drive_offpeak_minutes != null ? (
         <div className="space-y-0.5">
           <div className="flex justify-between">
-            <span className="text-white/70">By car ({Math.round(detail.drive_km!)} km)</span>
+            <span className="text-white/80">By car ({Math.round(detail.drive_km!)} km)</span>
             <span className="text-emerald-400 font-semibold">~{fmtDuration(detail.drive_offpeak_minutes)}</span>
           </div>
           <div className="flex justify-between">
@@ -72,7 +70,7 @@ function TransitRow({ detail, icon }: { detail: TransitDetail; icon: string }) {
       ) : (
         <div className="space-y-0.5">
           <div className="flex justify-between">
-            <span className="text-white/70">Walk: {Math.round((detail.actual_walk_km ?? 0) * 10) / 10} km</span>
+            <span className="text-white/80">Walk: {Math.round((detail.actual_walk_km ?? 0) * 10) / 10} km</span>
             <span className="text-emerald-400 font-semibold">~{fmtDuration(detail.walk_minutes)}</span>
           </div>
           {detail.marketing_claim_minutes != null && detail.walk_minutes > detail.marketing_claim_minutes && (
@@ -89,8 +87,6 @@ function TransitRow({ detail, icon }: { detail: TransitDetail; icon: string }) {
 
 export default function ScoreCard({ title, icon, result, freshness, compact, ringColor }: Props) {
   const [expanded, setExpanded] = useState(false);
-  const [processing, setProcessing] = useState(false);
-  const { rotateX, rotateY, handleMouseMove, handleMouseLeave } = use3DMouseTrack({ maxRotation: 8 });
   const Icon = ICON_MAP[icon] || Sparkles;
   const transitResult = 'nearest_metro' in result ? result as TransitScoreResult : null;
   const builderResult = 'builders' in result ? result as BuilderScoreResult : null;
@@ -98,18 +94,6 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
     ? (result.score >= 90 ? '#ec4899' : result.score >= 70 ? '#22c55e' : result.score >= 50 ? '#fbbf24' : '#f87171')
     : null;
   const color = safetyColor || getScoreColor(result.score);
-
-  const handleClick = useCallback(() => {
-    if (!expanded) {
-      setProcessing(true);
-      setTimeout(() => {
-        setProcessing(false);
-        setExpanded(true);
-      }, 400);
-    } else {
-      setExpanded(false);
-    }
-  }, [expanded]);
 
   const ringDisplay = (() => {
     if (icon === 'wind' && result.breakdown.weighted_aqi != null) {
@@ -124,70 +108,43 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
   if (compact) {
     return (
       <Collapsible open={expanded} onOpenChange={setExpanded}>
-        <motion.div
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          style={{
-            rotateX,
-            rotateY,
-            transformStyle: 'preserve-3d',
-            perspective: '800px',
-          }}
-          className="rounded-xl bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.10] hover:border-brand-9/20 transition-colors duration-300 overflow-hidden relative"
-        >
-          {/* Hover glow */}
-          <div
-            className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle at 50% 50%, rgba(42,213,135,0.06), transparent 60%)',
-            }}
-          />
-
+        <div className="rounded-xl bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.10] hover:border-brand-9/20 transition-colors duration-300 overflow-hidden relative">
           <CollapsibleTrigger asChild>
-            <div className="px-4 py-4 flex items-center gap-3.5 cursor-pointer relative" onClick={handleClick}>
-              <motion.div
+            <div className="px-4 py-4 flex items-center gap-3.5 cursor-pointer relative">
+              <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: color + '20', transform: 'translateZ(20px)' }}
-                whileHover={{ scale: 1.15, rotate: 5 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                style={{ backgroundColor: color + '20' }}
               >
-                {processing ? (
-                  <div className="w-4 h-0.5 rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full w-[200%] bg-gradient-to-r from-transparent to-transparent" style={{ backgroundColor: color, animation: 'score-slide 0.8s linear infinite' }} />
-                    <style>{`@keyframes score-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }`}</style>
-                  </div>
-                ) : (
-                  <Icon size={15} style={{ color }} />
-                )}
-              </motion.div>
-              <div className="flex-1 min-w-0" style={{ transform: 'translateZ(10px)' }}>
+                <Icon size={15} style={{ color }} />
+              </div>
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <h4 className="text-sm font-semibold text-white truncate">{title}</h4>
                   {result.data_confidence === 'low' && (
-                    <Badge variant="warning" className="text-[9px]">Low data</Badge>
+                    <Badge variant="warning" className="text-[11px]">Low data</Badge>
                   )}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   {title === 'Safety' ? (
                     <>
-                      {result.score >= 90 && <Badge variant="mono" className="text-[9px] border-pink-500/30 text-pink-400">Woman Safe</Badge>}
-                      {result.score >= 70 && result.score < 90 && <Badge variant="mono" className="text-[9px] border-green-500/30 text-green-400">Safe</Badge>}
-                      {result.score >= 50 && result.score < 70 && <Badge variant="mono" className="text-[9px] border-yellow-500/30 text-yellow-400">Somewhat Safe</Badge>}
-                      {result.score < 50 && <Badge variant="mono" className="text-[9px] border-red-500/30 text-red-400">Not Safe</Badge>}
+                      {result.score >= 90 && <Badge variant="mono" className="text-[11px] border-pink-500/30 text-pink-400">Woman Safe</Badge>}
+                      {result.score >= 70 && result.score < 90 && <Badge variant="mono" className="text-[11px] border-green-500/30 text-green-400">Safe</Badge>}
+                      {result.score >= 50 && result.score < 70 && <Badge variant="mono" className="text-[11px] border-yellow-500/30 text-yellow-400">Somewhat Safe</Badge>}
+                      {result.score < 50 && <Badge variant="mono" className="text-[11px] border-red-500/30 text-red-400">Not Safe</Badge>}
                     </>
                   ) : (
-                    <Badge variant={scoreBadgeVariant(result.score)} className="text-[10px]">{result.label}</Badge>
+                    <Badge variant={scoreBadgeVariant(result.score)} className="text-[11px]">{result.label}</Badge>
                   )}
-                  {freshness && <span className="text-[11px] text-white/70">{freshness}</span>}
+                  {freshness && <span className="text-xs text-white/80">{freshness}</span>}
                 </div>
               </div>
               {ringDisplay ? (
-                <div className="text-right flex-shrink-0" style={{ transform: 'translateZ(15px)' }}>
+                <div className="text-right flex-shrink-0">
                   <span className="font-mono font-bold text-base" style={{ color }}>{ringDisplay}</span>
                   <span className="text-[10px] ml-0.5" style={{ color }}>{icon === 'wind' ? 'AQI' : 'dB'}</span>
                 </div>
               ) : (
-                <div style={{ transform: 'translateZ(15px)' }}>
+                <div>
                   <ScoreRing score={result.score} size={42} strokeWidth={3.5} showLabel={true} animated={false}
                     colorOverride={title === 'Safety'
                       ? (result.score >= 90 ? '#ec4899' : result.score >= 70 ? '#22c55e' : result.score >= 50 ? '#fbbf24' : '#f87171')
@@ -195,44 +152,17 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
                     } />
                 </div>
               )}
-              <div className="flex items-center gap-1 text-brand-9" style={{ transform: 'translateZ(5px)' }}>
-                <AnimatePresence mode="wait">
-                  {processing ? (
-                    <motion.span
-                      key="proc"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="text-[10px] text-brand-9/70"
-                    >
-                      Loading...
-                    </motion.span>
-                  ) : (
-                    <motion.span
-                      key="label"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="text-[11px]"
-                    >
-                      {expanded ? '' : 'Details'}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-                <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+              <div className="flex items-center gap-1 text-brand-9">
+                {!expanded && <span className="text-xs">Details</span>}
+                <div className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
                   <ChevronDown size={13} />
-                </motion.div>
+                </div>
               </div>
             </div>
           </CollapsibleTrigger>
 
           <CollapsibleContent>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
-              className="px-4 pb-5 border-t border-white/[0.08] pt-4 space-y-4 max-h-[400px] overflow-y-auto scrollbar-thin"
-            >
+            <div className="px-4 pb-5 border-t border-white/[0.08] pt-4 space-y-4 max-h-[400px] overflow-y-auto scrollbar-thin">
               <div className="space-y-1.5">
                 {Object.entries(result.breakdown).map(([key, val]) => {
                   if (val == null || typeof val === 'object') return null;
@@ -259,7 +189,7 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
                   if (typeof val === 'boolean') display = val ? 'Yes' : 'No';
                   return (
                     <div key={key} className="flex justify-between text-xs">
-                      <span className="text-white/70">{key.replace(/_/g, ' ')}</span>
+                      <span className="text-white/80">{key.replace(/_/g, ' ')}</span>
                       <span className="text-white font-mono font-medium">{display}</span>
                     </div>
                   );
@@ -268,12 +198,12 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
 
               {transitResult && (
                 <div className="space-y-2">
-                  <p className="text-[11px] text-white/90 uppercase tracking-widest font-semibold">Nearest Transit</p>
+                  <p className="text-xs text-white/90 uppercase tracking-widest font-semibold">Nearest Transit</p>
                   {transitResult.nearest_metro && <TransitRow detail={transitResult.nearest_metro} icon="🚇" />}
                   {transitResult.nearest_bus_stop && <TransitRow detail={transitResult.nearest_bus_stop} icon="🚌" />}
                   {transitResult.nearest_train && <TransitRow detail={transitResult.nearest_train} icon="🚆" />}
 
-                  <p className="text-[11px] text-white/90 uppercase tracking-widest font-semibold pt-1">Key Hubs</p>
+                  <p className="text-xs text-white/90 uppercase tracking-widest font-semibold pt-1">Key Hubs</p>
                   {transitResult.airport && <TransitRow detail={transitResult.airport} icon="✈️" />}
                   {transitResult.majestic && <TransitRow detail={transitResult.majestic} icon="🚏" />}
                   {transitResult.city_railway && <TransitRow detail={transitResult.city_railway} icon="🚉" />}
@@ -282,7 +212,7 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
 
               {builderResult && builderResult.builders.length > 0 && (
                 <div className="space-y-1.5">
-                  <p className="text-[11px] text-white/90 uppercase tracking-widest font-semibold">Builders</p>
+                  <p className="text-xs text-white/90 uppercase tracking-widest font-semibold">Builders</p>
                   {builderResult.builders.slice(0, 5).map((b) => (
                     <div key={b.name} className="flex items-center justify-between text-xs rounded-lg bg-white/[0.05] border border-white/[0.08] px-3 py-2">
                       <span className="text-white/90">{b.name}</span>
@@ -294,7 +224,7 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
 
               {result.details.length > 0 && !builderResult && (
                 <div className="space-y-1.5">
-                  <p className="text-[11px] text-white/90 uppercase tracking-widest font-semibold">Nearby</p>
+                  <p className="text-xs text-white/90 uppercase tracking-widest font-semibold">Nearby</p>
                   {result.details.slice(0, 5).map((d, i) => (
                     <div key={i} className="rounded-lg bg-white/[0.05] border border-white/[0.08] px-3 py-2 flex justify-between text-xs">
                       <span className="text-white/90 truncate mr-2">{d.name}</span>
@@ -305,12 +235,12 @@ export default function ScoreCard({ title, icon, result, freshness, compact, rin
               )}
 
               <div>
-                <p className="text-[10px] text-white/80 uppercase tracking-widest font-semibold mb-0.5">Sources</p>
-                <p className="text-[10px] text-white/70">{result.sources.join(' · ')}</p>
+                <p className="text-[11px] text-white/80 uppercase tracking-widest font-semibold mb-0.5">Sources</p>
+                <p className="text-[11px] text-white/80">{result.sources.join(' · ')}</p>
               </div>
-            </motion.div>
+            </div>
           </CollapsibleContent>
-        </motion.div>
+        </div>
       </Collapsible>
     );
   }

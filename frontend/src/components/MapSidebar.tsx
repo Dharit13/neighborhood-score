@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { ChevronDown, TrendingUp, Droplets, LayoutDashboard, Heart, Route, MapPin, Users, Sparkles, UtensilsCrossed, Wine, Baby, Trophy, ShieldCheck, Trees, ShoppingBag, Palette, Dumbbell } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -53,9 +52,9 @@ function Section({ title, children, defaultOpen = false, id }: { title: string; 
         <CollapsibleTrigger asChild>
           <button className="w-full flex items-center justify-between py-2.5 group">
             <h3 className="text-sm font-semibold gradient-text uppercase tracking-widest group-hover:opacity-80 transition-opacity">{title}</h3>
-            <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+            <div className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
               <ChevronDown size={12} className="text-brand-9" />
-            </motion.div>
+            </div>
           </button>
         </CollapsibleTrigger>
         <CollapsibleContent>
@@ -99,15 +98,15 @@ function AiBriefCard({ ai }: { ai: NonNullable<NeighborhoodScoreResponse['ai_ver
             </div>
             <div className="flex-1 min-w-0 text-left">
               <h4 className="text-sm font-semibold text-white">Should you buy here?</h4>
-              <Badge variant="info" className="text-[10px] mt-0.5">
+              <Badge variant="info" className="text-[11px] mt-0.5">
                 {ai.confidence}% coverage
               </Badge>
             </div>
             <div className="flex items-center gap-1 text-brand-9">
-              <span className="text-[11px]">{expanded ? '' : 'Expand'}</span>
-              <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+              <span className="text-xs">{expanded ? '' : 'Expand'}</span>
+              <div className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
                 <ChevronDown size={13} />
-              </motion.div>
+              </div>
             </div>
           </button>
         </CollapsibleTrigger>
@@ -128,7 +127,7 @@ function AiBriefCard({ ai }: { ai: NonNullable<NeighborhoodScoreResponse['ai_ver
                     <button
                       key={tag.label}
                       onClick={() => setExpandedTag(isExpanded ? null : tag.label)}
-                      className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all hover:scale-105"
+                      className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors"
                       style={{
                         backgroundColor: config.color + '20',
                         color: config.color,
@@ -219,7 +218,7 @@ export default function MapSidebar({ data }: Props) {
             <h2 className="text-base font-semibold text-white truncate leading-tight">
               {readableAddress(data.address).split(',')[0]}
             </h2>
-            <Badge variant={labelBadgeVariant(data.composite_label, data.composite_score)} className="mt-0.5 text-[10px] uppercase tracking-wider">
+            <Badge variant={labelBadgeVariant(data.composite_label, data.composite_score)} className="mt-0.5 text-[11px] uppercase tracking-wider">
               {data.composite_label}
             </Badge>
           </div>
@@ -231,10 +230,9 @@ export default function MapSidebar({ data }: Props) {
             const isActive = activeNav === s.id;
             const Icon = s.icon;
             return (
-              <motion.button
+              <button
                 key={s.id}
                 onClick={() => scrollToSection(s.id)}
-                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                 className={cn(
                   'gradient-menu-item h-8 px-1.5 text-xs font-medium transition-all duration-500',
                   isActive ? 'w-[110px]' : 'w-8 hover:w-[110px]'
@@ -249,7 +247,7 @@ export default function MapSidebar({ data }: Props) {
                     {s.label}
                   </span>
                 </span>
-              </motion.button>
+              </button>
             );
           })}
         </div>
@@ -272,7 +270,7 @@ export default function MapSidebar({ data }: Props) {
                 <MapPin size={13} className="text-brand-9" />
                 <span className="text-sm font-bold gradient-text uppercase tracking-widest">Wards Covered</span>
                 {data.wards_total_population && (
-                  <Badge variant="mono" className="ml-auto text-[10px]">
+                  <Badge variant="mono" className="ml-auto text-[11px]">
                     <Users size={10} />
                     {data.wards_total_population.toLocaleString('en-IN')} pop
                   </Badge>
@@ -280,18 +278,17 @@ export default function MapSidebar({ data }: Props) {
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {data.wards_covered!.map((w) => (
-                  <motion.div key={w.name} whileHover={{ scale: 1.05 }}>
-                    <Badge
-                      variant="mono"
-                      className="cursor-default text-[10px] hover:text-brand-9 hover:border-brand-9/20 transition-colors"
-                      title={`${w.corporation}${w.population ? ` · Pop: ${w.population.toLocaleString('en-IN')}` : ''}${w.distance_km ? ` · ${w.distance_km} km` : ''}`}
-                    >
-                      {w.name}
-                      {w.distance_km != null && (
-                        <span className="text-white/70 ml-1">{w.distance_km}km</span>
-                      )}
-                    </Badge>
-                  </motion.div>
+                  <Badge
+                    key={w.name}
+                    variant="mono"
+                    className="cursor-default text-[11px] hover:text-brand-9 hover:border-brand-9/20 transition-colors"
+                    title={`${w.corporation}${w.population ? ` · Pop: ${w.population.toLocaleString('en-IN')}` : ''}${w.distance_km ? ` · ${w.distance_km} km` : ''}`}
+                  >
+                    {w.name}
+                    {w.distance_km != null && (
+                      <span className="text-white/80 ml-1">{w.distance_km}km</span>
+                    )}
+                  </Badge>
                 ))}
               </div>
             </LiquidGlassCard>
@@ -304,13 +301,11 @@ export default function MapSidebar({ data }: Props) {
 
         {/* Flood Risk Warning */}
         {data.flood_risk && data.flood_risk.score < 50 && (
-          <motion.div whileHover={{ scale: 1.02 }}
-            className="flex items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 hover:border-red-500/40 px-3 py-2.5 transition-colors cursor-default"
-          >
+          <div className="flex items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 hover:border-red-500/40 px-3 py-2.5 transition-colors cursor-default">
             <Droplets size={14} className="text-red-400" />
-            <Badge variant="destructive" className="text-[10px]">Flood Risk</Badge>
-            <Badge variant="destructive" className="ml-auto font-mono text-[10px]">{data.flood_risk.label}</Badge>
-          </motion.div>
+            <Badge variant="destructive" className="text-[11px]">Flood Risk</Badge>
+            <Badge variant="destructive" className="ml-auto font-mono text-[11px]">{data.flood_risk.label}</Badge>
+          </div>
         )}
 
         <div className="divider my-2" />
