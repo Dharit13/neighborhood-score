@@ -521,8 +521,8 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
                   <div className="text-center py-4">
                     <Badge
                       variant={
-                        briefData.verdict === 'STRONG_BUY' || briefData.verdict === 'BUY' ? 'success' :
-                        briefData.verdict === 'CAUTION' || briefData.verdict === 'WAIT' ? 'warning' : 'destructive'
+                        briefData.verdict === 'STRONG_BUY' || briefData.verdict === 'BUY' ? 'success-light' :
+                        briefData.verdict === 'CAUTION' || briefData.verdict === 'WAIT' ? 'warning-light' : 'destructive-light'
                       }
                       className="text-sm px-4 py-1"
                     >

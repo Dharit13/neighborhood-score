@@ -26,13 +26,13 @@ export const badgeVariants = cva(
         "mono-light":
           "bg-[#e8e0d0]/60 text-[#4a4a4a] border-[#d0c8b8] font-semibold",
         "success-light":
-          "bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold",
+          "bg-emerald-100 text-emerald-800 border-emerald-400 font-semibold",
         "warning-light":
-          "bg-amber-50 text-amber-700 border-amber-200 font-semibold",
+          "bg-amber-100 text-amber-800 border-amber-400 font-semibold",
         "destructive-light":
-          "bg-red-50 text-red-700 border-red-200 font-semibold",
+          "bg-red-100 text-red-800 border-red-400 font-semibold",
         "info-light":
-          "bg-blue-50 text-blue-700 border-blue-200 font-semibold",
+          "bg-blue-100 text-blue-800 border-blue-400 font-semibold",
         stroke:
           "border-brand-8 bg-transparent text-brand-8",
       },
