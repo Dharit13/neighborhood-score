@@ -596,7 +596,7 @@ function App() {
   // Single persistent shell — background never unmounts, no white flash
   return (
     <ErrorBoundary>
-    <div className="min-h-screen w-screen relative">
+    <div className="min-h-screen w-screen relative grain-overlay">
       {/* Global background layers — always mounted */}
       <div className="fixed inset-0 z-0">
         <BeamsBackground className="absolute inset-0 w-full h-full" intensity="medium" />
@@ -704,15 +704,21 @@ function App() {
       </AnimatePresence>
 
       {/* Explore */}
-      <section id="explore-section" className="h-screen relative z-10 flex flex-col">
+      <section id="explore-section" className="h-screen relative z-10 flex flex-col" style={{ background: 'linear-gradient(180deg, #050a08 0%, #040d0b 50%, #060b0f 100%)' }}>
+        {/* Section ambient — emerald glow */}
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <div className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(42,213,135,0.05), transparent 70%)' }} />
+          <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(0,80,117,0.05), transparent 70%)' }} />
+        </div>
+
         <AnimatePresence>
           {loading && <LoadingProgressBar />}
         </AnimatePresence>
 
         {/* Big page header (Framer University style) */}
-        <div className="px-8 lg:px-12 pt-10 pb-4 flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+        <div className="px-8 lg:px-12 pt-10 pb-4 flex flex-col lg:flex-row lg:items-end justify-between gap-4 relative z-10">
           <div>
-            <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight">
+            <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold leading-[0.92] tracking-tight section-heading-explore">
               EXPLORE
             </h1>
             <p className="text-brand-9 text-sm mt-2 font-mono">
@@ -752,68 +758,83 @@ function App() {
         )}
       </section>
 
-      {/* City Pulse */}
-      <section id="city-pulse-section" className="min-h-screen relative z-10">
-        <div className="px-8 lg:px-12 pt-10 pb-4">
-          <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight">
-            CITY PULSE
+      {/* City Pulse — newspaper: white bg, black ink */}
+      <section id="city-pulse-section" className="min-h-screen relative z-10" style={{ background: '#f5f0e8' }}>
+        <div className="px-8 lg:px-12 pt-10 relative z-10">
+          <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold leading-[0.92] tracking-tight text-neutral-900">
+            UPDATE
           </h1>
-          <p className="text-brand-9 text-sm mt-2 font-mono">
+          <p className="text-neutral-500 text-sm mt-2 font-mono">
             Live weather &amp; local news
           </p>
         </div>
-        <div className="px-8 lg:px-12 pb-20">
+        <div className="px-8 lg:px-12 pt-4 pb-20 relative z-10">
           <CityDashboard />
         </div>
       </section>
 
       {/* Compare */}
-      <section id="compare-section" className="min-h-screen relative z-10">
-        <div className="px-8 lg:px-12 pt-10 pb-4">
-          <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight">
+      <section id="compare-section" className="min-h-screen relative z-10" style={{ background: 'linear-gradient(180deg, #06060e 0%, #080712 50%, #0a0610 100%)' }}>
+        {/* Section ambient — indigo/blue analytical feel */}
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+          <div className="absolute top-10 left-[15%] w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.05), transparent 65%)' }} />
+          <div className="absolute bottom-10 right-[10%] w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.04), transparent 65%)' }} />
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(99,102,241,0.15), rgba(59,130,246,0.1), transparent)' }} />
+        </div>
+
+        <div className="px-8 lg:px-12 pt-10 pb-4 relative z-10">
+          <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold leading-[0.92] tracking-tight section-heading-compare">
             COMPARE
           </h1>
-          <p className="text-brand-9 text-sm mt-2 font-mono">
+          <p className="text-indigo-400/70 text-sm mt-2 font-mono">
             Side-by-side neighborhood analysis
           </p>
         </div>
-        <div className="max-w-7xl mx-auto px-6 pb-8">
+        <div className="max-w-7xl mx-auto px-6 pb-8 relative z-10">
           <CompareMode />
         </div>
       </section>
 
       {/* Verify */}
-      <section id="verify-section" className="min-h-screen relative z-10">
-        <div className="px-8 lg:px-12 pt-10 pb-4">
-          <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight">
+      <section id="verify-section" className="min-h-screen relative z-10" style={{ background: '#f5f0e8' }}>
+        <div className="px-8 lg:px-12 pt-10 pb-4 relative z-10">
+          <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold leading-[0.92] tracking-tight text-neutral-900">
             VERIFY
           </h1>
-          <p className="text-brand-9 text-sm mt-2 font-mono">
+          <p className="text-sm mt-2 font-mono" style={{ color: '#8a8a8a' }}>
             AI-powered property claim verification
           </p>
         </div>
-        <div className="max-w-7xl mx-auto px-6 pb-8">
+        <div className="max-w-7xl mx-auto px-6 pb-8 relative z-10">
           <VerifyClaims />
         </div>
       </section>
 
       {/* Sources */}
-      <section id="sources-section" className="min-h-screen relative z-10">
-        <div className="px-8 lg:px-12 pt-10 pb-4">
-          <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold text-white leading-[0.92] tracking-tight">
+      <section id="sources-section" className="min-h-screen relative z-10" style={{ background: 'linear-gradient(180deg, #050a0a 0%, #04090c 50%, #060a0b 100%)' }}>
+        {/* Section ambient — calm teal/cyan scholarly feel */}
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+          <div className="absolute top-10 left-[10%] w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(20,184,166,0.045), transparent 65%)' }} />
+          <div className="absolute bottom-10 right-[15%] w-[600px] h-[600px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(6,182,212,0.035), transparent 65%)' }} />
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(20,184,166,0.15), rgba(6,182,212,0.1), transparent)' }} />
+        </div>
+
+        <div className="px-8 lg:px-12 pt-10 pb-4 relative z-10">
+          <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold leading-[0.92] tracking-tight section-heading-sources">
             SOURCES
           </h1>
-          <p className="text-brand-9 text-sm mt-2 font-mono">
+          <p className="text-teal-400/70 text-sm mt-2 font-mono">
             Government data &amp; methodology
           </p>
         </div>
-        <div className="max-w-7xl mx-auto px-6 pb-8">
+        <div className="max-w-7xl mx-auto px-6 pb-8 relative z-10">
           <DataSources />
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 py-6 text-center">
+      <footer className="relative z-10 py-8 text-center">
+        <div className="mx-auto w-48 h-px mb-6" style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent)' }} />
         <p className="text-xs text-white/30">© {new Date().getFullYear()} @DhPhahS</p>
       </footer>
           </motion.div>

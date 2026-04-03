@@ -1,15 +1,20 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import ScrollReveal3D from './ScrollReveal3D';
-import { Sparkles, ChevronLeft, RotateCcw, Wallet, MapPin, Heart, User } from 'lucide-react';
+import { Sparkles, ChevronLeft, RotateCcw, Wallet, MapPin, Heart, User, Trophy, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import {
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  ResponsiveContainer, Tooltip, Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell,
+} from 'recharts';
 import { ShuffleNumber } from '@/components/ui/shuffle-number';
 import TetrisLoading from '@/components/ui/tetris-loader';
 import type { NeighborhoodScoreResponse, RecommendItem } from '../types';
 
-const RAW_COLORS = ['#5b9cf5', '#2ad587', '#f5a623'];
+const RAW_COLORS = ['#818cf8', '#34d399', '#fbbf24'];
+const RAW_COLORS_DIM = ['rgba(129,140,248,0.3)', 'rgba(52,211,153,0.3)', 'rgba(251,191,36,0.3)'];
 
 const DIMENSIONS: { key: keyof NeighborhoodScoreResponse; label: string }[] = [
   { key: 'safety', label: 'Safety' },
@@ -40,13 +45,13 @@ function readableName(address: string): string {
 function getScoreColor(score: number) {
   if (score >= 75) return 'text-slate-300';
   if (score >= 68) return 'text-blue-400';
-  if (score >= 60) return 'text-brand-9';
+  if (score >= 60) return 'text-indigo-400';
   if (score >= 52) return 'text-amber-400';
   return 'text-red-400';
 }
 
 function matchColor(score: number) {
-  if (score >= 90) return 'from-emerald-500 to-green-400';
+  if (score >= 90) return 'from-indigo-500 to-blue-400';
   if (score >= 75) return 'from-blue-500 to-cyan-400';
   return 'from-amber-500 to-yellow-400';
 }
@@ -170,6 +175,9 @@ export default function CompareMode() {
     });
   };
 
+  const [activeView, setActiveView] = useState<'radar' | 'bars'>('bars');
+  const [hoveredDim, setHoveredDim] = useState<string | null>(null);
+
   // Results data
   const loaded = results?.map(r => r.scores).filter(Boolean) as NeighborhoodScoreResponse[] | undefined;
 
@@ -181,6 +189,48 @@ export default function CompareMode() {
     });
     return entry;
   }) : [];
+
+  // Bar chart data for dimension comparison
+  const barData = useMemo(() => {
+    if (!loaded || loaded.length < 3) return [];
+    return DIMENSIONS.map((dim) => {
+      const scores = loaded.map(r => (r[dim.key] as { score: number } | undefined)?.score ?? 0);
+      const maxScore = Math.max(...scores);
+      const winnerIdx = scores.filter(x => x === maxScore).length === 1 ? scores.indexOf(maxScore) : -1;
+      return {
+        dimension: dim.label,
+        dimKey: dim.key,
+        score0: scores[0],
+        score1: scores[1],
+        score2: scores[2],
+        winner: winnerIdx,
+        maxScore,
+        diff: Math.round((maxScore - Math.min(...scores)) * 10) / 10,
+      };
+    });
+  }, [loaded]);
+
+  // Win counts per neighborhood
+  const winCounts = useMemo(() => {
+    const counts = [0, 0, 0];
+    barData.forEach(d => { if (d.winner >= 0) counts[d.winner]++; });
+    return counts;
+  }, [barData]);
+
+  // Best & worst dimensions per neighborhood
+  const neighborhoodInsights = useMemo(() => {
+    if (!loaded || loaded.length < 3) return [];
+    return loaded.map((r) => {
+      const dimScores = DIMENSIONS.map(dim => ({
+        label: dim.label,
+        score: (r[dim.key] as { score: number } | undefined)?.score ?? 0,
+      })).sort((a, b) => b.score - a.score);
+      return {
+        best: dimScores.slice(0, 3),
+        worst: dimScores.slice(-3).reverse(),
+      };
+    });
+  }, [loaded]);
 
   return (
     <div className="space-y-6">
@@ -197,16 +247,16 @@ export default function CompareMode() {
                   aria-label={`Step ${i + 1}: ${STEPS[i]}`}
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                     i === step
-                      ? 'bg-brand-9 text-black scale-110'
+                      ? 'bg-indigo-500 text-white scale-110'
                       : i < step
-                        ? 'bg-brand-9/30 text-brand-9 cursor-pointer hover:bg-brand-9/50'
+                        ? 'bg-indigo-500/30 text-indigo-400 cursor-pointer hover:bg-indigo-500/50'
                         : 'bg-white/[0.06] text-white/30'
                   }`}
                 >
                   <Icon size={14} />
                 </button>
                 {i < STEPS.length - 1 && (
-                  <div className={`w-8 h-0.5 rounded-full ${i < step ? 'bg-brand-9/40' : 'bg-white/[0.06]'}`} />
+                  <div className={`w-8 h-0.5 rounded-full ${i < step ? 'bg-indigo-500/40' : 'bg-white/[0.06]'}`} />
                 )}
               </div>
             );
@@ -236,7 +286,7 @@ export default function CompareMode() {
                   onClick={() => setAnswers(prev => ({ ...prev, budgetType: t, budgetRange: '' }))}
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                     answers.budgetType === t
-                      ? 'bg-brand-9/20 text-brand-9 border border-brand-9/40'
+                      ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/40'
                       : 'bg-white/[0.04] text-white/50 border border-white/[0.08] hover:border-white/20'
                   }`}
                 >
@@ -254,7 +304,7 @@ export default function CompareMode() {
                   onClick={() => setAnswers(prev => ({ ...prev, budgetRange: b }))}
                   className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     answers.budgetRange === b
-                      ? 'bg-brand-9/20 text-brand-9 border border-brand-9/40 scale-105'
+                      ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 scale-105'
                       : 'bg-white/[0.04] text-white/70 border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.06]'
                   }`}
                 >
@@ -284,7 +334,7 @@ export default function CompareMode() {
                   onClick={() => setAnswers(prev => ({ ...prev, commute: c }))}
                   className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     answers.commute === c
-                      ? 'bg-brand-9/20 text-brand-9 border border-brand-9/40 scale-105'
+                      ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 scale-105'
                       : 'bg-white/[0.04] text-white/70 border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.06]'
                   }`}
                 >
@@ -299,7 +349,7 @@ export default function CompareMode() {
                 value={COMMUTE_PRESETS.includes(answers.commute) ? '' : answers.commute}
                 onChange={e => setAnswers(prev => ({ ...prev, commute: e.target.value }))}
                 placeholder="Or type a custom destination..."
-                className="w-full max-w-sm rounded-xl border border-white/[0.10] bg-white/[0.04] px-4 py-2.5 text-sm text-white placeholder:text-white/40 outline-none focus:border-brand-9/40 transition-colors"
+                className="w-full max-w-sm rounded-xl border border-white/[0.10] bg-white/[0.04] px-4 py-2.5 text-sm text-white placeholder:text-white/40 outline-none focus:border-indigo-500/40 transition-colors"
               />
             </div>
           </motion.div>
@@ -329,7 +379,7 @@ export default function CompareMode() {
                     disabled={disabled}
                     className={`py-3 px-3 rounded-xl text-sm font-medium transition-all flex flex-col items-center gap-1.5 ${
                       selected
-                        ? 'bg-brand-9/20 text-brand-9 border border-brand-9/40 scale-[1.03]'
+                        ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 scale-[1.03]'
                         : disabled
                           ? 'bg-white/[0.02] text-white/20 border border-white/[0.04] cursor-not-allowed'
                           : 'bg-white/[0.04] text-white/70 border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.06]'
@@ -362,7 +412,7 @@ export default function CompareMode() {
                   onClick={() => setAnswers(prev => ({ ...prev, lifestyle: l.id }))}
                   className={`py-4 px-4 rounded-xl text-left transition-all ${
                     answers.lifestyle === l.id
-                      ? 'bg-brand-9/20 border border-brand-9/40 scale-[1.02]'
+                      ? 'bg-indigo-500/20 border border-indigo-500/40 scale-[1.02]'
                       : 'bg-white/[0.04] border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.06]'
                   }`}
                 >
@@ -392,8 +442,8 @@ export default function CompareMode() {
             disabled={!canNext()}
             className="px-6 py-2.5 text-sm font-semibold rounded-xl text-white transition-all hover:scale-105 disabled:opacity-30 disabled:hover:scale-100 flex items-center gap-2"
             style={{
-              background: canNext() ? 'linear-gradient(135deg, var(--brand-1), var(--brand-9))' : undefined,
-              boxShadow: canNext() ? '0 0 20px rgba(42,213,135,0.25)' : undefined,
+              background: canNext() ? 'linear-gradient(135deg, #4338ca, #818cf8)' : undefined,
+              boxShadow: canNext() ? '0 0 20px rgba(129,140,248,0.25)' : undefined,
             }}
           >
             {step === 3 ? (
@@ -417,7 +467,7 @@ export default function CompareMode() {
       {step === 4 && error && !loading && (
         <div className="text-center space-y-3">
           <div className="rounded-xl bg-red-500/10 p-4 text-red-400 text-sm max-w-lg mx-auto">{error}</div>
-          <button onClick={handleStartOver} className="text-sm text-brand-9 hover:underline flex items-center gap-1 mx-auto">
+          <button onClick={handleStartOver} className="text-sm text-indigo-400 hover:underline flex items-center gap-1 mx-auto">
             <RotateCcw size={12} /> Start over
           </button>
         </div>
@@ -436,134 +486,332 @@ export default function CompareMode() {
             </button>
           </div>
 
-          {/* AI Recommendation Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-w-5xl mx-auto">
-            {results.map((rec, i) => (
-              <ScrollReveal3D key={i} rotateX={-6} delay={i * 0.08}>
-                <div className="rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] p-4 space-y-3 h-full">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-base font-semibold" style={{ color: RAW_COLORS[i] }}>
-                        {readableName(rec.scores?.address || rec.neighborhood)}
-                      </h3>
-                      <span className="text-xs text-white/40">#{i + 1} recommendation</span>
-                    </div>
-                    <div className={`px-2 py-1 rounded-lg text-xs font-bold bg-gradient-to-r ${matchColor(rec.match_score)} text-black`}>
-                      {rec.match_score}% match
-                    </div>
-                  </div>
+          {/* AI Recommendation Cards with scoreboard */}
+          <div className="max-w-5xl mx-auto space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {results.map((rec, i) => (
+                <ScrollReveal3D key={i} rotateX={-6} delay={i * 0.08}>
+                  <div className="rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] p-4 space-y-3 h-full relative overflow-hidden">
+                    {/* Color accent bar */}
+                    <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: RAW_COLORS[i] }} />
 
-                  <p className="text-sm text-white/70 leading-relaxed">{rec.reason}</p>
-
-                  <div className="space-y-1">
-                    {rec.highlights.map((h, j) => (
-                      <div key={j} className="flex items-start gap-2 text-xs text-white/60">
-                        <span className="text-brand-9 mt-0.5">•</span>
-                        <span>{h}</span>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-base font-semibold" style={{ color: RAW_COLORS[i] }}>
+                          {readableName(rec.scores?.address || rec.neighborhood)}
+                        </h3>
+                        <span className="text-xs text-white/40">#{i + 1} recommendation</span>
                       </div>
-                    ))}
-                  </div>
+                      <div className={`px-2 py-1 rounded-lg text-xs font-bold bg-gradient-to-r ${matchColor(rec.match_score)} text-black`}>
+                        {rec.match_score}% match
+                      </div>
+                    </div>
 
-                  <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
-                    <span className="text-xs text-white/40">Overall score</span>
-                    <span className={`text-lg font-bold font-mono ${getScoreColor(rec.scores?.composite_score || 0)}`}>
-                      <ShuffleNumber value={rec.scores?.composite_score || 0} />
-                    </span>
+                    <p className="text-sm text-white/70 leading-relaxed">{rec.reason}</p>
+
+                    <div className="space-y-1">
+                      {rec.highlights.map((h, j) => (
+                        <div key={j} className="flex items-start gap-2 text-xs text-white/60">
+                          <span style={{ color: RAW_COLORS[i] }} className="mt-0.5">•</span>
+                          <span>{h}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Score + wins footer */}
+                    <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Trophy size={12} className="text-white/30" />
+                        <span className="text-xs text-white/50">
+                          Wins <span className="font-bold font-mono" style={{ color: RAW_COLORS[i] }}>{winCounts[i]}</span>
+                          <span className="text-white/30"> / {DIMENSIONS.length}</span>
+                        </span>
+                      </div>
+                      <span className={`text-lg font-bold font-mono ${getScoreColor(rec.scores?.composite_score || 0)}`}>
+                        <ShuffleNumber value={rec.scores?.composite_score || 0} />
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </ScrollReveal3D>
-            ))}
+                </ScrollReveal3D>
+              ))}
+            </div>
           </div>
 
-          {/* Radar Chart */}
-          <ScrollReveal3D rotateX={-10} translateZ={10}>
-            <div className="rounded-xl bg-white/[0.03] backdrop-blur-sm p-6 max-w-5xl mx-auto">
-              <h3 className="text-sm font-semibold gradient-text mb-4 text-center uppercase tracking-widest">Score Overlay</h3>
-              <ResponsiveContainer width="100%" height={400}>
-                <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="65%">
-                  <PolarGrid className="stroke-white/10" strokeDasharray="3 3" />
-                  <PolarAngleAxis dataKey="metric" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }} />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 9 }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'rgba(0,0,0,0.9)',
-                      border: '1px solid rgba(42,213,135,0.2)',
-                      borderRadius: '8px',
-                      color: 'white',
-                      fontSize: '12px',
-                      backdropFilter: 'blur(12px)',
-                    }}
-                  />
-                  <Legend />
-                  {loaded.map((r, i) => (
-                    <Radar
-                      key={i}
-                      name={readableName(r.address)}
-                      dataKey={`score${i}`}
-                      stroke={RAW_COLORS[i]}
-                      fill={RAW_COLORS[i]}
-                      fillOpacity={0.1}
-                      strokeWidth={2}
-                    />
-                  ))}
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          </ScrollReveal3D>
+          {/* View toggle */}
+          <div className="flex justify-center gap-1 max-w-5xl mx-auto">
+            <button
+              onClick={() => setActiveView('bars')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
+                activeView === 'bars' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'text-white/40 hover:text-white/60 border border-transparent'
+              }`}
+            >
+              <BarChart3 size={12} /> Bar Comparison
+            </button>
+            <button
+              onClick={() => setActiveView('radar')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
+                activeView === 'radar' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'text-white/40 hover:text-white/60 border border-transparent'
+              }`}
+            >
+              <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" /></svg>
+              Radar Overlay
+            </button>
+          </div>
 
-          {/* Score Table — 3 columns */}
-          <ScrollReveal3D delay={0.05} rotateX={-6}>
-            <div className="max-w-5xl mx-auto space-y-2">
-              {/* Header */}
-              <div className="flex items-center py-3">
-                {loaded.map((r, i) => (
-                  <div key={i} className="flex-1 text-center text-sm font-semibold" style={{ color: RAW_COLORS[i] }}>
-                    {readableName(r.address)}
+          <AnimatePresence mode="wait">
+            {activeView === 'bars' ? (
+              <motion.div
+                key="bars"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                {/* Grouped Bar Chart */}
+                <ScrollReveal3D rotateX={-8} translateZ={10}>
+                  <div className="rounded-xl bg-white/[0.03] backdrop-blur-sm p-6 max-w-5xl mx-auto">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold section-heading-compare uppercase tracking-widest">Dimension Breakdown</h3>
+                      <div className="flex items-center gap-3">
+                        {loaded.map((r, i) => (
+                          <div key={i} className="flex items-center gap-1.5">
+                            <div className="w-2.5 h-2.5 rounded-sm" style={{ background: RAW_COLORS[i] }} />
+                            <span className="text-[10px] text-white/50">{readableName(r.address)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <ResponsiveContainer width="100%" height={520}>
+                      <BarChart
+                        data={barData}
+                        layout="vertical"
+                        margin={{ top: 0, right: 20, bottom: 0, left: 80 }}
+                        barGap={2}
+                        barCategoryGap="18%"
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
+                        <XAxis type="number" domain={[0, 100]} tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <YAxis
+                          type="category"
+                          dataKey="dimension"
+                          tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 11 }}
+                          axisLine={false}
+                          tickLine={false}
+                          width={75}
+                        />
+                        <Tooltip
+                          cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                          contentStyle={{
+                            backgroundColor: 'rgba(0,0,0,0.95)',
+                            border: '1px solid rgba(129,140,248,0.2)',
+                            borderRadius: '10px',
+                            color: 'white',
+                            fontSize: '12px',
+                            backdropFilter: 'blur(12px)',
+                            padding: '10px 14px',
+                          }}
+                          formatter={(value: unknown, name: unknown) => {
+                            const v = Number(value) || 0;
+                            const n = String(name);
+                            const idx = parseInt(n.replace('score', ''));
+                            const label = loaded[idx] ? readableName(loaded[idx].address) : n;
+                            return [`${Math.round(v * 10) / 10} / 100`, label];
+                          }}
+                          labelStyle={{ color: 'rgba(255,255,255,0.7)', marginBottom: 4, fontWeight: 600 }}
+                        />
+                        {[0, 1, 2].map(i => (
+                          <Bar
+                            key={i}
+                            dataKey={`score${i}`}
+                            radius={[0, 4, 4, 0]}
+                            maxBarSize={12}
+                            animationDuration={800}
+                            animationBegin={i * 150}
+                          >
+                            {barData.map((entry, j) => (
+                              <Cell
+                                key={j}
+                                fill={entry.winner === i ? RAW_COLORS[i] : RAW_COLORS_DIM[i]}
+                                stroke={hoveredDim === entry.dimKey ? RAW_COLORS[i] : 'none'}
+                                strokeWidth={1}
+                              />
+                            ))}
+                          </Bar>
+                        ))}
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
-                ))}
-                <div className="w-24" />
-              </div>
+                </ScrollReveal3D>
 
-              {/* Overall */}
-              <div className="flex items-center rounded-xl bg-white/[0.04] py-4">
-                {loaded.map((r, i) => (
-                  <div key={i} className="flex-1 text-center">
-                    <span className={`text-2xl font-bold font-mono ${getScoreColor(r.composite_score)}`}>
-                      <ShuffleNumber value={r.composite_score} />
-                    </span>
-                  </div>
-                ))}
-                <div className="w-24 text-center text-sm font-semibold text-white">Overall</div>
-              </div>
-
-              {/* Dimensions */}
-              {DIMENSIONS.map((dim, rowIdx) => {
-                const scores = loaded.map(r => (r[dim.key] as { score: number } | undefined)?.score ?? 0);
-                const maxScore = Math.max(...scores);
-
-                return (
-                  <motion.div
-                    key={dim.key}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: rowIdx * 0.02 }}
-                    className="flex items-center rounded-lg py-2 hover:bg-white/[0.02] transition"
-                  >
-                    {scores.map((s, i) => {
-                      const isWinner = s === maxScore && scores.filter(x => x === maxScore).length === 1;
+                {/* Interactive dimension rows */}
+                <ScrollReveal3D delay={0.05} rotateX={-6}>
+                  <div className="max-w-5xl mx-auto space-y-1.5 mt-4">
+                    {barData.map((dim, rowIdx) => {
+                      const isHovered = hoveredDim === dim.dimKey;
                       return (
-                        <div key={i} className="flex-1 text-center">
-                          <span className={`font-semibold font-mono ${getScoreColor(s)} ${isWinner ? 'text-base' : 'text-sm'}`}>
-                            {Math.round(s * 10) / 10}
-                          </span>
-                          {isWinner && <span className="ml-1 text-[10px] text-brand-9/60">●</span>}
-                        </div>
+                        <motion.div
+                          key={dim.dimKey}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: rowIdx * 0.03 }}
+                          onMouseEnter={() => setHoveredDim(dim.dimKey)}
+                          onMouseLeave={() => setHoveredDim(null)}
+                          className={`rounded-lg px-4 py-2.5 transition-all cursor-default ${
+                            isHovered ? 'bg-white/[0.05]' : 'bg-white/[0.015] hover:bg-white/[0.03]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-24 flex-shrink-0">
+                              <span className="text-xs font-medium text-white/60">{dim.dimension}</span>
+                            </div>
+                            <div className="flex-1 flex items-center gap-2">
+                              {[dim.score0, dim.score1, dim.score2].map((score, i) => {
+                                const isWinner = dim.winner === i;
+                                const pct = score;
+                                return (
+                                  <div key={i} className="flex-1 flex items-center gap-2">
+                                    <div className="flex-1 h-5 rounded-full overflow-hidden relative" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                                      <motion.div
+                                        className="h-full rounded-full relative"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${pct}%` }}
+                                        transition={{ duration: 0.8, delay: rowIdx * 0.03 + i * 0.1, ease: 'easeOut' }}
+                                        style={{
+                                          background: isWinner
+                                            ? `linear-gradient(90deg, ${RAW_COLORS_DIM[i]}, ${RAW_COLORS[i]})`
+                                            : RAW_COLORS_DIM[i],
+                                        }}
+                                      />
+                                      <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono font-bold ${
+                                        isWinner ? 'text-white' : 'text-white/50'
+                                      }`}>
+                                        {Math.round(score * 10) / 10}
+                                      </span>
+                                    </div>
+                                    {isWinner && (
+                                      <motion.div
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ delay: rowIdx * 0.03 + 0.5 }}
+                                      >
+                                        <Trophy size={10} style={{ color: RAW_COLORS[i] }} />
+                                      </motion.div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </motion.div>
                       );
                     })}
-                    <div className="w-24 text-center text-xs text-white/50">{dim.label}</div>
-                  </motion.div>
-                );
-              })}
+                  </div>
+                </ScrollReveal3D>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="radar"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                {/* Radar Chart */}
+                <ScrollReveal3D rotateX={-10} translateZ={10}>
+                  <div className="rounded-xl bg-white/[0.03] backdrop-blur-sm p-6 max-w-5xl mx-auto">
+                    <h3 className="text-sm font-semibold section-heading-compare mb-4 text-center uppercase tracking-widest">Score Overlay</h3>
+                    <ResponsiveContainer width="100%" height={450}>
+                      <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
+                        <PolarGrid stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
+                        <PolarAngleAxis
+                          dataKey="metric"
+                          tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 10 }}
+                        />
+                        <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 9 }} axisLine={false} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'rgba(0,0,0,0.95)',
+                            border: '1px solid rgba(129,140,248,0.2)',
+                            borderRadius: '10px',
+                            color: 'white',
+                            fontSize: '12px',
+                            backdropFilter: 'blur(12px)',
+                            padding: '10px 14px',
+                          }}
+                        />
+                        <Legend
+                          wrapperStyle={{ fontSize: '11px', paddingTop: '12px' }}
+                        />
+                        {loaded.map((r, i) => (
+                          <Radar
+                            key={i}
+                            name={readableName(r.address)}
+                            dataKey={`score${i}`}
+                            stroke={RAW_COLORS[i]}
+                            fill={RAW_COLORS[i]}
+                            fillOpacity={0.08}
+                            strokeWidth={2}
+                            dot={{ r: 3, fill: RAW_COLORS[i], strokeWidth: 0 }}
+                            activeDot={{ r: 5, fill: RAW_COLORS[i], stroke: 'white', strokeWidth: 1 }}
+                          />
+                        ))}
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ScrollReveal3D>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Strengths & Weaknesses per neighborhood */}
+          <ScrollReveal3D delay={0.1} rotateX={-6}>
+            <div className="max-w-5xl mx-auto">
+              <h3 className="text-sm font-semibold section-heading-compare mb-4 text-center uppercase tracking-widest">Strengths & Weaknesses</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {loaded.map((r, i) => (
+                  <div key={i} className="rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] p-4 space-y-3">
+                    <h4 className="text-sm font-semibold" style={{ color: RAW_COLORS[i] }}>
+                      {readableName(r.address)}
+                    </h4>
+
+                    {/* Best */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-[10px] text-white/40 uppercase tracking-wider font-medium">
+                        <TrendingUp size={10} className="text-emerald-400" /> Top strengths
+                      </div>
+                      {neighborhoodInsights[i]?.best.map((d, j) => (
+                        <div key={j} className="flex items-center justify-between">
+                          <span className="text-xs text-white/70">{d.label}</span>
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                              <div className="h-full rounded-full bg-emerald-500/60" style={{ width: `${d.score}%` }} />
+                            </div>
+                            <span className="text-xs font-mono font-semibold text-emerald-400 w-8 text-right">{Math.round(d.score)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Worst */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-[10px] text-white/40 uppercase tracking-wider font-medium">
+                        <TrendingDown size={10} className="text-amber-400" /> Watch out for
+                      </div>
+                      {neighborhoodInsights[i]?.worst.map((d, j) => (
+                        <div key={j} className="flex items-center justify-between">
+                          <span className="text-xs text-white/70">{d.label}</span>
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                              <div className="h-full rounded-full bg-amber-500/60" style={{ width: `${d.score}%` }} />
+                            </div>
+                            <span className="text-xs font-mono font-semibold text-amber-400 w-8 text-right">{Math.round(d.score)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </ScrollReveal3D>
         </>

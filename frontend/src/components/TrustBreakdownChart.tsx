@@ -37,8 +37,8 @@ export default function TrustBreakdownChart({ breakdown }: Props) {
     <div className="space-y-2">
       {entries.map((entry, i) => (
         <div key={entry.key} className="flex items-center gap-3">
-          <span className="text-[11px] text-white/70 w-24 text-right capitalize">{entry.label}</span>
-          <div className="flex-1 h-3 bg-white/[0.06] rounded-full overflow-hidden">
+          <span className="text-[11px] w-24 text-right capitalize" style={{ color: '#4a4a4a' }}>{entry.label}</span>
+          <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ background: 'rgba(208,200,184,0.4)' }}>
             <motion.div
               className="h-full rounded-full"
               style={{ backgroundColor: barColor(entry.score) }}

@@ -419,6 +419,58 @@
   }
 }
 
+/* Section heading gradients — each page gets its own color identity */
+.section-heading-explore {
+  background: linear-gradient(135deg, #2ad587, #00b4d8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.section-heading-pulse {
+  background: linear-gradient(135deg, #fbbf24, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.section-heading-compare {
+  background: linear-gradient(135deg, #818cf8, #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.section-heading-verify {
+  color: #1a1a1a;
+  -webkit-text-fill-color: #1a1a1a;
+}
+.section-heading-sources {
+  background: linear-gradient(135deg, #2dd4bf, #22d3ee);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Newspaper editorial typography for City Pulse */
+.newspaper-section {
+  font-family: var(--font-display);
+}
+.newspaper-section p,
+.newspaper-section span:not([style]) {
+  font-family: var(--font-sans);
+}
+
+/* Subtle grain texture overlay for depth */
+.grain-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
 canvas,
 canvas + div,
 [data-engine],

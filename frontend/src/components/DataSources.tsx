@@ -34,11 +34,11 @@ function DimensionCard({ dim, index }: { dim: typeof DIMENSIONS[number]; index: 
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
-        className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 hover:border-brand-9/20 transition-colors duration-300"
+        className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 hover:border-teal-400/20 transition-colors duration-300"
       >
         <div className="flex items-center gap-2.5 mb-3">
           <div className="w-9 h-9 rounded-lg bg-white/[0.06] flex items-center justify-center flex-shrink-0" style={{ transform: 'translateZ(8px)' }}>
-            <Icon size={18} className="text-brand-9" />
+            <Icon size={18} className="text-teal-400" />
           </div>
           <span className="text-[15px] font-medium text-white flex-1">{dim.name}</span>
           <span className="text-xs text-white/30 font-mono">{dim.weight}%</span>

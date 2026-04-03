@@ -28,13 +28,6 @@ const TABS: { id: TabId; label: string; Icon: typeof Shield }[] = [
   { id: 'brief', label: 'AI Brief', Icon: Sparkles },
 ];
 
-const TAB_GRADIENTS: Record<TabId, { from: string; to: string }> = {
-  claims: { from: '#005075', to: '#00943d' },
-  builders: { from: '#002c7c', to: '#005075' },
-  area: { from: '#007260', to: '#2ad587' },
-  brief: { from: '#8b5cf6', to: '#2ad587' },
-};
-
 interface Props {
   address: string;
   latitude: number;
@@ -61,7 +54,7 @@ function BuilderDetailView({ slug, onBack }: { slug: string; onBack: () => void 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 size={20} className="animate-spin text-brand-9" />
+        <Loader2 size={20} className="animate-spin" style={{ color: '#b91c1c' }} />
       </div>
     );
   }
@@ -69,8 +62,8 @@ function BuilderDetailView({ slug, onBack }: { slug: string; onBack: () => void 
   if (!profile) {
     return (
       <div className="text-center py-8">
-        <p className="text-sm text-white/50">Builder not found</p>
-        <button onClick={onBack} className="text-brand-9 text-sm mt-2 hover:underline">Go back</button>
+        <p className="text-sm" style={{ color: '#8a8a8a' }}>Builder not found</p>
+        <button onClick={onBack} className="text-sm mt-2 hover:underline" style={{ color: '#b91c1c' }}>Go back</button>
       </div>
     );
   }
@@ -78,7 +71,7 @@ function BuilderDetailView({ slug, onBack }: { slug: string; onBack: () => void 
   return (
     <div className="space-y-4">
       {/* Back button */}
-      <button onClick={onBack} className="flex items-center gap-1 text-sm text-brand-9 hover:underline">
+      <button onClick={onBack} className="flex items-center gap-1 text-sm hover:underline" style={{ color: '#b91c1c' }}>
         <ChevronLeft size={14} /> All builders
       </button>
 
@@ -86,22 +79,22 @@ function BuilderDetailView({ slug, onBack }: { slug: string; onBack: () => void 
       <div className="flex items-center gap-4">
         <TrustScoreCircle score={profile.trust_score ?? 0} size={80} strokeWidth={5} />
         <div className="flex-1 min-w-0">
-          <h3 className="text-xl font-semibold text-white">
+          <h3 className="text-xl font-semibold" style={{ color: '#1a1a1a' }}>
             {profile.name}
           </h3>
           <div className="flex items-center gap-2 mt-1">
-            <Badge variant={profile.trust_tier === 'trusted' ? 'success' : profile.trust_tier === 'emerging' ? 'info' : profile.trust_tier === 'cautious' ? 'warning' : 'destructive'}>
+            <Badge variant={profile.trust_tier === 'trusted' ? 'success-light' : profile.trust_tier === 'emerging' ? 'info-light' : profile.trust_tier === 'cautious' ? 'warning-light' : 'destructive-light'}>
               {profile.trust_tier || 'unscored'}
             </Badge>
-            {profile.segment && <Badge variant="mono">{profile.segment}</Badge>}
+            {profile.segment && <Badge variant="mono-light">{profile.segment}</Badge>}
             {profile.avg_rating != null && (
-              <span className="flex items-center gap-0.5 text-xs text-amber-400">
+              <span className="flex items-center gap-0.5 text-xs text-amber-600">
                 <Star size={11} fill="currentColor" /> {profile.avg_rating.toFixed(1)}
               </span>
             )}
           </div>
           {profile.website && (
-            <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-9/70 hover:text-brand-9 flex items-center gap-1 mt-1">
+            <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-xs flex items-center gap-1 mt-1" style={{ color: '#b91c1c' }}>
               <ExternalLink size={10} /> Website
             </a>
           )}
@@ -110,8 +103,8 @@ function BuilderDetailView({ slug, onBack }: { slug: string; onBack: () => void 
 
       {/* Trust breakdown */}
       {profile.trust_score_breakdown && (
-        <div className="rounded-xl bg-white/[0.03] p-4">
-          <h4 className="text-xs font-bold gradient-text uppercase tracking-widest mb-3">Trust Breakdown</h4>
+        <div className="rounded-xl bg-white/40 border border-[#d0c8b8] p-4">
+          <h4 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#b91c1c' }}>Trust Breakdown</h4>
           <TrustBreakdownChart breakdown={profile.trust_score_breakdown} />
         </div>
       )}
@@ -119,7 +112,7 @@ function BuilderDetailView({ slug, onBack }: { slug: string; onBack: () => void 
       {/* Risk flags */}
       {profile.risk_flags.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-xs font-bold text-red-400 uppercase tracking-widest">Risk Flags</h4>
+          <h4 className="text-xs font-bold text-red-700 uppercase tracking-widest">Risk Flags</h4>
           {profile.risk_flags.map((flag, i) => (
             <RedFlagAlert key={i} flag={flag as RiskFlag} />
           ))}
@@ -128,27 +121,27 @@ function BuilderDetailView({ slug, onBack }: { slug: string; onBack: () => void 
 
       {/* Description */}
       {profile.description && (
-        <div className="rounded-xl bg-white/[0.03] p-4">
-          <p className="text-sm text-white/80 leading-relaxed">{profile.description}</p>
+        <div className="rounded-xl bg-white/40 border border-[#d0c8b8] p-4">
+          <p className="text-sm leading-relaxed" style={{ color: '#4a4a4a' }}>{profile.description}</p>
         </div>
       )}
 
       {/* Projects */}
       {profile.projects.length > 0 && (
         <div>
-          <h4 className="text-xs font-bold gradient-text uppercase tracking-widest mb-2">Projects ({profile.projects.length})</h4>
-          <div className="rounded-xl bg-white/[0.03] overflow-hidden">
-            <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 gap-y-0 text-[10px] text-white/40 uppercase tracking-wider px-3 py-2 border-b border-white/[0.06]">
+          <h4 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#b91c1c' }}>Projects ({profile.projects.length})</h4>
+          <div className="rounded-xl bg-white/40 border border-[#d0c8b8] overflow-hidden">
+            <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 gap-y-0 text-[10px] uppercase tracking-wider px-3 py-2 border-b border-[#d0c8b8]" style={{ color: '#a09888' }}>
               <span>Project</span><span>Area</span><span>Status</span><span>RERA</span>
             </div>
             {profile.projects.map((p, i) => (
-              <div key={i} className="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 gap-y-0 items-center px-3 py-2 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] transition-colors">
-                <span className="text-xs text-white/80 truncate">{p.project_name}</span>
-                <span className="text-[10px] text-white/50">{p.location_area || '—'}</span>
+              <div key={i} className="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 gap-y-0 items-center px-3 py-2 border-b border-[#d0c8b8]/50 last:border-0 hover:bg-[#e8e0d0]/30 transition-colors">
+                <span className="text-xs truncate" style={{ color: '#4a4a4a' }}>{p.project_name}</span>
+                <span className="text-[10px]" style={{ color: '#8a8a8a' }}>{p.location_area || '—'}</span>
                 <Badge variant={p.status === 'completed' ? 'success' : p.status === 'ongoing' ? 'info' : 'warning'} className="text-[8px]">
                   {p.status}
                 </Badge>
-                <span className="text-[9px] text-white/30 font-mono">{p.rera_number || '—'}</span>
+                <span className="text-[9px] font-mono" style={{ color: '#a09888' }}>{p.rera_number || '—'}</span>
               </div>
             ))}
           </div>
@@ -157,21 +150,21 @@ function BuilderDetailView({ slug, onBack }: { slug: string; onBack: () => void 
 
       {/* Review sentiment */}
       {(profile.common_complaints.length > 0 || profile.common_praise.length > 0) && (
-        <div className="rounded-xl bg-white/[0.03] p-4 space-y-3">
-          <h4 className="text-xs font-bold gradient-text uppercase tracking-widest">Reviews</h4>
+        <div className="rounded-xl bg-white/40 border border-[#d0c8b8] p-4 space-y-3">
+          <h4 className="text-xs font-bold uppercase tracking-widest" style={{ color: '#b91c1c' }}>Reviews</h4>
           {profile.common_praise.length > 0 && (
             <div>
-              <span className="text-[10px] text-brand-9 font-bold uppercase tracking-widest">Praise</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#15803d' }}>Praise</span>
               <div className="flex flex-wrap gap-1 mt-1">
-                {profile.common_praise.map(p => <Badge key={p} variant="success" className="text-[9px]">{p}</Badge>)}
+                {profile.common_praise.map(p => <Badge key={p} variant="success-light" className="text-[9px]">{p}</Badge>)}
               </div>
             </div>
           )}
           {profile.common_complaints.length > 0 && (
             <div>
-              <span className="text-[10px] text-red-400 font-bold uppercase tracking-widest">Complaints</span>
+              <span className="text-[10px] text-red-700 font-bold uppercase tracking-widest">Complaints</span>
               <div className="flex flex-wrap gap-1 mt-1">
-                {profile.common_complaints.map(c => <Badge key={c} variant="destructive" className="text-[9px]">{c}</Badge>)}
+                {profile.common_complaints.map(c => <Badge key={c} variant="destructive-light" className="text-[9px]">{c}</Badge>)}
               </div>
             </div>
           )}
@@ -181,7 +174,7 @@ function BuilderDetailView({ slug, onBack }: { slug: string; onBack: () => void 
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-2">
         <MetricCard label="On-Time" value={`${profile.on_time_delivery_pct}%`} />
-        <MetricCard label="Complaints" value={String(profile.complaints)} color={profile.complaints > 15 ? 'text-red-400' : 'text-white'} />
+        <MetricCard label="Complaints" value={String(profile.complaints)} color={profile.complaints > 15 ? 'text-red-700' : 'text-[#1a1a1a]'} />
         <MetricCard label="Projects" value={String(profile.rera_projects)} />
       </div>
     </div>
@@ -280,35 +273,22 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
     <div className="space-y-4">
       {/* Tab bar */}
       <div className="sticky top-12 z-10">
-      <div className="flex items-center gap-1 rounded-lg border border-white/[0.06] bg-white/[0.03] p-1 overflow-x-auto">
+      <div className="flex items-center gap-1 rounded-lg border border-[#d0c8b8] bg-white/40 p-1 overflow-x-auto" style={{ backdropFilter: 'blur(8px)' }}>
         {TABS.map(tab => {
           const isActive = activeTab === tab.id;
-          const grad = TAB_GRADIENTS[tab.id];
           const { Icon } = tab;
           return (
             <button
               key={tab.id}
               onClick={() => { setActiveTab(tab.id); setSelectedBuilderSlug(null); setLoadingTab(tab.id === 'claims' ? null : tab.id); }}
-              className="gradient-menu-item relative z-10 h-8 px-3 text-xs font-medium transition-all duration-500 rounded-md flex-shrink-0"
+              className="relative z-10 h-8 px-3 text-xs font-medium transition-all duration-300 rounded-md flex-shrink-0"
               style={{
-                background: isActive ? `linear-gradient(45deg, ${grad.from}, ${grad.to})` : undefined,
+                background: isActive ? '#1a1a1a' : undefined,
               }}
             >
-              {!isActive && (
-                <span
-                  className="absolute inset-0 rounded-md opacity-0 hover:opacity-100 transition-opacity duration-300"
-                  style={{ background: `linear-gradient(45deg, ${grad.from}, ${grad.to})` }}
-                />
-              )}
-              {isActive && (
-                <span
-                  className="absolute inset-0 rounded-md blur-[10px] opacity-40"
-                  style={{ background: `linear-gradient(45deg, ${grad.from}, ${grad.to})` }}
-                />
-              )}
-              <span className="relative flex items-center gap-1.5">
-                <Icon size={13} className={isActive ? 'text-white' : 'text-white/50'} />
-                <span className={isActive ? 'text-white' : 'text-white/60'}>{tab.label}</span>
+              <span className={`relative flex items-center gap-1.5 ${!isActive ? 'hover:opacity-80' : ''}`}>
+                <Icon size={13} style={{ color: isActive ? '#f5f0e8' : '#8a8a8a' }} />
+                <span style={{ color: isActive ? '#f5f0e8' : '#8a8a8a' }}>{tab.label}</span>
               </span>
             </button>
           );
@@ -328,8 +308,8 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
           {/* Loading state */}
           {loadingTab === activeTab && (
             <div className="flex items-center justify-center py-12">
-              <Loader2 size={20} className="animate-spin text-brand-9" />
-              <span className="ml-2 text-sm text-white/50">Loading {activeTab} data...</span>
+              <Loader2 size={20} className="animate-spin" style={{ color: '#b91c1c' }} />
+              <span className="ml-2 text-sm" style={{ color: '#8a8a8a' }}>Loading {activeTab} data...</span>
             </div>
           )}
 
@@ -357,10 +337,10 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
               >
                 <div className="flex items-center gap-3">
                   <Shield size={20} className={
-                    claimResults.some(r => r.verdict === 'MISLEADING' || r.verdict === 'SIGNIFICANTLY_MISLEADING') ? 'text-red-400' :
-                    claimResults.some(r => r.verdict === 'SLIGHTLY_MISLEADING') ? 'text-amber-400' : 'text-brand-9'
+                    claimResults.some(r => r.verdict === 'MISLEADING' || r.verdict === 'SIGNIFICANTLY_MISLEADING') ? 'text-red-700' :
+                    claimResults.some(r => r.verdict === 'SLIGHTLY_MISLEADING') ? 'text-amber-700' : 'text-emerald-700'
                   } />
-                  <span className="font-semibold text-foreground text-sm">{summary}</span>
+                  <span className="font-semibold text-sm" style={{ color: '#1a1a1a' }}>{summary}</span>
                 </div>
               </motion.div>
 
@@ -369,13 +349,13 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] p-5"
+                className="rounded-xl bg-white/40 border border-[#d0c8b8] p-5"
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles size={14} className="text-brand-9" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">AI Analysis</span>
+                  <Sparkles size={14} style={{ color: '#b91c1c' }} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#a09888' }}>AI Analysis</span>
                 </div>
-                <div className="text-sm text-white leading-relaxed whitespace-pre-line">
+                <div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: '#4a4a4a' }}>
                   {narrative || claimResults.map(c => {
                     const d = c.details;
                     return `"${c.original_claim}" — ${d.explanation || c.verdict.replace(/_/g, ' ').toLowerCase() + '.'}`;
@@ -392,10 +372,10 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
               >
                 {claimResults.map((c, i) => {
                   const verdictColor =
-                    c.verdict === 'ACCURATE' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                    c.verdict === 'SLIGHTLY_MISLEADING' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
-                    (c.verdict === 'MISLEADING' || c.verdict === 'SIGNIFICANTLY_MISLEADING') ? 'bg-red-500/10 border-red-500/20 text-red-400' :
-                    'bg-white/[0.04] border-white/[0.08] text-white/50';
+                    c.verdict === 'ACCURATE' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
+                    c.verdict === 'SLIGHTLY_MISLEADING' ? 'bg-amber-50 border-amber-200 text-amber-700' :
+                    (c.verdict === 'MISLEADING' || c.verdict === 'SIGNIFICANTLY_MISLEADING') ? 'bg-red-50 border-red-200 text-red-700' :
+                    'bg-[#e8e0d0] border-[#d0c8b8] text-[#8a8a8a]';
                   const icon = c.verdict === 'ACCURATE' ? '✓' :
                     c.verdict === 'SLIGHTLY_MISLEADING' ? '~' :
                     (c.verdict === 'MISLEADING' || c.verdict === 'SIGNIFICANTLY_MISLEADING') ? '✗' : '?';
@@ -430,20 +410,20 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] p-5"
+                      className="rounded-xl bg-white/40 border border-[#d0c8b8] p-5"
                     >
                       <div className="flex items-center gap-2 mb-3">
-                        <Sparkles size={14} className="text-brand-9" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Builder Landscape</span>
+                        <Sparkles size={14} style={{ color: '#b91c1c' }} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#a09888' }}>Builder Landscape</span>
                       </div>
-                      <p className="text-sm text-white/85 leading-relaxed">{buildersData.area_summary}</p>
+                      <p className="text-sm leading-relaxed" style={{ color: '#4a4a4a' }}>{buildersData.area_summary}</p>
                     </motion.div>
                   )}
 
                   {/* Red flags at the top */}
                   {allRedFlags.length > 0 && (
                     <div className="space-y-2">
-                      <h4 className="text-xs font-bold text-red-400 uppercase tracking-widest flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-red-700 uppercase tracking-widest flex items-center gap-1.5">
                         <AlertTriangle size={12} /> Red Flags ({allRedFlags.length})
                       </h4>
                       {allRedFlags.map((flag, i) => <RedFlagAlert key={i} flag={flag} />)}
@@ -475,7 +455,7 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
                     );
                   })}
                   {buildersData.total === 0 && !buildersData.area_summary && (
-                    <div className="text-center py-8 text-sm text-white/40">No builders found for this area</div>
+                    <div className="text-center py-8 text-sm" style={{ color: '#a09888' }}>No builders found for this area</div>
                   )}
                 </>
               ) : null}
@@ -496,7 +476,7 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
                       <MetricCard
                         label="YoY Growth"
                         value={`${Number((areaData.property_prices as Record<string, unknown>).yoy_growth_pct).toFixed(1)}%`}
-                        color={Number((areaData.property_prices as Record<string, unknown>).yoy_growth_pct) > 0 ? 'text-brand-9' : 'text-red-400'}
+                        color={Number((areaData.property_prices as Record<string, unknown>).yoy_growth_pct) > 0 ? 'text-emerald-700' : 'text-red-700'}
                       />
                     )}
                   </>
@@ -507,8 +487,8 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
 
               {/* Infrastructure timeline */}
               {areaData.infrastructure.length > 0 && (
-                <div className="rounded-xl bg-white/[0.03] p-4">
-                  <h4 className="text-xs font-bold gradient-text uppercase tracking-widest mb-3">Infrastructure Timeline</h4>
+                <div className="rounded-xl bg-white/40 border border-[#d0c8b8] p-4">
+                  <h4 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#b91c1c' }}>Infrastructure Timeline</h4>
                   <InfraTimeline projects={areaData.infrastructure} />
                 </div>
               )}
@@ -516,7 +496,7 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
               {/* Builders in area */}
               {areaData.builders.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-bold gradient-text uppercase tracking-widest mb-2">Builders in Area</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#b91c1c' }}>Builders in Area</h4>
                   <div className="space-y-2">
                     {areaData.builders.slice(0, 10).map((b, i) => (
                       <BuilderCard
@@ -551,28 +531,28 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
                   </div>
 
                   {/* Brief text */}
-                  <div className="rounded-xl bg-white/[0.03] p-4">
-                    <p className="text-sm text-white/85 leading-relaxed ai-response-md">{briefData.brief}</p>
+                  <div className="rounded-xl bg-white/40 border border-[#d0c8b8] p-4">
+                    <p className="text-sm leading-relaxed ai-response-md" style={{ color: '#4a4a4a' }}>{briefData.brief}</p>
                   </div>
 
                   {/* Strengths & Risks */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {briefData.key_strengths.length > 0 && (
-                      <div className="rounded-xl bg-brand-9/5 border border-brand-9/15 p-4">
-                        <h5 className="text-[10px] font-bold text-brand-9 uppercase tracking-widest mb-2">Key Strengths</h5>
+                      <div className="rounded-xl bg-emerald-50 border border-[#d0c8b8] p-4">
+                        <h5 className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-2">Key Strengths</h5>
                         <ul className="space-y-1.5">
                           {briefData.key_strengths.map((s, i) => (
-                            <li key={i} className="text-xs text-white/80 leading-relaxed pl-3 border-l-2 border-brand-9/30">{s}</li>
+                            <li key={i} className="text-xs leading-relaxed pl-3 border-l-2 border-emerald-300" style={{ color: '#4a4a4a' }}>{s}</li>
                           ))}
                         </ul>
                       </div>
                     )}
                     {briefData.key_risks.length > 0 && (
-                      <div className="rounded-xl bg-red-500/5 border border-red-500/15 p-4">
-                        <h5 className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">Key Risks</h5>
+                      <div className="rounded-xl bg-red-50 border border-[#d0c8b8] p-4">
+                        <h5 className="text-[10px] font-bold text-red-700 uppercase tracking-widest mb-2">Key Risks</h5>
                         <ul className="space-y-1.5">
                           {briefData.key_risks.map((r, i) => (
-                            <li key={i} className="text-xs text-white/80 leading-relaxed pl-3 border-l-2 border-red-400/30">{r}</li>
+                            <li key={i} className="text-xs leading-relaxed pl-3 border-l-2 border-red-300" style={{ color: '#4a4a4a' }}>{r}</li>
                           ))}
                         </ul>
                       </div>
@@ -581,16 +561,16 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
 
                   {/* Price assessment */}
                   {briefData.price_assessment && (
-                    <div className="rounded-xl bg-white/[0.03] p-4">
-                      <h5 className="text-[10px] font-bold gradient-text uppercase tracking-widest mb-1">Price Assessment</h5>
-                      <p className="text-sm text-white/80">{briefData.price_assessment}</p>
+                    <div className="rounded-xl bg-white/40 border border-[#d0c8b8] p-4">
+                      <h5 className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#b91c1c' }}>Price Assessment</h5>
+                      <p className="text-sm" style={{ color: '#4a4a4a' }}>{briefData.price_assessment}</p>
                     </div>
                   )}
                 </>
               ) : !loadingTab && (
                 <div className="text-center py-8">
-                  <Sparkles size={32} className="text-brand-9/30 mx-auto mb-2" />
-                  <p className="text-sm text-white/50">AI brief unavailable for this location</p>
+                  <Sparkles size={32} className="mx-auto mb-2" style={{ color: 'rgba(185,28,28,0.3)' }} />
+                  <p className="text-sm" style={{ color: '#8a8a8a' }}>AI brief unavailable for this location</p>
                 </div>
               )}
             </div>
@@ -598,7 +578,7 @@ export default function PropertyIntelligencePanel({ address, latitude, longitude
         </motion.div>
       </AnimatePresence>
 
-      <p className="text-[10px] text-white/40 text-center">
+      <p className="text-[10px] text-center" style={{ color: '#a09888' }}>
         Data: RERA Karnataka, MCA, Consumer Courts, Google Maps APIs, PostGIS spatial queries
       </p>
     </div>

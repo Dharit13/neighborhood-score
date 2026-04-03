@@ -27,7 +27,7 @@ export default function InfraTimeline({ projects }: Props) {
 
   if (projects.length === 0) {
     return (
-      <div className="text-center py-6 text-sm text-white/40">No infrastructure projects found</div>
+      <div className="text-center py-6 text-sm" style={{ color: '#a09888' }}>No infrastructure projects found</div>
     );
   }
 
@@ -59,8 +59,8 @@ export default function InfraTimeline({ projects }: Props) {
         {Array.from({ length: span + 1 }, (_, i) => minYear + i).map(year => (
           <span
             key={year}
-            className="absolute text-[9px] text-white/30 font-mono -translate-x-1/2"
-            style={{ left: `${yearToPercent(year)}%` }}
+            className="absolute text-[9px] font-mono -translate-x-1/2"
+            style={{ color: '#a09888', left: `${yearToPercent(year)}%` }}
           >
             {year}
           </span>
@@ -84,12 +84,12 @@ export default function InfraTimeline({ projects }: Props) {
           >
             <div className="flex items-center gap-2 mb-1">
               <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-              <span className="text-[11px] text-white/80 truncate flex-1">{project.name}</span>
-              <Badge variant="mono" className="text-[8px] flex-shrink-0">{project.type}</Badge>
-              <span className="text-[10px] font-mono text-white/40">{project.completion_percentage}%</span>
+              <span className="text-[11px] truncate flex-1" style={{ color: '#4a4a4a' }}>{project.name}</span>
+              <Badge variant="mono-light" className="text-[8px] flex-shrink-0">{project.type}</Badge>
+              <span className="text-[10px] font-mono" style={{ color: '#a09888' }}>{project.completion_percentage}%</span>
             </div>
 
-            <div className="relative h-4 bg-white/[0.04] rounded-full overflow-hidden">
+            <div className="relative h-4 rounded-full overflow-hidden" style={{ background: 'rgba(208,200,184,0.4)' }}>
               {/* Completion fill */}
               <motion.div
                 className="absolute top-0 left-0 h-full rounded-full opacity-30"
@@ -102,8 +102,8 @@ export default function InfraTimeline({ projects }: Props) {
               {/* Official ETA marker */}
               {offYear && (
                 <div
-                  className="absolute top-0 h-full w-0.5 border-l border-dashed border-white/30"
-                  style={{ left: `${yearToPercent(offYear)}%` }}
+                  className="absolute top-0 h-full w-0.5 border-l border-dashed"
+                  style={{ borderColor: '#a09888', left: `${yearToPercent(offYear)}%` }}
                   title={`Official: ${project.official_completion_date}`}
                 />
               )}
@@ -130,20 +130,20 @@ export default function InfraTimeline({ projects }: Props) {
               <motion.div
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute z-10 top-full mt-1 left-0 right-0 rounded-lg bg-black/90 backdrop-blur-md border border-white/[0.12] p-3 text-xs space-y-1"
+                className="absolute z-10 top-full mt-1 left-0 right-0 rounded-lg bg-[#faf7f0] border border-[#a09888] shadow-lg p-3 text-xs space-y-1"
               >
-                <p className="text-white font-semibold">{project.name}</p>
-                <p className="text-white/60">{project.current_status}</p>
-                {project.route_description && <p className="text-white/50">{project.route_description}</p>}
-                <div className="flex gap-3 text-white/50">
+                <p className="font-semibold" style={{ color: '#1a1a1a' }}>{project.name}</p>
+                <p style={{ color: '#8a8a8a' }}>{project.current_status}</p>
+                {project.route_description && <p style={{ color: '#8a8a8a' }}>{project.route_description}</p>}
+                <div className="flex gap-3" style={{ color: '#8a8a8a' }}>
                   {project.official_completion_date && <span>Official: {project.official_completion_date}</span>}
                   {project.realistic_completion_date_low && <span>Realistic: {project.realistic_completion_date_low} — {project.realistic_completion_date_high}</span>}
                 </div>
                 {project.prediction_confidence && (
-                  <Badge variant="mono" className="text-[8px]">Confidence: {project.prediction_confidence}</Badge>
+                  <Badge variant="mono-light" className="text-[8px]">Confidence: {project.prediction_confidence}</Badge>
                 )}
                 {project.delay_multiplier && project.delay_multiplier > 1 && (
-                  <span className="text-amber-400 text-[10px]">{project.delay_multiplier}x typical delay</span>
+                  <span className="text-amber-700 text-[10px]">{project.delay_multiplier}x typical delay</span>
                 )}
               </motion.div>
             )}
@@ -151,9 +151,9 @@ export default function InfraTimeline({ projects }: Props) {
         );
       })}
 
-      <div className="flex items-center gap-4 pt-2 text-[9px] text-white/30">
-        <span className="flex items-center gap-1"><span className="inline-block w-3 h-0.5 border-t border-dashed border-white/30" /> Official ETA</span>
-        <span className="flex items-center gap-1"><span className="inline-block w-3 h-2 rounded-sm bg-white/20" /> Realistic range</span>
+      <div className="flex items-center gap-4 pt-2 text-[9px]" style={{ color: '#a09888' }}>
+        <span className="flex items-center gap-1"><span className="inline-block w-3 h-0.5 border-t border-dashed" style={{ borderColor: '#a09888' }} /> Official ETA</span>
+        <span className="flex items-center gap-1"><span className="inline-block w-3 h-2 rounded-sm" style={{ background: 'rgba(160,152,136,0.4)' }} /> Realistic range</span>
       </div>
     </div>
   );

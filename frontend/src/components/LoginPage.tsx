@@ -9,6 +9,12 @@ interface CityData {
   img: string;
 }
 
+const CITY_IMAGES: Record<string, string> = {
+  Bengaluru: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?w=1920&h=1080&fit=crop&q=60',
+  Mumbai: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=1920&h=1080&fit=crop&q=60',
+  Delhi: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=1920&h=1080&fit=crop&q=60',
+};
+
 const CITIES: CityData[] = [
   {
     name: 'Bengaluru',
@@ -255,13 +261,26 @@ export default function LoginPage() {
     await loginWithGoogle();
   };
 
+  const bgImage = CITY_IMAGES[selectedCity ?? 'Bengaluru'] ?? CITY_IMAGES['Bengaluru'];
+
   return (
     <section
       id="login-section"
-      className="h-screen w-full flex select-none relative"
+      className="h-screen w-full flex select-none relative overflow-hidden"
     >
+      {/* City background image — low opacity */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src={bgImage}
+          alt=""
+          className="w-full h-full object-cover transition-opacity duration-700"
+          style={{ opacity: 0.08 }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+      </div>
+
       {/* Left: Vertical City Card Stack */}
-      <div className="flex-1 flex items-center justify-end pr-24 relative overflow-hidden">
+      <div className="flex-1 flex items-center justify-end pr-24 relative overflow-hidden z-10">
         {/* Ambient glow */}
         <div
           className="absolute top-1/2 left-1/2 w-[600px] h-[600px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
@@ -303,7 +322,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right: Sign-In Form */}
-      <div className="flex-1 flex items-center justify-start pl-12 relative">
+      <div className="flex-1 flex items-center justify-start pl-12 relative z-10">
         {/* Vertical divider */}
         <div
           className="absolute left-0 top-[10%] bottom-[10%] w-px"
