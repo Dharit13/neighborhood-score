@@ -647,10 +647,12 @@ function App() {
             </p>
           </div>
           <div className="flex-shrink-0 flex items-center gap-3 pb-1">
-            <div className="w-full max-w-md">
+            <div className="flex-1 min-w-0 max-w-md">
               <CompactSearch onSearch={handleSearch} loading={loading} address={data?.address || ''} />
             </div>
-            <MorphPanel neighborhoodName={data ? readableAddress(data.address).split(',')[0] : undefined} />
+            <div className="flex-shrink-0">
+              <MorphPanel neighborhoodName={data ? readableAddress(data.address).split(',')[0] : undefined} />
+            </div>
           </div>
         </div>
 
