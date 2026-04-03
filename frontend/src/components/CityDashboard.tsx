@@ -266,7 +266,11 @@ export default function CityDashboard() {
                 <span>{timeAgo(leadArticle.published)}</span>
               </div>
             </a>
-          ) : <p className="text-sm italic" style={{ color: INK_FAINT }}>No stories available</p>}
+          ) : (
+            <div className="py-12 text-center">
+              <p className="text-sm" style={{ color: INK_FAINT }}>No recent stories available</p>
+            </div>
+          )}
 
           {/* Secondary stories */}
           {secondaryArticles.length > 0 && (

@@ -2,7 +2,9 @@
 
 import logging
 import time
+from datetime import UTC, datetime
 from difflib import SequenceMatcher
+from email.utils import parsedate_to_datetime
 
 import feedparser
 import httpx
@@ -127,15 +129,30 @@ NEWS_CATEGORIES = [
 ]
 
 
+MAX_ARTICLE_AGE_DAYS = 14  # Discard articles older than this
+
+
 def _get_feeds(city: str) -> list[tuple[str, str]]:
     """Return (feed_url, category) pairs for all categories."""
     feeds: list[tuple[str, str]] = [
-        (f"https://news.google.com/rss/search?q={city}&hl=en-IN&gl=IN&ceid=IN:en", "General"),
+        (f"https://news.google.com/rss/search?q={city}+when:7d&hl=en-IN&gl=IN&ceid=IN:en", "General"),
     ]
     for category, keywords in NEWS_CATEGORIES:
-        url = f"https://news.google.com/rss/search?q={city}+{keywords}&hl=en-IN&gl=IN&ceid=IN:en"
+        url = f"https://news.google.com/rss/search?q={city}+{keywords}+when:7d&hl=en-IN&gl=IN&ceid=IN:en"
         feeds.append((url, category))
     return feeds
+
+
+def _is_recent(published: str) -> bool:
+    """Return True if the article was published within MAX_ARTICLE_AGE_DAYS."""
+    if not published:
+        return False
+    try:
+        pub_dt = parsedate_to_datetime(published)
+        age = datetime.now(UTC) - pub_dt
+        return age.days <= MAX_ARTICLE_AGE_DAYS
+    except Exception:
+        return False
 
 
 def _deduplicate(articles: list[dict], threshold: float = 0.75) -> list[dict]:
@@ -197,7 +214,8 @@ async def get_news(city: str = Query(..., min_length=1), _user: dict = Depends(r
                 logger.warning("Failed to fetch RSS feed: %s", feed_url, exc_info=True)
                 continue
 
-    # Sort by published date (newest first), deduplicate, take top 40
+    # Filter out old articles, sort by published date (newest first), deduplicate, take top 40
+    all_articles = [a for a in all_articles if _is_recent(a["published"])]
     all_articles.sort(key=lambda a: a["published"], reverse=True)
     articles = _deduplicate(all_articles)[:40]
 

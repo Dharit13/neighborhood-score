@@ -566,10 +566,12 @@ function App() {
             animate={{ opacity: 1, transition: { duration: 0.4, delay: 0.1 } }}
           >
 
-      {/* AI chat panel — fixed above bottom nav */}
-      <div className="fixed bottom-20 right-6 z-50">
-        <MorphPanel neighborhoodName={data ? readableAddress(data.address).split(',')[0] : undefined} />
-      </div>
+      {/* AI chat panel — only visible on Explore section */}
+      {appMode === 'score' && (
+        <div className="fixed bottom-20 right-6 z-50">
+          <MorphPanel neighborhoodName={data ? readableAddress(data.address).split(',')[0] : undefined} />
+        </div>
+      )}
 
       {/* Bottom floating nav (Framer University style) */}
       <motion.nav
@@ -718,8 +720,8 @@ function App() {
       </section>
 
       {/* Verify */}
-      <section id="verify-section" className="min-h-screen relative z-10" style={{ background: '#f5f0e8' }}>
-        <div className="px-8 lg:px-12 pt-10 pb-4 relative z-10">
+      <section id="verify-section" className="min-h-screen relative z-10 overflow-hidden" style={{ background: '#f5f0e8' }}>
+        <div className="sticky top-0 z-20 px-8 lg:px-12 pt-10 pb-4" style={{ background: '#f5f0e8' }}>
           <h1 className="text-[48px] sm:text-[64px] lg:text-[80px] font-bold leading-[0.92] tracking-tight text-neutral-900">
             VERIFY
           </h1>

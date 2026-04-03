@@ -227,7 +227,7 @@ export default function VerifyClaims() {
         {/* Loading */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-12">
-            <TetrisLoading size="sm" speed="fast" loadingText="Analyzing & verifying claims..." />
+            <TetrisLoading size="sm" speed="fast" variant="light" loadingText="Analyzing & verifying claims..." />
             <p className="text-xs mt-2" style={{ color: '#8a8a8a' }}>AI is extracting claims, resolving landmarks & checking real commute data</p>
           </div>
         )}
@@ -237,34 +237,36 @@ export default function VerifyClaims() {
           <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-red-700 text-sm">{error}</div>
         )}
 
-        {/* Results — full intelligence panel */}
+        {/* Results — claims summary (sticky) + intelligence panel (scrollable) */}
         {result && !loading && (
-          <ScrollReveal3D rotateX={-8} delay={0.1}>
-          <div className="space-y-4">
-            <div className="rounded-xl bg-white/40 border border-[#d0c8b8] px-6 py-3 space-y-2">
-              <p className="text-sm" style={{ color: '#8a8a8a' }}>
-                Checking claims for: <span className="font-medium" style={{ color: '#1a1a1a' }}>{result.address}</span>
-              </p>
-              {result.extracted_claims && result.extracted_claims.length > 1 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className="text-xs" style={{ color: '#a09888' }}>AI extracted {result.extracted_claims.length} claims:</span>
-                  {result.extracted_claims.map((c, i) => (
-                    <span key={i} className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#e8e0d0', color: '#4a4a4a' }}>{c}</span>
-                  ))}
-                </div>
-              )}
+          <>
+            <div className="sticky top-[280px] z-10 pb-3" style={{ background: '#f5f0e8' }}>
+              <div className="rounded-xl bg-white/40 border border-[#d0c8b8] px-6 py-3 space-y-2">
+                <p className="text-sm" style={{ color: '#8a8a8a' }}>
+                  Checking claims for: <span className="font-medium" style={{ color: '#1a1a1a' }}>{result.address}</span>
+                </p>
+                {result.extracted_claims && result.extracted_claims.length > 1 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <span className="text-xs" style={{ color: '#a09888' }}>AI extracted {result.extracted_claims.length} claims:</span>
+                    {result.extracted_claims.map((c, i) => (
+                      <span key={i} className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#e8e0d0', color: '#4a4a4a' }}>{c}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <PropertyIntelligencePanel
-              address={result.address}
-              latitude={result.latitude}
-              longitude={result.longitude}
-              claimResults={result.results}
-              summary={result.summary}
-              narrative={result.narrative}
-            />
-          </div>
-          </ScrollReveal3D>
+            <ScrollReveal3D rotateX={-8} delay={0.1}>
+              <PropertyIntelligencePanel
+                address={result.address}
+                latitude={result.latitude}
+                longitude={result.longitude}
+                claimResults={result.results}
+                summary={result.summary}
+                narrative={result.narrative}
+              />
+            </ScrollReveal3D>
+          </>
         )}
 
         {/* Empty state */}

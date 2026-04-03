@@ -457,7 +457,7 @@ export default function CompareMode() {
       {/* Loading */}
       {step === 4 && loading && (
         <div className="flex flex-col items-center justify-center py-12">
-          <TetrisLoading size="sm" speed="fast" loadingText="AI is finding your ideal neighborhoods..." />
+          <TetrisLoading size="sm" speed="fast" variant="compare" loadingText="AI is finding your ideal neighborhoods..." />
           <p className="text-xs text-white/60 mt-2">Analyzing 74 neighborhoods across 17 dimensions</p>
         </div>
       )}

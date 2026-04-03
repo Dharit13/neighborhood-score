@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 
-const TETRIS_PIECES = [
+const TETRIS_PIECES_DARK = [
   { shape: [[1, 1, 1, 1]], color: 'bg-brand-1' },
   { shape: [[1, 1], [1, 1]], color: 'bg-brand-9' },
   { shape: [[0, 1, 0], [1, 1, 1]], color: 'bg-brand-5' },
@@ -10,6 +10,27 @@ const TETRIS_PIECES = [
   { shape: [[0, 1, 1], [1, 1, 0]], color: 'bg-brand-7' },
   { shape: [[1, 1, 0], [0, 1, 1]], color: 'bg-brand-8' },
   { shape: [[0, 1], [0, 1], [1, 1]], color: 'bg-brand-2' },
+]
+
+const TETRIS_PIECES_LIGHT = [
+  { shape: [[1, 1, 1, 1]], color: 'bg-[#b91c1c]' },
+  { shape: [[1, 1], [1, 1]], color: 'bg-[#1a1a1a]' },
+  { shape: [[0, 1, 0], [1, 1, 1]], color: 'bg-[#a09888]' },
+  { shape: [[1, 0], [1, 0], [1, 1]], color: 'bg-[#8a8a8a]' },
+  { shape: [[0, 1, 1], [1, 1, 0]], color: 'bg-[#d0c8b8]' },
+  { shape: [[1, 1, 0], [0, 1, 1]], color: 'bg-[#4a4a4a]' },
+  { shape: [[0, 1], [0, 1], [1, 1]], color: 'bg-[#b91c1c]/70' },
+]
+
+// Compare section uses indigo/blue palette
+const TETRIS_PIECES_COMPARE = [
+  { shape: [[1, 1, 1, 1]], color: 'bg-indigo-500' },
+  { shape: [[1, 1], [1, 1]], color: 'bg-blue-400' },
+  { shape: [[0, 1, 0], [1, 1, 1]], color: 'bg-indigo-400' },
+  { shape: [[1, 0], [1, 0], [1, 1]], color: 'bg-violet-500' },
+  { shape: [[0, 1, 1], [1, 1, 0]], color: 'bg-blue-500' },
+  { shape: [[1, 1, 0], [0, 1, 1]], color: 'bg-indigo-300' },
+  { shape: [[0, 1], [0, 1], [1, 1]], color: 'bg-violet-400' },
 ]
 
 interface Cell {
@@ -30,14 +51,18 @@ export interface TetrisLoadingProps {
   speed?: 'slow' | 'normal' | 'fast'
   showLoadingText?: boolean
   loadingText?: string
+  variant?: 'dark' | 'light' | 'compare'
 }
 
-export default function TetrisLoading({ 
-  size = 'md', 
+export default function TetrisLoading({
+  size = 'md',
   speed = 'normal',
   showLoadingText = true,
-  loadingText = 'Loading...'
+  loadingText = 'Loading...',
+  variant = 'dark',
 }: TetrisLoadingProps) {
+  const pieces = variant === 'light' ? TETRIS_PIECES_LIGHT : variant === 'compare' ? TETRIS_PIECES_COMPARE : TETRIS_PIECES_DARK
+  const isLight = variant === 'light'
   const sizeConfig = {
     sm: { cellSize: 'w-2 h-2', gridWidth: 8, gridHeight: 16, padding: 'p-0.5' },
     md: { cellSize: 'w-3 h-3', gridWidth: 10, gridHeight: 20, padding: 'p-1' },
@@ -78,7 +103,7 @@ export default function TetrisLoading({
   }, [])
 
   const createNewPiece = useCallback((): FallingPiece => {
-    const pieceData = TETRIS_PIECES[Math.floor(Math.random() * TETRIS_PIECES.length)]
+    const pieceData = pieces[Math.floor(Math.random() * pieces.length)]
     let shape = pieceData.shape
     
     const rotations = Math.floor(Math.random() * 4)
@@ -96,7 +121,7 @@ export default function TetrisLoading({
       y: -shape.length,
       id: Math.random().toString(36).substr(2, 9),
     }
-  }, [rotateShape, config.gridWidth])
+  }, [rotateShape, config.gridWidth, pieces])
 
   const canPlacePiece = useCallback((piece: FallingPiece, newX: number, newY: number): boolean => {
     for (let row = 0; row < piece.shape.length; row++) {
@@ -254,10 +279,12 @@ export default function TetrisLoading({
         {row.map((cell, colIndex) => (
           <div
             key={`${rowIndex}-${colIndex}`}
-            className={`${config.cellSize} border border-white/[0.06] transition-all duration-100 ${
-              cell.filled 
-                ? `${cell.color} scale-100` 
-                : 'bg-white/[0.04] scale-95'
+            className={`${config.cellSize} border transition-all duration-100 ${
+              isLight ? 'border-[#d0c8b8]/40' : 'border-white/[0.06]'
+            } ${
+              cell.filled
+                ? `${cell.color} scale-100`
+                : isLight ? 'bg-[#e8e0d0]/30 scale-95' : 'bg-white/[0.04] scale-95'
             } ${isClearing && rowIndex < 4 ? 'animate-pulse' : ''}`}
           />
         ))}
@@ -268,13 +295,15 @@ export default function TetrisLoading({
   return (
     <div className="flex flex-col items-center">
       <div className="mb-4">
-        <div className={`inline-block border border-white/[0.10] bg-black/70 backdrop-blur-md rounded-xl ${config.padding} transition-colors`}>
+        <div className={`inline-block border backdrop-blur-md rounded-xl ${config.padding} transition-colors ${
+          isLight ? 'border-[#d0c8b8] bg-white/40' : 'border-white/[0.10] bg-black/70'
+        }`}>
           {renderGrid()}
         </div>
       </div>
 
       {showLoadingText && (
-        <p className="text-white/70 font-medium text-sm transition-colors">{loadingText}</p>
+        <p className={`font-medium text-sm transition-colors ${isLight ? 'text-[#4a4a4a]' : 'text-white/70'}`}>{loadingText}</p>
       )}
     </div>
   )
