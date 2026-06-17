@@ -1,0 +1,49 @@
+{
+  "source": "OpenStreetMap geocoding and neighborhood analysis",
+  "updated": "2026-06",
+  "city": "Portland, OR, USA",
+  "areas": [
+    {
+      "name": "Nob Hill / Northwest District",
+      "slug": "nob-hill-northwest-district",
+      "latitude": 45.53177,
+      "longitude": -122.69857,
+      "postcode": "97210",
+      "county": "Multnomah County",
+      "state": "Oregon",
+      "country": "United States",
+      "avg_price_per_sqft": 450,
+      "price_yoy_change_pct": 4.5,
+      "rental_yield_pct": 4.8,
+      "affordability_label": "Expensive"
+    },
+    {
+      "name": "Pearl District",
+      "slug": "pearl-district",
+      "latitude": 45.524,
+      "longitude": -122.682,
+      "postcode": "97209",
+      "county": "Multnomah County",
+      "state": "Oregon",
+      "country": "United States",
+      "avg_price_per_sqft": 520,
+      "price_yoy_change_pct": 5.2,
+      "rental_yield_pct": 4.2,
+      "affordability_label": "Very Expensive"
+    },
+    {
+      "name": "Slabtown",
+      "slug": "slabtown",
+      "latitude": 45.535,
+      "longitude": -122.695,
+      "postcode": "97209",
+      "county": "Multnomah County",
+      "state": "Oregon",
+      "country": "United States",
+      "avg_price_per_sqft": 430,
+      "price_yoy_change_pct": 6.1,
+      "rental_yield_pct": 5.0,
+      "affordability_label": "Expensive"
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "source": "OpenStreetMap neighborhood analysis (1km radius)",
+  "updated": "2026-06",
+  "city": "Portland, OR, USA",
+  "profiles": [
+    {
+      "name": "Nob Hill / Northwest District",
+      "slug": "nob-hill-northwest-district",
+      "latitude": 45.53177,
+      "longitude": -122.69857,
+      "postcode": "97210",
+      "address": "1234 NW 23rd Avenue, Portland, OR 97210",
+      "analysis_radius_m": 1000,
+      "scores": {
+        "overall": 7.0,
+        "walkability": 10,
+        "categories": {
+          "groceries": 7.1,
+          "restaurants": 9.8,
+          "healthcare": 9.8,
+          "education": 2.9,
+          "public_transport": 9.4,
+          "parks": 4.3,
+          "sports": 8.7,
+          "entertainment": 0,
+          "shopping": 8.8,
+          "services": 8.8
+        }
+      },
+      "categories": {
+        "groceries": {
+          "count": 3,
+          "avg_distance_m": 667.6,
+          "min_distance_m": 172.8,
+          "notable": [
+            {"name": "Lovejoy Grocery", "type": "convenience", "distance_m": 172.8, "address": "1025 NW 23rd Ave"},
+            {"name": "Natural Mart #3", "type": "convenience", "distance_m": 875.2, "address": "522 NW 19th Ave"},
+            {"name": "Zupan's", "type": "supermarket", "distance_m": 954.9, "address": "2340 W Burnside St"}
+          ]
+        },
+        "restaurants": {
+          "count": 89,
+          "avg_distance_m": 543.0,
+          "min_distance_m": 42.2,
+          "notable": [
+            {"name": "Tara Thai Northwest", "cuisine": "thai;lao", "distance_m": 42.2, "address": "1310 NW 23rd Ave"},
+            {"name": "Top Burmese Burma Joy", "cuisine": "burmese;asian", "distance_m": 46.8, "address": "1305 NW 23rd Ave"},
+            {"name": "Siri Indian Cuisine", "cuisine": "indian", "distance_m": 68.6, "address": "1323 NW 23rd Ave"},
+            {"name": "Case Study Coffee Roasters", "cuisine": "coffee_shop", "distance_m": 114.1, "address": "1400 NW 23rd Ave"},
+            {"name": "Palomar", "cuisine": "spanish", "distance_m": 143.1, "address": "1422 NW 23rd Ave"},
+            {"name": "Dorio Greek Taverna", "cuisine": "greek", "distance_m": 158.1, "address": "1037 NW 23rd Ave"},
+            {"name": "Matador", "cuisine": "mexican", "distance_m": 162.6, "address": "1438 NW 23rd Ave"},
+            {"name": "Bibi 2 Go", "cuisine": "korean", "distance_m": 181.2, "address": "1019 NW 23rd Ave"},
+            {"name": "Grassa", "cuisine": "italian", "distance_m": 188.4, "address": "1506 NW 23rd Ave"},
+            {"name": "Hem 23 Vietnamese Bar & Grill", "cuisine": "vietnamese", "distance_m": 206.5, "address": "1514 NW 23rd Ave"}
+          ]
+        },
+        "healthcare": {
+          "count": 6,
+          "avg_distance_m": 673.6,
+          "min_distance_m": 37.8,
+          "notable": [
+            {"name": "Walgreens Pharmacy", "type": "pharmacy", "distance_m": 37.8, "address": "1215 NW 23rd Ave"},
+            {"name": "Integrative Primary Care Associates", "type": "doctors", "distance_m": 452.4, "address": "2050 NW Lovejoy St"},
+            {"name": "James P. Thomas, MD", "type": "doctors", "distance_m": 727.4, "address": "909 NW 18th Ave"},
+            {"name": "Walgreens Pharmacy", "type": "pharmacy", "distance_m": 917.7, "address": "2103 W Burnside St"},
+            {"name": "Fred Meyer Pharmacy", "type": "pharmacy", "distance_m": 922.1, "address": "100 NW 20th Place"},
+            {"name": "Portland Dermatology Clinic", "type": "doctors", "distance_m": 984.5, "address": "1414 NW Northrup St #600"}
+          ]
+        },
+        "education": {
+          "count": 2,
+          "avg_distance_m": 853.3,
+          "min_distance_m": 816.2,
+          "notable": [
+            {"name": "Bridges Middle School", "type": "school", "distance_m": 816.2, "address": "1638 NW Overton St"},
+            {"name": "Class Academy", "type": "school", "distance_m": 890.4, "address": "2730 NW Wardway St"}
+          ]
+        },
+        "public_transport": {
+          "count": 8,
+          "avg_distance_m": 352.2,
+          "min_distance_m": 128.2,
+          "notable": [
+            {"name": "NW 23rd & Marshall", "type": "bus+streetcar", "distance_m": 128.2, "network": "TriMet"},
+            {"name": "NW Northrup & 22nd", "type": "streetcar", "distance_m": 173.3, "network": "Portland Streetcar"},
+            {"name": "NW Lovejoy & 22nd", "type": "streetcar", "distance_m": 255.9, "network": "Portland Streetcar"},
+            {"name": "NW Northrup & 21st", "type": "streetcar", "distance_m": 323.1, "network": "Portland Streetcar"},
+            {"name": "NW Lovejoy & 21st", "type": "streetcar", "distance_m": 369.3, "network": "Portland Streetcar"},
+            {"name": "NW Northrup & 18th", "type": "streetcar", "distance_m": 714.1, "network": "Portland Streetcar"},
+            {"name": "NW Lovejoy & 18th", "type": "streetcar", "distance_m": 725.7, "network": "Portland Streetcar"}
+          ]
+        },
+        "parks": {
+          "count": 3,
+          "avg_distance_m": 881.1,
+          "min_distance_m": 732.4,
+          "notable": [
+            {"name": "Playground (private)", "type": "playground", "distance_m": 732.4},
+            {"name": "Covered Playground (private)", "type": "playground", "distance_m": 937.1},
+            {"name": "Playground", "type": "playground", "distance_m": 973.8}
+          ]
+        },
+        "sports": {
+          "count": 11,
+          "avg_distance_m": 809.7,
+          "min_distance_m": 260.2,
+          "notable": [
+            {"name": "YogaSix", "type": "yoga", "distance_m": 260.2, "address": "1516 NW 22nd Ave"},
+            {"name": "Orangetheory Fitness", "type": "fitness_centre", "distance_m": 318.4, "address": "2195 NW Raleigh St"},
+            {"name": "MLC Pool", "type": "swimming_pool", "distance_m": 709.2, "operator": "City of Portland"},
+            {"name": "Industrial Strength Gym", "type": "fitness_centre", "distance_m": 780.5},
+            {"name": "LA Fitness", "type": "fitness_centre", "distance_m": 1002.6, "address": "1400 NW Northrup St"}
+          ]
+        },
+        "shopping": {
+          "count": 16,
+          "avg_distance_m": 565.9,
+          "min_distance_m": 241.4,
+          "notable": [
+            {"name": "Title Nine", "type": "clothes", "distance_m": 241.4, "address": "944 NW 23rd Ave"},
+            {"name": "Faherty", "type": "clothes", "distance_m": 250.0},
+            {"name": "Marine Layer", "type": "clothes", "distance_m": 328.1, "address": "828 NW 23rd Ave"},
+            {"name": "Cotopaxi", "type": "clothes", "distance_m": 346.1, "address": "816 NW 23rd Ave"},
+            {"name": "Arc'teryx", "type": "clothes", "distance_m": 521.5, "address": "605 NW 23rd Ave"},
+            {"name": "prAna", "type": "clothes", "distance_m": 471.9, "address": "635 NW 23rd Ave"}
+          ]
+        },
+        "services": {
+          "count": 14,
+          "avg_distance_m": 728.9,
+          "min_distance_m": 235.4,
+          "notable": [
+            {"name": "BMO", "type": "bank", "distance_m": 235.4, "address": "950 NW 23rd Ave"},
+            {"name": "Wells Fargo ATM", "type": "atm", "distance_m": 267.1},
+            {"name": "Consolidated Community Credit Union", "type": "bank", "distance_m": 364.8, "address": "1535 NW 21st Ave"},
+            {"name": "River District Post Office", "type": "post_office", "distance_m": 747.0, "address": "2017 NW Vaughn St"},
+            {"name": "KeyBank", "type": "bank", "distance_m": 799.9, "address": "2310 NW Everett St"}
+          ]
+        },
+        "entertainment": {
+          "count": 0,
+          "avg_distance_m": null,
+          "min_distance_m": null,
+          "notable": []
+        }
+      },
+      "highlights": {
+        "best_for": "Dining, shopping, and walkability — one of Portland's most walkable neighborhoods",
+        "top_features": [
+          "89 restaurants within 1km (42m to the nearest)",
+          "Perfect 10/10 walkability score",
+          "Portland Streetcar stops within 128m",
+          "16 clothing/boutique shops on NW 23rd Ave",
+          "6 healthcare facilities including pharmacy 38m away",
+          "11 fitness/sports centers nearby"
+        ],
+        "weaknesses": [
+          "Limited public parks and green spaces",
+          "Few schools within walking distance",
+          "No entertainment venues in immediate radius"
+        ]
+      }
+    }
+  ]
+}
